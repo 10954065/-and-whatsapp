@@ -71,8 +71,8 @@ Rules enforced by convention and review:
 * Extensions: `vector` (pgvector, knowledge embeddings), `btree_gist` (booking
   exclusion constraint), `pg_trgm` (fuzzy customer search).
 * Money is stored as integer **minor units** (pesewas for GHS) plus an ISO currency.
-* All timestamps are stored in UTC (`timestamptz`); business-local presentation uses the
-  business IANA timezone (default `Africa/Accra`).
+* All timestamps are stored as UTC `TIMESTAMP(3)` (Prisma's default mapping); business-local
+  presentation and booking logic use the business IANA timezone (default `Africa/Accra`).
 
 ## 4. Multi-tenancy and authorisation
 
