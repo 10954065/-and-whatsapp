@@ -2,9 +2,11 @@ import { z } from "zod";
 import type { ActorType, OrderStatus, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { withTenantTx, type TenantTx } from "@/lib/db/tenant";
+import { formatMoney } from "@/lib/format";
 import type { TenantActor } from "@/lib/auth/tenant";
 import { AppError, fail } from "@/lib/monitoring/errors";
 import { recordAudit } from "@/modules/administration/audit.service";
+import { notifyTeam } from "@/modules/notifications/notification.service";
 import { emitWorkflowEvent } from "@/modules/workflows/workflow.engine";
 
 const money = z.coerce.number().min(0).max(10_000_000).transform((value) => Math.round(value * 100));
@@ -48,7 +50,7 @@ export async function createProduct(actor: TenantActor, input: z.infer<typeof pr
 /** Atomic stock change with a ledger entry; never lets stock go below zero. */
 export async function adjustStock(actor: TenantActor, variantId: string, delta: number, reason: string) {
   if (!Number.isInteger(delta) || delta === 0) throw fail.validation("Enter a whole number other than zero.");
-  return withTenantTx(actor.businessId, async (tx) => {
+  const balance = await withTenantTx(actor.businessId, async (tx) => {
     const rows = await tx.$queryRaw<{ stockQuantity: number }[]>`
       UPDATE "ProductVariant" SET "stockQuantity" = "stockQuantity" + ${delta}, "updatedAt" = now()
       WHERE "id" = ${variantId} AND "businessId" = ${actor.businessId} AND "stockQuantity" + ${delta} >= 0
@@ -59,6 +61,35 @@ export async function adjustStock(actor: TenantActor, variantId: string, delta: 
     });
     return rows[0].stockQuantity;
   });
+  if (delta < 0) {
+    const variant = await prisma.productVariant.findUniqueOrThrow({ where: { id: variantId }, include: { product: true } });
+    await notifyIfStockLow(actor.businessId, [{ ...variant, stockQuantity: balance, previousStock: balance - delta }]);
+  }
+  return balance;
+}
+
+interface StockChange {
+  name: string;
+  isDefault: boolean;
+  stockQuantity: number;
+  previousStock: number;
+  product: { name: string; trackInventory: boolean; lowStockThreshold: number };
+}
+
+/** Alerts the team once, when stock first falls to or below the product's low-stock threshold. */
+export async function notifyIfStockLow(businessId: string, changes: StockChange[]): Promise<void> {
+  for (const change of changes) {
+    const threshold = change.product.lowStockThreshold;
+    if (!change.product.trackInventory || change.previousStock <= threshold || change.stockQuantity > threshold) continue;
+    const label = change.isDefault ? change.product.name : `${change.product.name} (${change.name})`;
+    await notifyTeam({
+      businessId,
+      kind: "stock.low",
+      title: change.stockQuantity === 0 ? `${label} is out of stock` : `${label} is running low`,
+      body: `${change.stockQuantity} left (alert level ${threshold}).`,
+      link: "/app/inventory",
+    });
+  }
 }
 
 async function nextOrderNumber(tx: TenantTx, businessId: string): Promise<number> {
@@ -107,7 +138,9 @@ export async function createOrder(input: CreateOrderInput) {
     lines.set(item.variantId, (lines.get(item.variantId) ?? 0) + item.quantity);
   }
 
+  const stockChanges: StockChange[] = [];
   const created = await withTenantTx(input.businessId, async (tx) => {
+    stockChanges.length = 0;
     const customer = await tx.customer.findFirst({ where: { id: input.customerId, businessId: input.businessId, deletedAt: null } });
     if (!customer) throw fail.notFound("Customer");
     const variants = await tx.productVariant.findMany({
@@ -163,6 +196,7 @@ export async function createOrder(input: CreateOrderInput) {
         RETURNING "stockQuantity"`;
       if (rows.length === 0) throw new AppError("CONFLICT", `Only ${variant.stockQuantity} of “${variant.product.name}” left in stock.`);
       variant.stockQuantity = rows[0].stockQuantity;
+      stockChanges.push({ ...variant, previousStock: rows[0].stockQuantity + quantity });
     }
 
     const order = await tx.order.create({
@@ -212,6 +246,15 @@ export async function createOrder(input: CreateOrderInput) {
     conversationId: input.conversationId ?? null,
     orderTotalMinor: created.totalMinor,
   });
+  const customer = await prisma.customer.findUnique({ where: { id: input.customerId }, select: { displayName: true } });
+  await notifyTeam({
+    businessId: input.businessId,
+    kind: "order.created",
+    title: `New order #${created.number}`,
+    body: `${customer?.displayName ?? "A customer"} · ${formatMoney(created.totalMinor, created.currency)}${input.createdByType === "AI" ? " · taken by your AI employee" : ""}`,
+    link: "/app/orders",
+  });
+  await notifyIfStockLow(input.businessId, stockChanges);
   return created;
 }
 

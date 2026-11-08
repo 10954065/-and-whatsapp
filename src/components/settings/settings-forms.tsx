@@ -182,11 +182,11 @@ export function NotificationSettingsForm({ values, disabled }: { values: Notific
           name="notificationEmail"
           type="email"
           defaultValue={values.notificationEmail ?? ""}
-          hint="Leave empty to notify workspace owners and admins."
+          hint="Alerts are emailed here. Leave empty to email workspace owners and admins."
           errors={fieldErrors(state, "notificationEmail")}
         />
         <div className="grid gap-3">
-          <p className="text-sm font-medium">Email me when…</p>
+          <p className="text-sm font-medium">Notify the team (in the app and by email) when…</p>
           {TOGGLES.map((toggle) => (
             <label key={toggle.name} className="flex items-center gap-3 text-sm">
               <Switch name={toggle.name} value="on" defaultChecked={Boolean(values[toggle.name])} />

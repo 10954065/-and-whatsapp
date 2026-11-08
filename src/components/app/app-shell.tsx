@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Check, ChevronsUpDown, LogOut, Menu, Plus, UserRound } from "lucide-react";
+import { Bell, Check, ChevronsUpDown, LogOut, Menu, Plus, UserRound } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { NavIconGlyph } from "@/components/app/nav-icon";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -94,11 +94,13 @@ export function AppTopbar({
   business,
   businesses,
   user,
+  unreadNotifications,
 }: {
   sections: NavSection[];
   business: ShellBusiness;
   businesses: ShellBusiness[];
   user: { name: string; email: string };
+  unreadNotifications: number;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   return (
@@ -154,6 +156,16 @@ export function AppTopbar({
       </DropdownMenu>
 
       <div className="ml-auto flex items-center gap-1">
+        <Button asChild variant="ghost" size="icon" className="relative">
+          <Link href="/app/notifications" aria-label={unreadNotifications > 0 ? `Notifications, ${unreadNotifications} unread` : "Notifications"}>
+            <Bell />
+            {unreadNotifications > 0 ? (
+              <span className="absolute top-1 right-1 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-4 font-bold text-primary-foreground" aria-hidden="true">
+                {unreadNotifications > 99 ? "99+" : unreadNotifications}
+              </span>
+            ) : null}
+          </Link>
+        </Button>
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

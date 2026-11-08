@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Prisma, WorkflowStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
-import { withTenantTx } from "@/lib/db/tenant";
+import { withTenantTx, type TenantTx } from "@/lib/db/tenant";
 import type { TenantActor } from "@/lib/auth/tenant";
 import { fail } from "@/lib/monitoring/errors";
 import { recordAudit } from "@/modules/administration/audit.service";
@@ -40,13 +40,25 @@ export const workflowFormSchema = z
     return { name: input.name, trigger: input.trigger, definition: parsed.data };
   });
 
-export async function createWorkflow(actor: TenantActor, input: { name: string; trigger: (typeof TRIGGERS)[number]; definition: WorkflowDefinition }) {
-  return withTenantTx(actor.businessId, async (tx) => {
-    const workflow = await tx.workflow.create({ data: { businessId: actor.businessId, name: input.name, trigger: input.trigger, currentVersion: 1, createdById: actor.userId } });
-    await tx.workflowVersion.create({ data: { businessId: actor.businessId, workflowId: workflow.id, version: 1, definition: input.definition as unknown as Prisma.InputJsonValue, createdById: actor.userId } });
-    await recordAudit({ businessId: actor.businessId, actorType: "USER", actorId: actor.userId, action: "workflow.created", entityType: "Workflow", entityId: workflow.id }, tx);
-    return workflow;
+export interface NewWorkflow {
+  name: string;
+  description?: string | null;
+  trigger: (typeof TRIGGERS)[number];
+  definition: WorkflowDefinition;
+}
+
+export async function createWorkflow(actor: TenantActor, input: NewWorkflow) {
+  return withTenantTx(actor.businessId, (tx) => insertWorkflow(tx, actor, input));
+}
+
+/** Creates a DRAFT workflow with version 1 inside an existing tenant transaction. */
+export async function insertWorkflow(tx: TenantTx, actor: TenantActor, input: NewWorkflow) {
+  const workflow = await tx.workflow.create({
+    data: { businessId: actor.businessId, name: input.name, description: input.description ?? null, trigger: input.trigger, currentVersion: 1, createdById: actor.userId },
   });
+  await tx.workflowVersion.create({ data: { businessId: actor.businessId, workflowId: workflow.id, version: 1, definition: input.definition as unknown as Prisma.InputJsonValue, createdById: actor.userId } });
+  await recordAudit({ businessId: actor.businessId, actorType: "USER", actorId: actor.userId, action: "workflow.created", entityType: "Workflow", entityId: workflow.id }, tx);
+  return workflow;
 }
 
 /** Saving a change creates a new immutable version; runs record which version they used. */

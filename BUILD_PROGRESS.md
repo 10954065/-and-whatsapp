@@ -15,8 +15,8 @@ Resume from this file if a session is interrupted. Update it at the end of every
 | 6 — Unified inbox | ✅ Complete (sandbox pipeline tested end to end; polling refresh) | phase 5-6 commit |
 | 7 — Business operations | ✅ Complete (152 Vitest + 4 Playwright pass, build pass) | phase 7 commits |
 | 8 — Automation studio | ✅ Complete (155 Vitest + 5 Playwright pass, build pass) | phase 8 commit |
-| 9 — Industry templates | ⏳ Next | |
-| 10 — Analytics & billing | ⬜ | |
+| 9 — Industry templates | ✅ Complete (181 Vitest + 6 Playwright pass, build pass) | phase 9 commit |
+| 10 — Analytics & billing | ⏳ Next | |
 | 11 — Super-admin | ⬜ | |
 | 12 — Production hardening | ⬜ | |
 
@@ -93,18 +93,31 @@ Notes:
 
 ## Next steps
 
-Phase 9 — Industry templates (UI):
-* Templates already exist in `src/config/industry-templates.ts` (all 11) and feed the AI
-  prompt via `industryGuidanceFor()`. Add `modules/onboarding/template.service.ts`:
-  `previewTemplate(industry)` and `applyTemplate(actor, industry, { knowledge, workflows })`
-  that is idempotent (track applied template in `BusinessSettings`/metadata) and creates:
-  starter knowledge FAQs from the template (as DRAFT-free FAQ sources, clearly labelled
-  "template — edit before activating"), suggested workflows as DRAFT (never auto-ACTIVE),
-  and sets AI agent tone/escalation defaults only where the business has not set them.
-* UI: template picker in onboarding (after create workspace) and in `/app/settings`
-  (“Industry template” card: preview of knowledge fields, suggested tools, workflows; Apply).
-* Tests: apply is idempotent, never overwrites user data, workflows created as DRAFT,
-  tenant isolation.
+Phase 10 — Analytics & Paystack billing:
+* Analytics (`modules/analytics/analytics.service.ts`, `/app/analytics`, permission
+  `analytics.read`): conversations, AI replies & escalation rate, AI cost (AiUsageRecord),
+  orders & revenue (paid vs unpaid), bookings, leads by status, top products — all from
+  persisted rows, per business timezone, 7/30/90-day ranges. Empty states, no fake numbers.
+* Billing (`modules/billing/paystack.ts`, `billing.service.ts`, `/app/billing`, owner-only
+  `billing.manage`): plans from DB (seed), `POST https://api.paystack.co/transaction/initialize`
+  (amount in pesewas, GHS, reference = our PaymentTransaction id, callback_url
+  `/app/billing/callback`), server verify `GET /transaction/verify/:reference` (check status,
+  amount, currency, reference), webhook `/api/webhooks/paystack` verifying
+  `x-paystack-signature` = HMAC-SHA512(raw body, PAYSTACK_SECRET_KEY), idempotent by
+  reference/event id; subscription lifecycle (TRIALING → ACTIVE → PAST_DUE → CANCELLED),
+  plan limits enforced via `getPlanLimits`; billing history. Without keys: honest
+  "payments not configured" state. Order payments: mark paid manually or by Paystack link;
+  emit PAYMENT_CONFIRMED workflow event.
+
+Phase 9 notes (done): templates in `config/industry-templates.ts` + `config/workflow-templates.ts`;
+`modules/onboarding/template.service.ts` (`getTemplateOverview`, `applyIndustryTemplate` —
+answers → `Business.knowledgeProfile` (in AI business facts), workflows created once as DRAFT,
+tracked in `onboardingState.template.workflows`; optional agent tone/role/tools reset); UI in
+`/app/settings#template` and setup step `template`. Team notifications:
+`modules/notifications/notification.service.ts` (`notifyTeam` honours BusinessSettings
+toggles; `notification.email` job emails the notification address or verified owners/admins),
+`/app/notifications` + top-bar bell; emitted for escalations, new orders, bookings, low stock
+and automation `notify_team`.
 
 Phase 8 notes (done): `modules/workflows/{workflow.engine,workflow.service,workflow.jobs,
 workflow.actions}.ts`; `emitWorkflowEvent` only enqueues `automation.event` when an ACTIVE

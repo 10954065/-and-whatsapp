@@ -1,6 +1,7 @@
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 import type { AiTone, Channel, Industry } from "@/generated/prisma/enums";
 import { renderTemplate } from "@/modules/ai/prompts";
+import { parseKnowledgeProfile } from "@/modules/businesses/knowledge-profile";
 import type { BusinessHours } from "@/modules/businesses/settings.schemas";
 import { WEEKDAYS } from "@/modules/businesses/settings.schemas";
 
@@ -22,6 +23,8 @@ export interface BusinessForPrompt {
   timezone: string;
   currency: string;
   businessHours: BusinessHours | null;
+  /** Industry-template answers (Business.knowledgeProfile JSON). */
+  knowledgeProfile?: unknown;
 }
 
 export interface AgentForPrompt {
@@ -61,6 +64,7 @@ export function buildBusinessFacts(business: BusinessForPrompt): string {
     business.website ? `Website: ${business.website}` : null,
     `Opening hours (${business.timezone}): ${formatHours(business.businessHours)}`,
     `Currency: ${business.currency}`,
+    ...Object.values(parseKnowledgeProfile(business.knowledgeProfile)).map((entry) => `${neutralise(entry.label)}: ${neutralise(entry.value)}`),
   ];
   return lines.filter(Boolean).join("\n");
 }

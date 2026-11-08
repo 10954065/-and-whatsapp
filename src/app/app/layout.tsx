@@ -4,10 +4,11 @@ import { AppSidebar, AppTopbar } from "@/components/app/app-shell";
 import { APP_NAVIGATION } from "@/config/navigation";
 import { ROLE_LABELS } from "@/config/permissions";
 import { listUserMemberships, requireTenant } from "@/lib/auth/tenant";
+import { countUnreadNotifications } from "@/modules/notifications/notification.service";
 
 export default async function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const context = await requireTenant();
-  const memberships = await listUserMemberships(context.user.id);
+  const [memberships, unreadNotifications] = await Promise.all([listUserMemberships(context.user.id), countUnreadNotifications(context.businessId)]);
 
   const sections = APP_NAVIGATION.map((section) => ({
     ...section,
@@ -29,6 +30,7 @@ export default async function AppLayout({ children }: Readonly<{ children: React
           business={{ id: context.businessId, name: context.business.name, roleLabel: ROLE_LABELS[context.role] }}
           businesses={businesses}
           user={{ name: context.user.name, email: context.user.email }}
+          unreadNotifications={unreadNotifications}
         />
         {!context.user.emailVerifiedAt ? (
           <div className="flex flex-wrap items-center gap-2 border-b border-warning/30 bg-warning/10 px-4 py-2 text-sm lg:px-8">

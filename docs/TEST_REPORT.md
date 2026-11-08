@@ -11,12 +11,21 @@ npm run build && npm run test:e2e   # Playwright against `next start`
 Integration tests run against a real PostgreSQL database (`sunleon_test`), migrated with
 `prisma migrate deploy` before the suite.
 
-## Latest run — Phase 8 (2026-11-08)
+## Latest run — Phase 9 (2026-11-08)
 
 | Suite | Files | Tests | Result |
 | --- | --- | --- | --- |
-| Unit + integration (Vitest) | 16 | 155 | ✅ pass |
-| E2E (`tests/e2e`, Chromium) | 2 | 5 | ✅ pass |
+| Unit + integration (Vitest) | 19 | 181 | ✅ pass |
+| E2E (`tests/e2e`, Chromium) | 2 | 6 | ✅ pass |
+
+Phase 9 additions: every industry template references real workflow templates and registered
+tools; workflow templates are valid definitions; knowledge-profile parsing and neutralised
+inclusion in AI business facts; applying a template saves answers, creates DRAFT workflows,
+sets AI defaults only when asked, never duplicates or revives workflows, skips workflows
+without automation permission, replaces answers after an industry change and leaves other
+tenants untouched; notifications for orders, low stock (only when crossing the threshold),
+escalations, settings toggles, per-recipient emails, and business-scoped mark-as-read; E2E
+applies a template and reads/clears the notification bell.
 
 Phase 8 additions: condition evaluation (channel, text, tags, totals, hours); a real
 sandbox inbound message runs an ACTIVE workflow once (tag added, lead captured, team

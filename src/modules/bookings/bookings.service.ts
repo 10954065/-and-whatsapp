@@ -5,6 +5,7 @@ import { withTenantTx } from "@/lib/db/tenant";
 import type { TenantActor } from "@/lib/auth/tenant";
 import { AppError, fail } from "@/lib/monitoring/errors";
 import { recordAudit } from "@/modules/administration/audit.service";
+import { notifyTeam } from "@/modules/notifications/notification.service";
 import { emitWorkflowEvent } from "@/modules/workflows/workflow.engine";
 
 const SLOT_STEP_MINUTES = 15;
@@ -146,6 +147,18 @@ export async function createBooking(input: CreateBookingInput) {
       return booking;
     });
     await emitWorkflowEvent({ trigger: "BOOKING_CREATED", eventId: `booking:${created.id}`, businessId: input.businessId, depth: 0, customerId: input.customerId, conversationId: input.conversationId ?? null });
+    const [customer, staff] = await Promise.all([
+      prisma.customer.findUnique({ where: { id: input.customerId }, select: { displayName: true } }),
+      prisma.staffMember.findUnique({ where: { id: input.staffId }, select: { name: true } }),
+    ]);
+    const when = new Intl.DateTimeFormat("en-GB", { timeZone: business.timezone, dateStyle: "medium", timeStyle: "short" }).format(input.startsAt);
+    await notifyTeam({
+      businessId: input.businessId,
+      kind: "booking.created",
+      title: `New booking: ${service.name}`,
+      body: `${customer?.displayName ?? "A customer"} with ${staff?.name ?? "your team"} · ${when}`,
+      link: "/app/bookings",
+    });
     return created;
   } catch (error) {
     const code = (error as { code?: string; meta?: { code?: string } }).code;

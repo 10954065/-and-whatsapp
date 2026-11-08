@@ -24,7 +24,8 @@ Anthropic SDK (`@anthropic-ai/sdk` 1.6.0, beta Messages API).
    the server-side safety fallback (`betas: ["server-side-fallback-2026-07-01"]`,
    `fallbacks: "default"`).
 4. **Prompt (`prompts.ts`, `context.ts`)** — versioned system prompt (`PromptVersion` key
-   `customer-agent`, built-in v1 as fallback) rendered with tone, business facts, industry
+   `customer-agent`, built-in v1 as fallback) rendered with tone, business facts (including
+   the industry-template answers in `Business.knowledgeProfile`, neutralised), industry
    guidance and owner instructions. It contains nothing volatile, so top-level
    `cache_control: ephemeral` caches it. The final user turn carries local time, open/closed
    state, retrieved knowledge inside `<business_knowledge>` (declared untrusted) and the

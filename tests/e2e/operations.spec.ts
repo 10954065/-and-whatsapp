@@ -37,6 +37,28 @@ test("owner adds a product and customer, creates an order and sees stock drop", 
 
   await page.goto("/app/inventory");
   await expect(page.getByRole("cell", { name: "-2" })).toBeVisible();
+
+  await page.getByRole("link", { name: "Notifications, 1 unread" }).click();
+  await expect(page.getByRole("link", { name: "New order #1" })).toBeVisible();
+  await page.getByRole("button", { name: "Mark all as read" }).click();
+  await expect(page.getByRole("link", { name: "Notifications", exact: true })).toBeVisible();
+});
+
+test("owner applies the industry template and gets starter workflows as drafts", async ({ page }) => {
+  await registerWithWorkspace(page);
+
+  await page.goto("/app/settings#template");
+  await page.getByLabel("What you offer").fill("Phone repairs and accessories");
+  await page.getByRole("button", { name: "Apply template" }).click();
+  await expect(page.getByText("Template applied.")).toBeVisible();
+
+  await page.goto("/app/automation");
+  await expect(page.getByText("Tell the team about new leads")).toBeVisible();
+  await expect(page.getByText("draft", { exact: true })).toBeVisible();
+
+  await page.goto("/app/settings#template");
+  await expect(page.getByLabel("What you offer")).toHaveValue("Phone repairs and accessories");
+  await expect(page.getByRole("button", { name: "Save template" })).toBeVisible();
 });
 
 test("owner builds, activates and pauses an automation workflow", async ({ page }) => {

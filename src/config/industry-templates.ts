@@ -1,3 +1,4 @@
+import type { WorkflowTemplateId } from "@/config/workflow-templates";
 import type { AiTone, Industry } from "@/generated/prisma/enums";
 
 export interface IndustryTemplate {
@@ -11,8 +12,8 @@ export interface IndustryTemplate {
   escalationRules: string[];
   /** Tools that are enabled by default for this industry. */
   suggestedTools: string[];
-  /** Workflow template ids offered in the automation studio. */
-  suggestedWorkflows: string[];
+  /** Starter workflows (config/workflow-templates.ts) offered when the template is applied. */
+  suggestedWorkflows: WorkflowTemplateId[];
   onboardingTips: string[];
 }
 
@@ -50,7 +51,7 @@ export const INDUSTRY_TEMPLATES: Record<Industry, IndustryTemplate> = {
     commonQuestions: ["Do you have this in stock?", "How much is it?", "Do you deliver?", "Can I pay with MoMo?"],
     escalationRules: ["warranty claims or faulty products", "bulk or wholesale pricing requests"],
     suggestedTools: [...BASE_TOOLS, ...COMMERCE_TOOLS],
-    suggestedWorkflows: ["order_payment_reminder", "new_lead_notify", "low_stock_alert"],
+    suggestedWorkflows: ["order_payment_reminder", "new_lead_notify", "wholesale_enquiry"],
     onboardingTips: ["Import your catalogue with SKUs and stock levels.", "Write your returns policy in the knowledge base."],
   },
   FASHION: {
@@ -98,7 +99,7 @@ export const INDUSTRY_TEMPLATES: Record<Industry, IndustryTemplate> = {
     commonQuestions: ["Do you have a slot on Saturday?", "How long do knotless braids take?", "How much is a pedicure?"],
     escalationRules: ["complaints about a service", "group or bridal bookings"],
     suggestedTools: [...BASE_TOOLS, ...BOOKING_TOOLS],
-    suggestedWorkflows: ["booking_reminder", "new_lead_notify"],
+    suggestedWorkflows: ["booking_tag_customer", "new_lead_notify"],
     onboardingTips: ["Add services with durations and buffers, then each stylist's working hours."],
   },
   HEALTHCARE_ADMIN: {
@@ -114,7 +115,7 @@ export const INDUSTRY_TEMPLATES: Record<Industry, IndustryTemplate> = {
     commonQuestions: ["What time do you open?", "Can I book an appointment?", "Do you accept NHIS?"],
     escalationRules: ["any symptom, emergency or clinical question", "test results or medical records requests"],
     suggestedTools: [...BASE_TOOLS, ...BOOKING_TOOLS],
-    suggestedWorkflows: ["booking_reminder"],
+    suggestedWorkflows: ["booking_tag_customer"],
     onboardingTips: ["Keep clinical content out of the knowledge base; add administrative information only."],
   },
   HOSPITALITY: {
@@ -130,7 +131,7 @@ export const INDUSTRY_TEMPLATES: Record<Industry, IndustryTemplate> = {
     commonQuestions: ["Do you have a room for two nights next weekend?", "Is breakfast included?", "Do you offer airport pick-up?"],
     escalationRules: ["group bookings or events", "complaints during a stay"],
     suggestedTools: [...BASE_TOOLS, ...BOOKING_TOOLS],
-    suggestedWorkflows: ["new_lead_notify", "booking_reminder"],
+    suggestedWorkflows: ["new_lead_notify", "booking_tag_customer"],
     onboardingTips: ["Model room types as services if you take bookings through SUNLEON AI."],
   },
   REAL_ESTATE: {

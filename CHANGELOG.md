@@ -1,5 +1,15 @@
 # Changelog
 
+## Phase 9 — Industry templates and team notifications
+
+* Industry template panel (Settings → Industry template, linked from the setup guide): starter
+  answers that become trusted facts for the AI, starter workflows added once as drafts, and an
+  optional reset of the AI employee's tone, role and tools to the industry defaults.
+* Five starter workflow templates built only from real triggers and actions.
+* Team notifications: notification centre and top-bar bell; alerts for escalations, new orders,
+  bookings, low stock (once per threshold crossing) and automation steps, honouring the
+  notification settings; emails to the notification address or verified owners and admins.
+
 ## Phase 8 — Automation studio
 
 * Workflow engine: triggers (WhatsApp/Instagram message, new customer, new lead, new order,

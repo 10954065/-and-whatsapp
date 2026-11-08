@@ -7,6 +7,7 @@ import { enqueueJob } from "@/lib/queue";
 import { getPlanLimits, getUsage, incrementUsage, monthPeriod } from "@/modules/billing/usage";
 import type { BusinessHours } from "@/modules/businesses/settings.schemas";
 import { isWithinBusinessHours } from "@/modules/businesses/settings.service";
+import { notifyTeam } from "@/modules/notifications/notification.service";
 
 /** Runs triggered by other runs carry depth + 1; anything deeper is skipped (loop prevention). */
 export const MAX_WORKFLOW_DEPTH = 3;
@@ -107,9 +108,7 @@ async function runAction(action: WorkflowDefinition["actions"][number], event: W
       return { action: action.type, status: "done", detail: `Tagged “${tag}”` };
     }
     case "notify_team": {
-      await withTenantTx(businessId, (tx) =>
-        tx.notification.create({ data: { businessId, type: "automation", title: action.value.slice(0, 140) || "Automation alert", link: event.conversationId ? `/app/inbox?conversation=${event.conversationId}` : null } }),
-      );
+      await notifyTeam({ businessId, kind: "automation", title: action.value || "Automation alert", link: event.conversationId ? `/app/inbox?conversation=${event.conversationId}` : null });
       return { action: action.type, status: "done", detail: "Team notified" };
     }
     case "create_follow_up": {

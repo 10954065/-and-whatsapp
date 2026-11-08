@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { PageHeader } from "@/components/app/page-primitives";
+import { IndustryTemplateForm } from "@/components/onboarding/industry-template-form";
 import {
   BusinessHoursForm,
   BusinessProfileForm,
   NotificationSettingsForm,
 } from "@/components/settings/settings-forms";
+import { industryLabel } from "@/config/industries";
+import { formatDate } from "@/lib/format";
 import { requireTenant } from "@/lib/auth/tenant";
 import { getBusinessSettings } from "@/modules/businesses/settings.service";
+import { getTemplateOverview } from "@/modules/onboarding/template.service";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -23,7 +27,7 @@ function Section({ id, title, description, children }: { id: string; title: stri
 
 export default async function SettingsPage() {
   const context = await requireTenant();
-  const business = await getBusinessSettings(context.businessId);
+  const [business, overview] = await Promise.all([getBusinessSettings(context.businessId), getTemplateOverview(context.businessId)]);
   const isReadOnly = !context.can("business.update");
   const settings = business.settings;
 
@@ -50,6 +54,22 @@ export default async function SettingsPage() {
               timezone: business.timezone,
               currency: business.currency,
             }}
+          />
+        </Section>
+        <Section id="template" title="Industry template" description="Starter answers, workflows and AI defaults for your industry. Nothing runs until you activate it.">
+          <IndustryTemplateForm
+            disabled={isReadOnly}
+            industryLabel={industryLabel(overview.industry)}
+            roleDescription={overview.template.roleDescription}
+            fields={overview.template.knowledgeFields.map((field) => ({ ...field, value: overview.answers[field.key] ?? "" }))}
+            workflows={overview.workflows}
+            tools={overview.tools}
+            commonQuestions={overview.template.commonQuestions}
+            tips={overview.template.onboardingTips}
+            otherAnswers={overview.otherAnswers}
+            appliedLabel={overview.appliedAt ? formatDate(new Date(overview.appliedAt), business.timezone) : null}
+            agentConfigured={overview.agentConfigured}
+            canManageAutomation={context.can("automation.manage")}
           />
         </Section>
         <Section id="hours" title="Opening hours" description={`Times are in ${business.timezone}.`}>

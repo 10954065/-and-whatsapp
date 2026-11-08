@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { withTenantTx } from "@/lib/db/tenant";
 import type { TenantActor } from "@/lib/auth/tenant";
 import { fail } from "@/lib/monitoring/errors";
+import { parseKnowledgeProfile } from "@/modules/businesses/knowledge-profile";
 
 export interface SetupSignals {
   hasDescription: boolean;
@@ -10,6 +11,9 @@ export interface SetupSignals {
   memberCount: number;
   pendingInvitations: number;
   knowledgeSources: number;
+  /** Industry-template knowledge answers saved on the business. */
+  knowledgeProfileFields: number;
+  templateApplied: boolean;
   connectedChannels: number;
   agentConfigured: boolean;
   aiTestRuns: number;
@@ -42,6 +46,15 @@ export const SETUP_STEPS: SetupStep[] = [
     isDone: (signals) => signals.hasDescription && signals.hasContact,
   },
   {
+    id: "template",
+    title: "Start from your industry template",
+    description: "Answer a few questions for your industry and add starter workflows as drafts. Everything stays editable.",
+    href: "/app/settings#template",
+    actionLabel: "Use template",
+    isOptional: true,
+    isDone: (signals) => signals.templateApplied,
+  },
+  {
     id: "hours",
     title: "Set your opening hours",
     description: "So the AI can tell customers when you're open and follow your out-of-hours rules.",
@@ -57,7 +70,7 @@ export const SETUP_STEPS: SetupStep[] = [
     href: "/app/knowledge",
     actionLabel: "Add knowledge",
     isOptional: false,
-    isDone: (signals) => signals.knowledgeSources > 0,
+    isDone: (signals) => signals.knowledgeSources > 0 || signals.knowledgeProfileFields > 0,
   },
   {
     id: "channel",
@@ -109,6 +122,7 @@ export const SETUP_STEPS: SetupStep[] = [
 interface OnboardingState {
   steps?: string[];
   skipped?: string[];
+  template?: { industry: string };
 }
 
 export async function getSetupSignals(businessId: string): Promise<SetupSignals> {
@@ -116,7 +130,7 @@ export async function getSetupSignals(businessId: string): Promise<SetupSignals>
     await Promise.all([
       prisma.business.findUniqueOrThrow({
         where: { id: businessId },
-        select: { description: true, phone: true, email: true, businessHours: true },
+        select: { description: true, phone: true, email: true, businessHours: true, industry: true, knowledgeProfile: true, onboardingState: true },
       }),
       prisma.businessMembership.count({ where: { businessId, status: "ACTIVE" } }),
       prisma.invitation.count({ where: { businessId, status: "PENDING", expiresAt: { gt: new Date() } } }),
@@ -132,6 +146,8 @@ export async function getSetupSignals(businessId: string): Promise<SetupSignals>
     memberCount,
     pendingInvitations,
     knowledgeSources,
+    knowledgeProfileFields: Object.keys(parseKnowledgeProfile(business.knowledgeProfile)).length,
+    templateApplied: ((business.onboardingState ?? {}) as OnboardingState).template?.industry === business.industry,
     connectedChannels,
     // The agent row is created on first view; "configured" means its settings were saved.
     agentConfigured: Boolean(agent && agent.updatedAt.getTime() - agent.createdAt.getTime() > 1_000),
