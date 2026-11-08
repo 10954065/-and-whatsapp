@@ -5,6 +5,7 @@ import { withTenantTx } from "@/lib/db/tenant";
 import type { TenantActor } from "@/lib/auth/tenant";
 import { fail } from "@/lib/monitoring/errors";
 import { recordAudit } from "@/modules/administration/audit.service";
+import { emitWorkflowEvent } from "@/modules/workflows/workflow.engine";
 
 export const customerSchema = z.object({
   displayName: z.string().trim().min(2, "Enter a name.").max(100),
@@ -53,9 +54,11 @@ export async function createLead(actor: TenantActor, customerId: string, interes
   const customer = await prisma.customer.findFirst({ where: { id: customerId, businessId: actor.businessId } });
   if (!customer) throw fail.notFound("Customer");
   const business = await prisma.business.findUniqueOrThrow({ where: { id: actor.businessId }, select: { currency: true } });
-  return withTenantTx(actor.businessId, (tx) =>
+  const lead = await withTenantTx(actor.businessId, (tx) =>
     tx.lead.create({ data: { businessId: actor.businessId, customerId, interest, estimatedValueMinor, currency: business.currency, capturedBy: "USER", assignedToId: actor.userId, source: "manual" } }),
   );
+  await emitWorkflowEvent({ trigger: "NEW_LEAD", eventId: `lead:${lead.id}`, businessId: actor.businessId, depth: 0, customerId, leadStatus: lead.status });
+  return lead;
 }
 
 export async function updateLeadStatus(actor: TenantActor, leadId: string, status: LeadStatus) {

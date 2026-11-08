@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { withTenantTx } from "@/lib/db/tenant";
 import { enqueueJob } from "@/lib/queue";
 import { incrementUsage } from "@/modules/billing/usage";
+import { emitWorkflowEvent } from "@/modules/workflows/workflow.engine";
 
 const OPT_OUT = /^\s*(stop|unsubscribe|stop all|opt out|optout)\s*$/i;
 const OPT_IN = /^\s*(start|unstop|subscribe)\s*$/i;
@@ -122,5 +123,16 @@ export async function handleInboundMessage(input: InboundMessage): Promise<{ mes
   if (!result.optedOut) {
     await enqueueJob("ai.reply", { messageId: result.messageId }, { businessId: input.businessId, idempotencyKey: `ai.reply:${result.messageId}`, priority: 10 });
   }
+  // The sandbox channel behaves like WhatsApp so owners can test message workflows.
+  const event = {
+    businessId: input.businessId,
+    depth: 0,
+    customerId: result.customerId,
+    conversationId: result.conversationId,
+    channel: input.channel.toLowerCase(),
+    messageText: input.text,
+  };
+  await emitWorkflowEvent({ ...event, trigger: input.channel === "INSTAGRAM" ? "INSTAGRAM_MESSAGE" : "WHATSAPP_MESSAGE", eventId: `message:${result.messageId}` });
+  if (result.isNewCustomer) await emitWorkflowEvent({ ...event, trigger: "NEW_CUSTOMER", eventId: `customer:${result.customerId}` });
   return { messageId: result.messageId, conversationId: result.conversationId };
 }

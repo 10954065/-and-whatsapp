@@ -5,6 +5,7 @@ import { withTenantTx, type TenantTx } from "@/lib/db/tenant";
 import type { TenantActor } from "@/lib/auth/tenant";
 import { AppError, fail } from "@/lib/monitoring/errors";
 import { recordAudit } from "@/modules/administration/audit.service";
+import { emitWorkflowEvent } from "@/modules/workflows/workflow.engine";
 
 const money = z.coerce.number().min(0).max(10_000_000).transform((value) => Math.round(value * 100));
 
@@ -106,7 +107,7 @@ export async function createOrder(input: CreateOrderInput) {
     lines.set(item.variantId, (lines.get(item.variantId) ?? 0) + item.quantity);
   }
 
-  return withTenantTx(input.businessId, async (tx) => {
+  const created = await withTenantTx(input.businessId, async (tx) => {
     const customer = await tx.customer.findFirst({ where: { id: input.customerId, businessId: input.businessId, deletedAt: null } });
     if (!customer) throw fail.notFound("Customer");
     const variants = await tx.productVariant.findMany({
@@ -202,6 +203,16 @@ export async function createOrder(input: CreateOrderInput) {
     await recordAudit({ businessId: input.businessId, actorType: input.createdByType, actorId: input.createdById ?? null, action: "order.created", entityType: "Order", entityId: order.id, metadata: { total: order.totalMinor } }, tx);
     return order;
   });
+  await emitWorkflowEvent({
+    trigger: "NEW_ORDER",
+    eventId: `order:${created.id}`,
+    businessId: input.businessId,
+    depth: 0,
+    customerId: input.customerId,
+    conversationId: input.conversationId ?? null,
+    orderTotalMinor: created.totalMinor,
+  });
+  return created;
 }
 
 const FULFILMENT_FLOW: Record<OrderStatus, OrderStatus[]> = {

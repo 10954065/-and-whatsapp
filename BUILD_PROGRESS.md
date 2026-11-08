@@ -14,8 +14,8 @@ Resume from this file if a session is interrupted. Update it at the end of every
 | 5 — Meta integrations | ✅ Implemented (144 Vitest + 3 Playwright pass); not live-verified — needs Meta app + App Review | phase 5-6 commit |
 | 6 — Unified inbox | ✅ Complete (sandbox pipeline tested end to end; polling refresh) | phase 5-6 commit |
 | 7 — Business operations | ✅ Complete (152 Vitest + 4 Playwright pass, build pass) | phase 7 commits |
-| 8 — Automation studio | ⏳ Next | |
-| 9 — Industry templates | ⬜ | |
+| 8 — Automation studio | ✅ Complete (155 Vitest + 5 Playwright pass, build pass) | phase 8 commit |
+| 9 — Industry templates | ⏳ Next | |
 | 10 — Analytics & billing | ⬜ | |
 | 11 — Super-admin | ⬜ | |
 | 12 — Production hardening | ⬜ | |
@@ -93,14 +93,26 @@ Notes:
 
 ## Next steps
 
-Phase 8 — Automation studio (design):
-* `modules/workflows/workflow.schemas.ts`: definition = { conditions: [{field: "channel"|"customer_tag"|"message_contains"|"lead_status"|"order_total_gte"|"within_business_hours", op, value}], actions: [{type: "send_message"(text, requires 24h window + consent)|"assign_conversation"(userId)|"add_customer_tag"(tag)|"notify_team"(title)|"create_follow_up"(title, dueInHours)|"create_lead"(interest)}] } (max 10 actions).
-* `workflow.service.ts`: create/update (new WorkflowVersion each save, currentVersion++), activate/pause, listRuns.
-* `workflow.engine.ts`: `emitEvent(businessId, trigger, payload, {eventId, depth})` → enqueue `automation.event` (idempotency `automation:<trigger>:<eventId>`); handler loads ACTIVE workflows for trigger, creates WorkflowRun with dedupeKey `<workflowId>:<eventId>` (unique → skip duplicates), depth > 3 → SKIPPED (loop prevention), evaluates conditions, executes actions in order (each action idempotent with key `<runId>:<index>`), records steps JSON, status.
-* Emit points: inbound message (WHATSAPP_MESSAGE/INSTAGRAM_MESSAGE + NEW_CUSTOMER when isNewCustomer) in `messaging/inbound.service.ts handleInboundMessage`; NEW_LEAD in crm.createLead + capture_lead tool; NEW_ORDER in commerce.createOrder (after tx); BOOKING_CREATED/CANCELLED in bookings; PAYMENT_CONFIRMED in Phase 10.
-* Register `modules/workflows/workflow.jobs.ts` in `src/workers/handlers.ts`.
-* UI `/app/automation`: list workflows + builder form (trigger select, up to 3 condition rows, up to 5 action rows), versions, recent runs; nav item (automation.read / automation.manage). Usage metric WORKFLOW_EXECUTION + plan limit workflowExecutionsPerMonth.
-* Tests: condition evaluation, dedupe, depth limit, end-to-end message → workflow → tag added.
+Phase 9 — Industry templates (UI):
+* Templates already exist in `src/config/industry-templates.ts` (all 11) and feed the AI
+  prompt via `industryGuidanceFor()`. Add `modules/onboarding/template.service.ts`:
+  `previewTemplate(industry)` and `applyTemplate(actor, industry, { knowledge, workflows })`
+  that is idempotent (track applied template in `BusinessSettings`/metadata) and creates:
+  starter knowledge FAQs from the template (as DRAFT-free FAQ sources, clearly labelled
+  "template — edit before activating"), suggested workflows as DRAFT (never auto-ACTIVE),
+  and sets AI agent tone/escalation defaults only where the business has not set them.
+* UI: template picker in onboarding (after create workspace) and in `/app/settings`
+  (“Industry template” card: preview of knowledge fields, suggested tools, workflows; Apply).
+* Tests: apply is idempotent, never overwrites user data, workflows created as DRAFT,
+  tenant isolation.
+
+Phase 8 notes (done): `modules/workflows/{workflow.engine,workflow.service,workflow.jobs,
+workflow.actions}.ts`; `emitWorkflowEvent` only enqueues `automation.event` when an ACTIVE
+workflow exists for the trigger; WorkflowRun `dedupeKey` = `<workflowId>:<eventId>`;
+depth > `MAX_WORKFLOW_DEPTH` (3) → SKIPPED. Emit points: inbound messages + NEW_CUSTOMER,
+crm.createLead (NEW_LEAD), commerce.createOrder (NEW_ORDER), bookings.createBooking
+(BOOKING_CREATED). PAYMENT_CONFIRMED is emitted in Phase 10; BOOKING_CANCELLED emit to add
+with the cancel flow.
 
 Older notes:
 

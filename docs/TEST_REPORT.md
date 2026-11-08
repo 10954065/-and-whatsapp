@@ -11,12 +11,17 @@ npm run build && npm run test:e2e   # Playwright against `next start`
 Integration tests run against a real PostgreSQL database (`sunleon_test`), migrated with
 `prisma migrate deploy` before the suite.
 
-## Latest run — Phase 7 (2026-11-08)
+## Latest run — Phase 8 (2026-11-08)
 
 | Suite | Files | Tests | Result |
 | --- | --- | --- | --- |
-| Unit + integration (Vitest) | 15 | 152 | ✅ pass |
-| E2E (`tests/e2e`, Chromium) | 2 | 4 | ✅ pass |
+| Unit + integration (Vitest) | 16 | 155 | ✅ pass |
+| E2E (`tests/e2e`, Chromium) | 2 | 5 | ✅ pass |
+
+Phase 8 additions: condition evaluation (channel, text, tags, totals, hours); a real
+sandbox inbound message runs an ACTIVE workflow once (tag added, lead captured, team
+notified) and re-delivery of the same event never runs it twice; non-matching, too-deeply
+chained and paused workflows are skipped; E2E builds, activates and pauses a workflow.
 
 Phase 3 additions (AI engine, tested with a scripted fake model — no live Anthropic calls):
 tier routing, cost estimation, every preflight block, price/payment/medical post-checks,

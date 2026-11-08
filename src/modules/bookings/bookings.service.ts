@@ -5,6 +5,7 @@ import { withTenantTx } from "@/lib/db/tenant";
 import type { TenantActor } from "@/lib/auth/tenant";
 import { AppError, fail } from "@/lib/monitoring/errors";
 import { recordAudit } from "@/modules/administration/audit.service";
+import { emitWorkflowEvent } from "@/modules/workflows/workflow.engine";
 
 const SLOT_STEP_MINUTES = 15;
 
@@ -120,7 +121,7 @@ export async function createBooking(input: CreateBookingInput) {
   const service = await prisma.service.findFirstOrThrow({ where: { id: input.serviceId, businessId: input.businessId } });
   const endsAt = new Date(input.startsAt.getTime() + service.durationMinutes * 60_000);
   try {
-    return await withTenantTx(input.businessId, async (tx) => {
+    const created = await withTenantTx(input.businessId, async (tx) => {
       const customer = await tx.customer.findFirst({ where: { id: input.customerId, businessId: input.businessId } });
       if (!customer) throw fail.notFound("Customer");
       const booking = await tx.booking.create({
@@ -144,6 +145,8 @@ export async function createBooking(input: CreateBookingInput) {
       await recordAudit({ businessId: input.businessId, actorType: input.createdByType, actorId: input.createdById ?? null, action: "booking.created", entityType: "Booking", entityId: booking.id }, tx);
       return booking;
     });
+    await emitWorkflowEvent({ trigger: "BOOKING_CREATED", eventId: `booking:${created.id}`, businessId: input.businessId, depth: 0, customerId: input.customerId, conversationId: input.conversationId ?? null });
+    return created;
   } catch (error) {
     const code = (error as { code?: string; meta?: { code?: string } }).code;
     if (code === "23P01" || String((error as Error).message).includes("Booking_no_overlap")) {

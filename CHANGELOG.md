@@ -1,5 +1,16 @@
 # Changelog
 
+## Phase 8 — Automation studio
+
+* Workflow engine: triggers (WhatsApp/Instagram message, new customer, new lead, new order,
+  booking created), conditions (channel, customer tag, message text, lead status, order
+  total, opening hours) and actions (send message within consent and the 24-hour window,
+  tag customer, notify team, follow-up task, create lead, assign conversation).
+* Background execution through the job queue with per-event idempotency, one run per
+  workflow per event, loop protection after 3 chained levels, plan execution limits and
+  usage metering; every run records its steps.
+* `/app/automation`: builder, versioned definitions, activate/pause, recent runs.
+
 ## Phase 7 — Business operations
 
 * Products, inventory ledger, orders (catalogue pricing, atomic stock, sequential numbers,

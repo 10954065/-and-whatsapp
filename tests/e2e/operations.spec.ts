@@ -38,3 +38,24 @@ test("owner adds a product and customer, creates an order and sees stock drop", 
   await page.goto("/app/inventory");
   await expect(page.getByRole("cell", { name: "-2" })).toBeVisible();
 });
+
+test("owner builds, activates and pauses an automation workflow", async ({ page }) => {
+  await registerWithWorkspace(page);
+
+  await page.goto("/app/automation");
+  await expect(page.getByText("No workflows yet")).toBeVisible();
+  await page.getByLabel("Workflow name").fill("Big order alert");
+  await page.getByLabel("When").selectOption("NEW_ORDER");
+  await page.getByLabel("Condition 1", { exact: true }).selectOption("order_total_gte");
+  await page.getByLabel("Condition 1 value").fill("500");
+  await page.getByLabel("Then 1", { exact: true }).selectOption("notify_team");
+  await page.getByLabel("Then 1 value").fill("Big order received");
+  await page.getByRole("button", { name: "Save workflow" }).click();
+
+  await expect(page.getByText("Big order alert")).toBeVisible();
+  await expect(page.getByText("draft", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Activate" }).click();
+  await expect(page.getByText("active", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Pause" }).click();
+  await expect(page.getByText("paused", { exact: true })).toBeVisible();
+});
