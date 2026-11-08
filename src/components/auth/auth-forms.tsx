@@ -49,11 +49,12 @@ export function LoginForm({ next }: { next?: string }) {
   );
 }
 
-export function RegisterForm() {
+export function RegisterForm({ next }: { next?: string }) {
   const { state, onSubmit, isPending } = useActionForm(registerAction);
   return (
     <form onSubmit={onSubmit} className="grid gap-4" noValidate>
       <FormAlert state={state} />
+      <input type="hidden" name="next" value={next ?? ""} />
       <Field label="Full name" name="name" autoComplete="name" required errors={fieldErrors(state, "name")} />
       <Field
         label="Work email"

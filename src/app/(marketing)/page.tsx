@@ -104,7 +104,7 @@ export default function HomePage() {
           </Button>
         </div>
         <div className="mt-12 grid auto-rows-[minmax(11rem,auto)] gap-4 md:grid-cols-6">
-          <article className="relative overflow-hidden rounded-3xl border bg-gradient-to-br from-violet/10 via-card to-card p-7 md:col-span-4 md:row-span-2">
+          <article className="relative overflow-hidden rounded-3xl border bg-linear-to-br from-violet/10 via-card to-card p-7 md:col-span-4 md:row-span-2">
             <Inbox className="size-6 text-primary" aria-hidden="true" />
             <h3 className="mt-4 text-2xl font-bold">One inbox for every conversation</h3>
             <p className="mt-2 max-w-md text-muted-foreground">

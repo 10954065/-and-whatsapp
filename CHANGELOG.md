@@ -1,5 +1,15 @@
 # Changelog
 
+## Phase 2 — Business onboarding
+
+* Guided setup guide (`/app/setup`) whose progress is derived from real workspace data,
+  with skippable optional steps saved to the workspace.
+* Business settings (`/app/settings`): profile, opening hours (timezone-aware),
+  notifications and message retention; read-only view for members without edit rights.
+* Team management (`/app/team`): email invitations (7-day, single-use, hashed tokens),
+  role changes and removal with role ceilings, invitation acceptance page that only
+  accepts the invited email, registration that returns to the invitation.
+
 ## Phase 1 — Core foundations
 
 * Complete PostgreSQL schema for all product areas, with integrity constraints, a booking

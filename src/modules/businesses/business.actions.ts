@@ -16,7 +16,7 @@ export async function createBusinessAction(_previous: ActionResult | null, formD
       const input = parseInput(createBusinessSchema, formData);
       const { businessId } = await createBusiness(session.user.id, input, await getRequestMeta());
       await setActiveBusiness(session.user.id, businessId);
-      redirect("/app/dashboard?welcome=1");
+      redirect("/app/setup");
     },
     { source: "business.create" },
   );

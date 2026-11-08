@@ -38,6 +38,14 @@ export const APP_NAVIGATION: NavSection[] = [
     title: "Overview",
     items: [
       { href: "/app/dashboard", label: "Dashboard", icon: "dashboard", permission: "business.read" },
+      { href: "/app/setup", label: "Setup guide", icon: "setup", permission: "business.read" },
+    ],
+  },
+  {
+    title: "Workspace",
+    items: [
+      { href: "/app/team", label: "Team", icon: "team", permission: "team.read" },
+      { href: "/app/settings", label: "Settings", icon: "settings", permission: "business.read" },
     ],
   },
 ];

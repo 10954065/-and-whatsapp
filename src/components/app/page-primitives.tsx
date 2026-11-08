@@ -49,7 +49,7 @@ export function EmptyState({
         className,
       )}
     >
-      <span className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet/15 to-azure/15 text-primary ring-1 ring-primary/15">
+      <span className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-linear-to-br from-violet/15 to-azure/15 text-primary ring-1 ring-primary/15">
         <Icon className="size-5" aria-hidden="true" />
       </span>
       <h3 className="text-base font-semibold">{title}</h3>

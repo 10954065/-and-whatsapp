@@ -8,8 +8,8 @@ Resume from this file if a session is interrupted. Update it at the end of every
 | --- | --- | --- |
 | 0 — Repository audit | ✅ Complete | phase 0 commit |
 | 1 — Core foundations | ✅ Complete (lint, typecheck, 47 Vitest + 3 Playwright tests, build pass) | phase 1 commit |
-| 2 — Business onboarding | ⏳ Next | |
-| 3 — AI engine | ⬜ | |
+| 2 — Business onboarding | ✅ Complete (58 Vitest + 3 Playwright pass, build pass) | phase 2 commit |
+| 3 — AI engine | ⏳ Next | |
 | 4 — Knowledge base | ⬜ | |
 | 5 — Meta integrations | ⬜ | |
 | 6 — Unified inbox | ⬜ | |
@@ -73,11 +73,23 @@ Notes:
 * E2E runs `next start` on port 3100 against the dev DB in `.env`; run `npm run build` first.
 * Under `next start` without RESEND_API_KEY, emails fail (logged) by design.
 
+## Phase 2 notes
+
+* Services take a `TenantActor` (`toActor(context, ip)` in `lib/auth/tenant.ts`) so they are
+  testable without a request; tenant mutations run in `withTenantTx`.
+* Setup steps live in `SETUP_STEPS` (`modules/onboarding/setup.service.ts`); later phases
+  append their step (knowledge, channel, ai, test, activate) once the page exists.
+  `getSetupSignals` already computes knowledge/channel/agent/test signals.
+* `isWithinBusinessHours(hours, timezone, now)` lives in `modules/businesses/settings.service.ts`.
+
 ## Next steps
 
-Phase 2 — Business onboarding: guided setup page `/app/setup` (steps 8–14 with saved
-progress in `Business.onboardingState`), business profile & settings page
-(`/app/settings`: contact details, description, business hours, notifications),
-team page (`/app/team`: invitations with email, accept flow `/invite/[token]`, role
-changes, removal), industry template selection hook (full templates in Phase 9).
-Then set `createBusinessAction` redirect back to `/app/setup` and add nav entries.
+Phase 3 — AI engine (`src/modules/ai`): `client.ts` (only Anthropic SDK import; beta
+messages with `fallbacks: "default"` for Sonnet/Opus tiers), `router.ts` (fast/standard/
+advanced via env models + agent override), `pricing.ts` (Haiku 5.5 $0.10/$0.50, Sonnet 5.5
+$2/$10, Opus 5.5 $4/$20 per MTok; cache read 10%), `prompts.ts` (versioned system prompt,
+stored in PromptVersion), `context.ts`, `policy.ts` (pre/post checks), `tools/registry.ts`
+(Zod tools, permissions, approval), `orchestrator.ts` (manual loop, max iterations, AiRun/
+AiAction/AiUsageRecord, budgets), `agent.service.ts` + `/app/ai-agents` page (config +
+test console + emergency stop). Do not send temperature; use output_config.effort; no forced
+tool_choice; handle stop_reason "refusal" → escalate.

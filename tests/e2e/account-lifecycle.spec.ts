@@ -21,9 +21,19 @@ test("visitor registers, creates a workspace, signs out and signs back in", asyn
   await page.getByLabel("City").fill("Kumasi");
   await page.getByRole("button", { name: "Create workspace" }).click();
 
-  await expect(page).toHaveURL(/\/app\/dashboard\?welcome=1/);
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Welcome to SUNLEON AI, Esi");
+  await expect(page).toHaveURL(/\/app\/setup$/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("get your AI employee ready");
   await expect(page.getByText("Confirm your email address")).toBeVisible();
+
+  // Complete the profile step from the setup guide and see progress update.
+  await page.getByRole("link", { name: "Edit profile" }).click();
+  await expect(page).toHaveURL(/\/app\/settings#profile$/);
+  await page.getByLabel("Description").fill("Braids, nails and skincare in the heart of Kumasi, open six days a week.");
+  await page.getByLabel("Phone").fill("+233241234567");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Business profile saved." })).toBeVisible();
+  await page.getByRole("link", { name: "Setup guide" }).first().click();
+  await expect(page.getByText("1 of 3 steps complete")).toBeVisible();
 
   await page.getByRole("button", { name: "Account menu" }).click();
   await page.getByRole("menuitem", { name: "Sign out" }).click();

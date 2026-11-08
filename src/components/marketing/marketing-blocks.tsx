@@ -69,7 +69,7 @@ const ACTIONS = [
 export function ConversationPreview({ className }: { className?: string }) {
   return (
     <figure className={cn("relative", className)} aria-label="Illustration of the AI employee handling a WhatsApp order">
-      <div className="pointer-events-none absolute -inset-10 rounded-full bg-gradient-to-tr from-violet/25 via-azure/15 to-transparent blur-3xl" />
+      <div className="pointer-events-none absolute -inset-10 rounded-full bg-linear-to-tr from-violet/25 via-azure/15 to-transparent blur-3xl" />
       <div className="relative rounded-[1.75rem] border bg-card/90 p-4 shadow-[0_40px_80px_-30px_color-mix(in_oklch,var(--navy)_45%,transparent)] backdrop-blur sm:p-5">
         <div className="flex items-center justify-between border-b pb-3">
           <div className="flex items-center gap-3">

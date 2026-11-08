@@ -46,7 +46,7 @@ export const registerAction: FormAction = async (_previous, formData) =>
       const { userId } = await registerUser(input, meta);
       const { token } = await createSession(userId, { ...meta, mfaVerified: true });
       await setSessionCookie(token);
-      redirect("/onboarding");
+      redirect(safeRedirectPath(input.next, "/onboarding"));
     },
     { source: "auth.register" },
   );

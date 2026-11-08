@@ -53,7 +53,7 @@ export default async function PricingPage() {
               return (
                 <article
                   key={plan.id}
-                  className={`relative flex flex-col rounded-3xl border p-8 ${featured ? "border-primary/40 bg-gradient-to-b from-violet/10 to-card shadow-[0_30px_60px_-30px_var(--violet)]" : "bg-card"}`}
+                  className={`relative flex flex-col rounded-3xl border p-8 ${featured ? "border-primary/40 bg-linear-to-b from-violet/10 to-card shadow-[0_30px_60px_-30px_var(--violet)]" : "bg-card"}`}
                 >
                   {featured ? (
                     <span className="absolute -top-3 left-8 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">

@@ -40,7 +40,7 @@ export default function SolutionsPage() {
       <section className="mx-auto grid max-w-6xl gap-6 px-6 py-20">
         {SOLUTIONS.map(({ icon: Icon, title, problem, outcome }, index) => (
           <article key={title} className="grid gap-6 rounded-3xl border bg-card p-8 md:grid-cols-[auto_1fr_1fr] md:items-start">
-            <span className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet to-azure text-white">
+            <span className="flex size-12 items-center justify-center rounded-2xl bg-linear-to-br from-violet to-azure text-white">
               <Icon className="size-5" aria-hidden="true" />
             </span>
             <div>

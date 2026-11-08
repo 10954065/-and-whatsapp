@@ -11,13 +11,19 @@ npm run build && npm run test:e2e   # Playwright against `next start`
 Integration tests run against a real PostgreSQL database (`sunleon_test`), migrated with
 `prisma migrate deploy` before the suite.
 
-## Latest run — Phase 1 (2026-11-08)
+## Latest run — Phase 2 (2026-11-08)
 
 | Suite | Files | Tests | Result |
 | --- | --- | --- | --- |
-| Unit (`tests/unit`) | 4 | 32 | ✅ pass |
-| Integration (`tests/integration`) | 2 | 15 | ✅ pass |
+| Unit (`tests/unit`) | 5 | 36 | ✅ pass |
+| Integration (`tests/integration`) | 3 | 22 | ✅ pass |
 | E2E (`tests/e2e`, Chromium) | 1 | 3 | ✅ pass |
+
+Phase 2 additions: opening-hours parsing and timezone-aware open/closed checks; invitations
+(verified inviter required, role ceilings, only the invited email can accept, single use,
+invitee email marked verified); member role changes/removal with ceilings and no
+self-management; cross-business membership access blocked; setup progress derived from
+real data with remembered skips; E2E profile save updates the setup guide.
 
 ### Covered behaviour
 

@@ -13,6 +13,7 @@ export const registerSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   acceptTerms: z.literal("on", { error: "Please accept the Terms and Privacy Policy." }),
+  next: z.string().max(512).optional(),
 });
 
 export const loginSchema = z.object({

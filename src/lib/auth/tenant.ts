@@ -101,6 +101,29 @@ export function assertPermission(context: TenantContext, permission: Permission)
   if (!context.can(permission)) throw fail.forbidden();
 }
 
+/** Request-independent identity passed to services (keeps services testable). */
+export interface TenantActor {
+  userId: string;
+  userName: string;
+  emailVerified: boolean;
+  businessId: string;
+  businessName: string;
+  role: MemberRole;
+  ipAddress: string | null;
+}
+
+export function toActor(context: TenantContext, ipAddress: string | null = null): TenantActor {
+  return {
+    userId: context.user.id,
+    userName: context.user.name,
+    emailVerified: Boolean(context.user.emailVerifiedAt),
+    businessId: context.businessId,
+    businessName: context.business.name,
+    role: context.role,
+    ipAddress,
+  };
+}
+
 /** Sets the active workspace after verifying the user belongs to it. */
 export async function setActiveBusiness(userId: string, businessId: string): Promise<void> {
   const membership = await prisma.businessMembership.findUnique({
