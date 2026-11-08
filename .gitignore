@@ -60,3 +60,6 @@ AGENTS.md
 .serena/
 .mcp.json
 skills-lock.json
+
+# shell crash dumps
+*.stackdump
