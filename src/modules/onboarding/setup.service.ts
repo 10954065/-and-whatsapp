@@ -51,6 +51,15 @@ export const SETUP_STEPS: SetupStep[] = [
     isDone: (signals) => signals.hasHours,
   },
   {
+    id: "knowledge",
+    title: "Teach your AI employee",
+    description: "Add FAQs, policies, price lists or documents. The AI only answers from what you provide.",
+    href: "/app/knowledge",
+    actionLabel: "Add knowledge",
+    isOptional: false,
+    isDone: (signals) => signals.knowledgeSources > 0,
+  },
+  {
     id: "ai",
     title: "Configure your AI employee",
     description: "Choose its name, tone, what it may do on its own and your spending limits.",

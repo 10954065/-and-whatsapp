@@ -43,7 +43,10 @@ export const APP_NAVIGATION: NavSection[] = [
   },
   {
     title: "AI",
-    items: [{ href: "/app/ai-agents", label: "AI employee", icon: "ai", permission: "ai.read" }],
+    items: [
+      { href: "/app/ai-agents", label: "AI employee", icon: "ai", permission: "ai.read" },
+      { href: "/app/knowledge", label: "Knowledge base", icon: "knowledge", permission: "knowledge.read" },
+    ],
   },
   {
     title: "Workspace",

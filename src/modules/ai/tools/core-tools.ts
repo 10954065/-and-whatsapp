@@ -5,7 +5,7 @@ import { buildBusinessFacts, type BusinessForPrompt } from "@/modules/ai/context
 import { escalateConversation } from "@/modules/ai/escalation";
 import { defineTool } from "@/modules/ai/tools/types";
 import type { BusinessHours } from "@/modules/businesses/settings.schemas";
-import { searchKnowledgeText } from "@/modules/knowledge/retrieval";
+import { searchKnowledge } from "@/modules/knowledge/retrieval";
 
 export const searchKnowledgeTool = defineTool({
   name: "search_knowledge",
@@ -15,7 +15,7 @@ export const searchKnowledgeTool = defineTool({
   isWrite: false,
   schema: z.strictObject({ query: z.string().min(2).max(300).describe("The customer's question rephrased as a short search query") }),
   async execute(context, input) {
-    const chunks = await searchKnowledgeText(context.businessId, input.query, 5);
+    const chunks = await searchKnowledge(context.businessId, input.query, 5);
     if (chunks.length === 0) return { ok: true, message: "No matching knowledge found.", verifiedFacts: [] };
     return {
       ok: true,

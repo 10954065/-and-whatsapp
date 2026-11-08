@@ -11,11 +11,11 @@ npm run build && npm run test:e2e   # Playwright against `next start`
 Integration tests run against a real PostgreSQL database (`sunleon_test`), migrated with
 `prisma migrate deploy` before the suite.
 
-## Latest run — Phase 3 (2026-11-08)
+## Latest run — Phase 4 (2026-11-08)
 
 | Suite | Files | Tests | Result |
 | --- | --- | --- | --- |
-| Unit + integration (Vitest) | 10 | 90 | ✅ pass |
+| Unit + integration (Vitest) | 12 | 132 | ✅ pass |
 | E2E (`tests/e2e`, Chromium) | 1 | 3 | ✅ pass |
 
 Phase 3 additions (AI engine, tested with a scripted fake model — no live Anthropic calls):

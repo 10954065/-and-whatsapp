@@ -21,6 +21,8 @@ const nextConfig: NextConfig = {
   // Do not generate AGENTS.md / CLAUDE.md files during `next dev`.
   agentRules: false,
   poweredByHeader: false,
+  // Knowledge uploads are up to 10 MB (validated again in modules/knowledge/upload-validation.ts).
+  experimental: { serverActions: { bodySizeLimit: "11mb" } },
   // Native / Node-only packages that must not be bundled.
   serverExternalPackages: ["@node-rs/argon2", "pg", "mammoth", "unpdf"],
   turbopack: {

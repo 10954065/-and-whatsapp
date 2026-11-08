@@ -1,5 +1,16 @@
 # Changelog
 
+## Phase 4 — Knowledge base and background jobs
+
+* PostgreSQL-backed job queue: idempotent enqueue, SKIP LOCKED claiming, exponential
+  back-off, dead letters, inline dispatch after responses, cron sweeper, standalone worker.
+* Object storage abstraction (Cloudflare R2/S3 via SigV4, local driver for development).
+* Knowledge base: FAQs, text, PDF/DOCX/TXT/MD/CSV uploads (type, magic-byte, size and plan
+  storage checks, duplicate detection), website import with SSRF protection, versioned
+  edits, delete and reprocess, processing status and errors.
+* Extraction, chunking, optional Voyage embeddings (pgvector) and hybrid retrieval with
+  rank fusion; always scoped to one business. The AI engine now uses hybrid retrieval.
+
 ## Phase 3 — AI engine
 
 * Central Claude orchestration (`modules/ai`): cost-aware model routing, versioned prompts,

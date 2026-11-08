@@ -24,7 +24,7 @@ import type { ToolContext } from "@/modules/ai/tools/types";
 import { dayPeriod, getAiSpend, getPlanLimits, getUsage, incrementUsage, monthPeriod } from "@/modules/billing/usage";
 import type { BusinessHours } from "@/modules/businesses/settings.schemas";
 import { isWithinBusinessHours } from "@/modules/businesses/settings.service";
-import { searchKnowledgeText } from "@/modules/knowledge/retrieval";
+import { searchKnowledge } from "@/modules/knowledge/retrieval";
 
 const MAX_ITERATIONS = 5;
 const MAX_OUTPUT_TOKENS = 1_024;
@@ -146,7 +146,7 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
     channel: input.channel,
     industryGuidance: industryGuidanceFor(business.industry),
   });
-  const knowledge = await searchKnowledgeText(input.businessId, input.inboundText, 4);
+  const knowledge = await searchKnowledge(input.businessId, input.inboundText, 4);
   const messages: BetaMessageParam[] = buildMessages({
     history: input.history.slice(-20),
     inboundText: input.inboundText,
