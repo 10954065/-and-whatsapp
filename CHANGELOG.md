@@ -1,5 +1,19 @@
 # Changelog
 
+## Phase 11 — Super-admin console
+
+* `/admin` for platform super-admins only (404 for everyone else), and only on a session
+  verified with two-factor authentication.
+* Overview (businesses, subscriptions, 30-day revenue, AI cost, failures, inquiries); business
+  search and detail (plan, usage, members, channels without credentials, payments, activity);
+  suspend/restore, manual plan activation and internal support notes, each with a recorded
+  reason.
+* Plan editor (prices, limits, features, availability) with before/after audit.
+* Monitoring of failed jobs (with retry), webhook problems, errors and email failures, with no
+  payloads shown.
+* Contact inquiries, workspace announcements (shown as banners), the platform-wide AI kill
+  switch, provider configuration status, and a filterable audit log.
+
 ## Phase 10 — Analytics and billing
 
 * Analytics: conversations, AI replies, escalation rate and estimated AI cost, orders and

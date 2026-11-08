@@ -29,7 +29,10 @@ Status legend: ✅ implemented and tested · 🟡 implemented, not yet covered b
 | PostgreSQL RLS (`sunleon_tenant` role, fail-closed policy) | ✅ | migration `integrity_and_rls`, `lib/db/tenant.ts` |
 | Cross-tenant read/write/update blocked inside tenant transactions | ✅ | `tests/integration/tenancy.test.ts` |
 | Credential tables unreachable from tenant transactions | ✅ | same |
-| Super-admin area returns 404 for everyone else | 🟡 | `requireSuperAdmin` |
+| Super-admin area returns 404 for everyone else | ✅ | `requireSuperAdmin`, `tests/e2e/admin.spec.ts` |
+| Admin console requires an MFA-verified session (every page and action) | ✅ | `requireAdminConsole`, `admin.actions.ts` |
+| Every admin change audited with actor, IP and reason; integration credentials never selected | ✅ | `admin.service.ts`, `tests/integration/admin.test.ts` |
+| Platform-wide AI kill switch | ✅ | `/admin/settings`, policy preflight |
 
 **Path to default-deny:** today only code inside `withTenantTx` runs as `sunleon_tenant`. Once
 every tenant service runs through it, the runtime `DATABASE_URL` can use a login role that
@@ -57,7 +60,9 @@ every tenant service runs through it, the runtime `DATABASE_URL` can use a login
 | Audit log for auth events and workspace creation | ✅ |
 | Data export / account deletion | ⏳ Phase 12 |
 | Message retention purge | ⏳ Phase 12 |
-| Webhook signature verification (Meta, Paystack, QStash) | ⏳ Phases 5 & 10 |
+| Webhook signature verification: Meta (HMAC-SHA256) and Paystack (HMAC-SHA512, verified before any database work) | ✅ |
+| Payments confirmed only by server-side verify with amount/currency/reference checks, applied exactly once | ✅ |
+| QStash signature verification | ⏳ Phase 12 |
 | SSRF protection for website knowledge import | ⏳ Phase 4 |
 | File upload validation | ⏳ Phase 4 |
 

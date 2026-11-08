@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Bell, Check, ChevronsUpDown, LogOut, Menu, Plus, UserRound } from "lucide-react";
+import { Bell, Check, ChevronsUpDown, LogOut, Menu, Plus, ShieldCheck, UserRound } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { NavIconGlyph } from "@/components/app/nav-icon";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -95,12 +95,14 @@ export function AppTopbar({
   businesses,
   user,
   unreadNotifications,
+  isPlatformAdmin = false,
 }: {
   sections: NavSection[];
   business: ShellBusiness;
   businesses: ShellBusiness[];
   user: { name: string; email: string };
   unreadNotifications: number;
+  isPlatformAdmin?: boolean;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   return (
@@ -186,6 +188,13 @@ export function AppTopbar({
                 <UserRound /> Account & security
               </Link>
             </DropdownMenuItem>
+            {isPlatformAdmin ? (
+              <DropdownMenuItem asChild>
+                <Link href="/admin">
+                  <ShieldCheck /> Admin console
+                </Link>
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuSeparator />
             <form action={logoutAction}>
               <DropdownMenuItem asChild>

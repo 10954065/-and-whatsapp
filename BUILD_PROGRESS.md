@@ -17,8 +17,8 @@ Resume from this file if a session is interrupted. Update it at the end of every
 | 8 — Automation studio | ✅ Complete (155 Vitest + 5 Playwright pass, build pass) | phase 8 commit |
 | 9 — Industry templates | ✅ Complete (181 Vitest + 6 Playwright pass, build pass) | phase 9 commit |
 | 10 — Analytics & billing | ✅ Implemented (201 Vitest + 7 Playwright pass, build pass; security-reviewed); Paystack not live-verified — no keys | phase 10 commit |
-| 11 — Super-admin | ⏳ Next | |
-| 12 — Production hardening | ⬜ | |
+| 11 — Super-admin | ✅ Complete (205 Vitest + 9 Playwright pass, build pass) | phase 11 commit |
+| 12 — Production hardening | ⏳ Next | |
 
 ## Local environment
 
@@ -93,16 +93,25 @@ Notes:
 
 ## Next steps
 
-Phase 11 — Super-admin (`/admin/*`, `requireSuperAdmin` — `User.platformRole` set by seed from
-PLATFORM_ADMIN_EMAILS; every admin action audited with actorType ADMIN):
-* Overview: businesses, active subscriptions, MRR from SUCCESS payments, AI cost, jobs.
-* Businesses: list/search, detail (plan, usage, members, integrations), suspend/restore
-  (Business.status), support notes (SupportNote).
-* Plans: edit prices/limits/features/isActive (SubscriptionPlan), never delete in use.
-* Subscriptions & payments: list, manual extend/activate with reason (audited).
-* Monitoring: Job (failed/dead + retryJob), WebhookEvent (failed), ErrorEvent, EmailLog.
-* Audit log viewer; contact inquiries (ContactInquiry) with status; announcements.
-* Platform settings: `ai.globalEnabled` kill switch (modules/administration/platform-settings.ts).
+Phase 12 — Production hardening:
+* QStash dispatcher: `setJobDispatcher` publishing `{jobId}` to `/api/queue/qstash` when
+  QSTASH_TOKEN is set; route verifies `Upstash-Signature` (current + next signing keys) and
+  runs `runJobById`. Keep the cron sweeper as the safety net.
+* Health endpoint `/api/health` (DB round-trip, migration state, provider configuration
+  booleans; no secrets).
+* Data rights: owner data export (JSON of business data via job → storage or direct download),
+  workspace deletion request (DataRequest; soft delete + purge job after a grace period),
+  user account deletion.
+* Retention purge job honouring `BusinessSettings.messageRetentionDays` (daily cron).
+* Docs: ENVIRONMENT_VARIABLES, VERCEL_DEPLOYMENT, DATABASE_DEPLOYMENT, OPERATIONS_RUNBOOK,
+  PRODUCTION_READINESS (with the four-status final report), API_DOCUMENTATION.
+
+Phase 11 notes (done): `/admin/*` (layout + pages: overview, businesses, business detail,
+plans, monitoring, inquiries, announcements, settings, audit). Services in
+`modules/administration/{admin.service,monitoring.service,admin.actions}.ts`. Every page calls
+`requireAdminConsole()` (404 for non-admins, null without MFA); every action
+`requireSuperAdminForAction` + MFA. Announcements banner in `app/app/layout.tsx`; "Admin
+console" link in the account menu for super-admins.
 
 Phase 10 notes (done): analytics in `modules/analytics/analytics.service.ts` (+ `/app/analytics`,
 `components/analytics/daily-column-chart.tsx`); billing in `modules/billing/{paystack,

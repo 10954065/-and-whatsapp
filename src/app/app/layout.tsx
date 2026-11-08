@@ -1,19 +1,22 @@
 import Link from "next/link";
-import { CreditCard, MailWarning, ShieldAlert } from "lucide-react";
+import { CreditCard, MailWarning, Megaphone, ShieldAlert } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { AppSidebar, AppTopbar } from "@/components/app/app-shell";
 import { APP_NAVIGATION } from "@/config/navigation";
 import { ROLE_LABELS } from "@/config/permissions";
 import { listUserMemberships, requireTenant } from "@/lib/auth/tenant";
 import { prisma } from "@/lib/db/prisma";
+import { getActiveAnnouncements } from "@/modules/administration/monitoring.service";
 import { isSubscriptionLapsed } from "@/modules/billing/billing.service";
 import { countUnreadNotifications } from "@/modules/notifications/notification.service";
 
 export default async function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const context = await requireTenant();
-  const [memberships, unreadNotifications, subscription] = await Promise.all([
+  const [memberships, unreadNotifications, subscription, announcements] = await Promise.all([
     listUserMemberships(context.user.id),
     countUnreadNotifications(context.businessId),
     prisma.subscription.findUnique({ where: { businessId: context.businessId }, select: { status: true, trialEndsAt: true } }),
+    getActiveAnnouncements(),
   ]);
 
   const sections = APP_NAVIGATION.map((section) => ({
@@ -37,7 +40,24 @@ export default async function AppLayout({ children }: Readonly<{ children: React
           businesses={businesses}
           user={{ name: context.user.name, email: context.user.email }}
           unreadNotifications={unreadNotifications}
+          isPlatformAdmin={context.user.platformRole === "SUPER_ADMIN"}
         />
+        {announcements.map((announcement) => (
+          <div
+            key={announcement.id}
+            role={announcement.level === "INFO" ? "status" : "alert"}
+            className={cn(
+              "flex flex-wrap items-center gap-2 border-b px-4 py-2 text-sm lg:px-8",
+              announcement.level === "INFO" && "border-primary/20 bg-primary/8",
+              announcement.level === "WARNING" && "border-warning/30 bg-warning/10",
+              announcement.level === "CRITICAL" && "border-destructive/30 bg-destructive/10",
+            )}
+          >
+            <Megaphone className="size-4 shrink-0" aria-hidden="true" />
+            <span className="font-semibold">{announcement.title}</span>
+            <span className="text-muted-foreground">{announcement.body}</span>
+          </div>
+        ))}
         {!context.user.emailVerifiedAt ? (
           <div className="flex flex-wrap items-center gap-2 border-b border-warning/30 bg-warning/10 px-4 py-2 text-sm lg:px-8">
             <MailWarning className="size-4 text-warning" aria-hidden="true" />

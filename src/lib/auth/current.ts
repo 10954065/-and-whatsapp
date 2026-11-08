@@ -42,6 +42,15 @@ export async function requireSuperAdmin(): Promise<ValidatedSession> {
   return session;
 }
 
+/**
+ * For admin pages (pages render independently of their layout, so each page checks itself):
+ * 404 for non-admins, null when two-factor authentication isn't active on this session.
+ */
+export async function requireAdminConsole(): Promise<ValidatedSession | null> {
+  const session = await requireSuperAdmin();
+  return session.user.mfaEnabled && session.mfaVerified ? session : null;
+}
+
 export async function requireSuperAdminForAction(): Promise<ValidatedSession> {
   const session = await requireUserForAction();
   if (session.user.platformRole !== "SUPER_ADMIN") throw fail.forbidden();

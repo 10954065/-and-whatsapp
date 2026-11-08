@@ -11,12 +11,23 @@ npm run build && npm run test:e2e   # Playwright against `next start`
 Integration tests run against a real PostgreSQL database (`sunleon_test`), migrated with
 `prisma migrate deploy` before the suite.
 
-## Latest run — Phase 10 (2026-11-08)
+## Latest run — Phase 11 (2026-11-08)
 
 | Suite | Files | Tests | Result |
 | --- | --- | --- | --- |
-| Unit + integration (Vitest) | 22 | 201 | ✅ pass |
-| E2E (`tests/e2e`, Chromium) | 2 | 7 | ✅ pass |
+| Unit + integration (Vitest) | 23 | 205 | ✅ pass |
+| E2E (`tests/e2e`, Chromium) | 3 | 9 | ✅ pass |
+
+Phase 11 additions:
+* **Workspace administration:** search and status filters; suspend and restore with a
+  recorded actor, IP and reason, rejecting a repeat suspension.
+* **Plans and subscriptions:** manual activation that extends a running period; support
+  notes; plan updates that keep unrelated limit keys and audit before/after prices.
+* **Platform tools:** only failed or dead jobs can be retried; inquiry status changes;
+  announcements honour their active window, can be hidden, and store their end time in UTC;
+  the AI kill switch turns off and on with audit entries.
+* **E2E:** ordinary users get 404 at `/admin`; a super-admin without two-factor
+  authentication sees only the 2FA requirement.
 
 Phase 10 additions:
 * **Billing:** billing-period arithmetic (month-end clamping, extension rules), lapse rules,
