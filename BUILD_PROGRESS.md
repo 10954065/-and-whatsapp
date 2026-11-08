@@ -13,8 +13,8 @@ Resume from this file if a session is interrupted. Update it at the end of every
 | 4 — Knowledge base | ✅ Complete (132 Vitest + 3 Playwright pass, build pass; Voyage + R2 not live-verified) | phase 4 commit |
 | 5 — Meta integrations | ✅ Implemented (144 Vitest + 3 Playwright pass); not live-verified — needs Meta app + App Review | phase 5-6 commit |
 | 6 — Unified inbox | ✅ Complete (sandbox pipeline tested end to end; polling refresh) | phase 5-6 commit |
-| 7 — Business operations | 🟡 Core done (services + AI tools + 152 tests pass); UI pages pending | phase 7a commit |
-| 8 — Automation studio | ⬜ | |
+| 7 — Business operations | ✅ Complete (152 Vitest + 4 Playwright pass, build pass) | phase 7 commits |
+| 8 — Automation studio | ⏳ Next | |
 | 9 — Industry templates | ⬜ | |
 | 10 — Analytics & billing | ⬜ | |
 | 11 — Super-admin | ⬜ | |
@@ -93,7 +93,7 @@ Notes:
 
 ## Next steps
 
-Phase 7 remaining (UI only — services exist in `modules/commerce/commerce.service.ts`
+Phase 7 (DONE) remaining (UI only — services exist in `modules/commerce/commerce.service.ts`
 [createProduct, adjustStock, createOrder, updateOrderStatus, searchProducts] and
 `modules/bookings/bookings.service.ts` [findAvailability, createBooking, cancelBooking,
 createService, createStaffMember, serviceSchema, staffSchema]; AI tools registered in

@@ -1,5 +1,14 @@
 # Changelog
 
+## Phase 7 — Business operations
+
+* Products, inventory ledger, orders (catalogue pricing, atomic stock, sequential numbers,
+  discounts with AI caps, fulfilment transitions with restock), services, staff and hours,
+  timezone-aware availability and bookings protected by a database exclusion constraint.
+* CRM: customers (search, tags, notes, no automatic merging), leads pipeline, follow-ups.
+* AI tools for products, stock, orders, order status, availability and bookings.
+* Pages: customers, leads, orders, products, inventory, bookings, services & staff.
+
 ## Phases 5–6 — Meta integrations and unified inbox
 
 * Official WhatsApp Cloud API and Instagram API with Instagram Login clients; signature-verified,

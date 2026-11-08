@@ -43,6 +43,18 @@ export const APP_NAVIGATION: NavSection[] = [
     ],
   },
   {
+    title: "Business",
+    items: [
+      { href: "/app/customers", label: "Customers", icon: "customers", permission: "customers.read" },
+      { href: "/app/leads", label: "Leads", icon: "leads", permission: "leads.read" },
+      { href: "/app/orders", label: "Orders", icon: "orders", permission: "orders.read" },
+      { href: "/app/products", label: "Products", icon: "products", permission: "products.read" },
+      { href: "/app/inventory", label: "Inventory", icon: "inventory", permission: "products.read" },
+      { href: "/app/bookings", label: "Bookings", icon: "bookings", permission: "bookings.read" },
+      { href: "/app/services", label: "Services & staff", icon: "services", permission: "bookings.read" },
+    ],
+  },
+  {
     title: "AI",
     items: [
       { href: "/app/ai-agents", label: "AI employee", icon: "ai", permission: "ai.read" },
