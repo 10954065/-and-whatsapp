@@ -51,6 +51,33 @@ export const SETUP_STEPS: SetupStep[] = [
     isDone: (signals) => signals.hasHours,
   },
   {
+    id: "ai",
+    title: "Configure your AI employee",
+    description: "Choose its name, tone, what it may do on its own and your spending limits.",
+    href: "/app/ai-agents",
+    actionLabel: "Configure",
+    isOptional: false,
+    isDone: (signals) => signals.agentConfigured,
+  },
+  {
+    id: "test",
+    title: "Test your AI employee",
+    description: "Chat with it in the private test console. Nothing is sent to customers.",
+    href: "/app/ai-agents",
+    actionLabel: "Open test console",
+    isOptional: false,
+    isDone: (signals) => signals.aiTestRuns > 0,
+  },
+  {
+    id: "activate",
+    title: "Activate your AI employee",
+    description: "Turn it on once you're happy with the test replies. You can pause it any time.",
+    href: "/app/ai-agents",
+    actionLabel: "Activate",
+    isOptional: false,
+    isDone: (signals) => signals.agentEnabled,
+  },
+  {
     id: "team",
     title: "Invite your team",
     description: "Give colleagues their own sign-in and the right permissions.",
@@ -77,7 +104,7 @@ export async function getSetupSignals(businessId: string): Promise<SetupSignals>
       prisma.invitation.count({ where: { businessId, status: "PENDING", expiresAt: { gt: new Date() } } }),
       prisma.knowledgeSource.count({ where: { businessId, status: "READY", deletedAt: null } }),
       prisma.integration.count({ where: { businessId, status: "CONNECTED", channel: { not: "SANDBOX" } } }),
-      prisma.aiAgent.findUnique({ where: { businessId }, select: { enabled: true, roleDescription: true } }),
+      prisma.aiAgent.findUnique({ where: { businessId }, select: { enabled: true, createdAt: true, updatedAt: true } }),
       prisma.aiRun.count({ where: { businessId, trigger: "TEST_CONSOLE", status: "SUCCEEDED" } }),
     ]);
   return {
@@ -88,7 +115,8 @@ export async function getSetupSignals(businessId: string): Promise<SetupSignals>
     pendingInvitations,
     knowledgeSources,
     connectedChannels,
-    agentConfigured: Boolean(agent),
+    // The agent row is created on first view; "configured" means its settings were saved.
+    agentConfigured: Boolean(agent && agent.updatedAt.getTime() - agent.createdAt.getTime() > 1_000),
     aiTestRuns,
     agentEnabled: Boolean(agent?.enabled),
   };

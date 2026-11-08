@@ -1,5 +1,19 @@
 # Changelog
 
+## Phase 3 — AI engine
+
+* Central Claude orchestration (`modules/ai`): cost-aware model routing, versioned prompts,
+  cache-friendly context with untrusted-data delimiting, bounded tool loop, server-side
+  safety fallback on Sonnet/Opus tiers.
+* Policy engine: kill switch, emergency stop, activation, human takeover, business hours,
+  daily/monthly budgets, daily reply limits, plan allowances; post-reply guards against
+  invented prices, unverified payment confirmations and medical advice.
+* Tool registry with Zod validation, per-business permissions, approval requests and
+  test-mode simulation; tools: knowledge search, business info, escalation, leads, follow-ups.
+* Usage ledger (AiRun, AiAction, AiUsageRecord, usage counters) and cost estimates.
+* AI employee page with configuration, activation, emergency stop and a test console.
+* Industry templates for all 11 industries (guidance, tone, tools, escalation rules).
+
 ## Phase 2 — Business onboarding
 
 * Guided setup guide (`/app/setup`) whose progress is derived from real workspace data,

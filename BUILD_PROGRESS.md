@@ -9,8 +9,8 @@ Resume from this file if a session is interrupted. Update it at the end of every
 | 0 — Repository audit | ✅ Complete | phase 0 commit |
 | 1 — Core foundations | ✅ Complete (lint, typecheck, 47 Vitest + 3 Playwright tests, build pass) | phase 1 commit |
 | 2 — Business onboarding | ✅ Complete (58 Vitest + 3 Playwright pass, build pass) | phase 2 commit |
-| 3 — AI engine | ⏳ Next | |
-| 4 — Knowledge base | ⬜ | |
+| 3 — AI engine | ✅ Complete (90 Vitest + 3 Playwright pass, build pass; live model not verified — no API key) | phase 3 commit |
+| 4 — Knowledge base | ⏳ Next | |
 | 5 — Meta integrations | ⬜ | |
 | 6 — Unified inbox | ⬜ | |
 | 7 — Business operations | ⬜ | |

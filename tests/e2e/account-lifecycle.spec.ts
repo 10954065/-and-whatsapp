@@ -33,7 +33,7 @@ test("visitor registers, creates a workspace, signs out and signs back in", asyn
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Business profile saved." })).toBeVisible();
   await page.getByRole("link", { name: "Setup guide" }).first().click();
-  await expect(page.getByText("1 of 3 steps complete")).toBeVisible();
+  await expect(page.getByText("1 of 6 steps complete")).toBeVisible();
 
   await page.getByRole("button", { name: "Account menu" }).click();
   await page.getByRole("menuitem", { name: "Sign out" }).click();

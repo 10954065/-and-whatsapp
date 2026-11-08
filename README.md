@@ -17,3 +17,20 @@ the owner in control.
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | System design |
 | [docs/IMPLEMENTATION_PLAN.md](./docs/IMPLEMENTATION_PLAN.md) | Phase plan |
 | [docs/INFRASTRUCTURE_COSTS.md](./docs/INFRASTRUCTURE_COSTS.md) | Free tiers, commercial upgrade path, AI cost model |
+| [docs/DATABASE_SCHEMA.md](./docs/DATABASE_SCHEMA.md) | Data model, constraints, row-level security |
+| [docs/SECURITY_PLAN.md](./docs/SECURITY_PLAN.md) | Security controls and their status |
+| [docs/AI_SYSTEM_DOCUMENTATION.md](./docs/AI_SYSTEM_DOCUMENTATION.md) | AI engine, routing, tools, guardrails, cost |
+| [docs/TEST_REPORT.md](./docs/TEST_REPORT.md) | What is tested and the latest results |
+| [CHANGELOG.md](./CHANGELOG.md) | Changes by phase |
+
+## Local development
+
+```bash
+docker run -d --name sunleon-db -e POSTGRES_USER=sunleon -e POSTGRES_PASSWORD=sunleon_dev_pw \
+  -e POSTGRES_DB=sunleon -p 5440:5432 pgvector/pgvector:pg17
+cp .env.example .env          # then fill AUTH_SECRET, ENCRYPTION_KEY (see comments)
+npm install
+npx prisma migrate deploy && npm run db:seed
+npm run dev                   # http://localhost:3000
+npm test                      # unit + integration (needs database "sunleon_test")
+```

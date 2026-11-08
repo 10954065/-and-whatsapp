@@ -11,7 +11,22 @@ npm run build && npm run test:e2e   # Playwright against `next start`
 Integration tests run against a real PostgreSQL database (`sunleon_test`), migrated with
 `prisma migrate deploy` before the suite.
 
-## Latest run — Phase 2 (2026-11-08)
+## Latest run — Phase 3 (2026-11-08)
+
+| Suite | Files | Tests | Result |
+| --- | --- | --- | --- |
+| Unit + integration (Vitest) | 10 | 90 | ✅ pass |
+| E2E (`tests/e2e`, Chromium) | 1 | 3 | ✅ pass |
+
+Phase 3 additions (AI engine, tested with a scripted fake model — no live Anthropic calls):
+tier routing, cost estimation, every preflight block, price/payment/medical post-checks,
+delimiter-forgery protection, prompt rendering; orchestrator runs that record AiRun/usage/
+counters, execute permitted write tools under RLS, deny unpermitted tools, route
+approval-required tools to approvals, simulate writes in test mode, replace invented prices
+and escalate, escalate on refusal and provider failure, and spend nothing when preflight
+blocks. **Live model behaviour is not verified** (no `ANTHROPIC_API_KEY` in this environment).
+
+## Phase 2 run
 
 | Suite | Files | Tests | Result |
 | --- | --- | --- | --- |
