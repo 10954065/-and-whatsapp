@@ -8,7 +8,8 @@ import { requireTenant } from "@/lib/auth/tenant";
 import { getOrCreateAgent } from "@/modules/ai/agent.service";
 import { isAnthropicConfigured } from "@/modules/ai/client";
 import { formatUsd } from "@/modules/ai/pricing";
-import { ALWAYS_ALLOWED_TOOLS, listTools } from "@/modules/ai/tools/registry";
+import { listTools } from "@/modules/ai/tools";
+import { ALWAYS_ALLOWED_TOOLS } from "@/modules/ai/tools/registry";
 import { dayPeriod, getAiSpend, getPlanLimits, getUsage, monthPeriod } from "@/modules/billing/usage";
 
 export const metadata: Metadata = { title: "AI employee" };

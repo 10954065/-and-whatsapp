@@ -19,7 +19,7 @@ import { clampForChannel, postcheck, preflight, PREFLIGHT_LABELS, type Preflight
 import { addUsage, emptyUsage, estimateCostMicros, type TokenUsage } from "@/modules/ai/pricing";
 import { getActivePrompt } from "@/modules/ai/prompts";
 import { modelForTier, routeTier, supportsServerFallback, TIER_EFFORT, type ModelTier } from "@/modules/ai/router";
-import { executeTool, permittedToolNames, toolDefinitions } from "@/modules/ai/tools/registry";
+import { executeTool, permittedToolNames, toolDefinitions } from "@/modules/ai/tools";
 import type { ToolContext } from "@/modules/ai/tools/types";
 import { dayPeriod, getAiSpend, getPlanLimits, getUsage, incrementUsage, monthPeriod } from "@/modules/billing/usage";
 import type { BusinessHours } from "@/modules/businesses/settings.schemas";

@@ -15,7 +15,7 @@ Integration tests run against a real PostgreSQL database (`sunleon_test`), migra
 
 | Suite | Files | Tests | Result |
 | --- | --- | --- | --- |
-| Unit + integration (Vitest) | 14 | 144 | ✅ pass |
+| Unit + integration (Vitest) | 15 | 152 | ✅ pass |
 | E2E (`tests/e2e`, Chromium) | 1 | 3 | ✅ pass |
 
 Phase 3 additions (AI engine, tested with a scripted fake model — no live Anthropic calls):
