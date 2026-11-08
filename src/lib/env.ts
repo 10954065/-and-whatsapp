@@ -97,7 +97,8 @@ export function providerStatus() {
     meta: Boolean(current.META_APP_ID && current.META_APP_SECRET && current.META_WEBHOOK_VERIFY_TOKEN),
     whatsappEmbeddedSignup: Boolean(current.META_APP_ID && current.META_WHATSAPP_CONFIG_ID),
     instagram: Boolean(current.INSTAGRAM_APP_ID && current.INSTAGRAM_APP_SECRET),
-    paystack: Boolean(current.PAYSTACK_SECRET_KEY && current.PAYSTACK_PUBLIC_KEY),
+    // Checkout is server-initialised, so only the secret key is needed.
+    paystack: Boolean(current.PAYSTACK_SECRET_KEY),
     resend: Boolean(current.RESEND_API_KEY),
     objectStorage: Boolean(
       current.OBJECT_STORAGE_ENDPOINT &&

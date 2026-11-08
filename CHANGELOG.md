@@ -1,5 +1,23 @@
 # Changelog
 
+## Phase 10 — Analytics and billing
+
+* Analytics: conversations, AI replies, escalation rate and estimated AI cost, orders and
+  order value (paid vs unpaid), top products, bookings and leads for 7/30/90 days, grouped by
+  the business's local days, with accessible daily charts and table views. All figures come
+  from stored data.
+* Paystack subscription billing: hosted checkout (card and mobile money), server-side
+  verification with amount and currency checks, signed and deduplicated webhooks,
+  exactly-once application, prepaid monthly/yearly periods, payment history.
+* Lifecycle: trial end, 3-day grace period, expiry with data kept, renewal reminders and
+  notices; lapsed-plan banner. Team seats are now enforced per plan.
+* Orders: staff record customer payments (Mark paid), triggering payment-confirmed automations.
+* Security review fixes: webhook re-enqueue on redelivery, retry and daily reconciliation of
+  pending payments, per-business payment serialisation, unused-time credit on plan switches,
+  refund/dispute review flags, separate rate limits for checkout and callback, no provider
+  error text in the UI.
+* Test tooling: E2E global setup resets rate-limit buckets (local databases only).
+
 ## Phase 9 — Industry templates and team notifications
 
 * Industry template panel (Settings → Industry template, linked from the setup guide): starter

@@ -16,8 +16,8 @@ Resume from this file if a session is interrupted. Update it at the end of every
 | 7 — Business operations | ✅ Complete (152 Vitest + 4 Playwright pass, build pass) | phase 7 commits |
 | 8 — Automation studio | ✅ Complete (155 Vitest + 5 Playwright pass, build pass) | phase 8 commit |
 | 9 — Industry templates | ✅ Complete (181 Vitest + 6 Playwright pass, build pass) | phase 9 commit |
-| 10 — Analytics & billing | ⏳ Next | |
-| 11 — Super-admin | ⬜ | |
+| 10 — Analytics & billing | ✅ Implemented (201 Vitest + 7 Playwright pass, build pass; security-reviewed); Paystack not live-verified — no keys | phase 10 commit |
+| 11 — Super-admin | ⏳ Next | |
 | 12 — Production hardening | ⬜ | |
 
 ## Local environment
@@ -93,21 +93,22 @@ Notes:
 
 ## Next steps
 
-Phase 10 — Analytics & Paystack billing:
-* Analytics (`modules/analytics/analytics.service.ts`, `/app/analytics`, permission
-  `analytics.read`): conversations, AI replies & escalation rate, AI cost (AiUsageRecord),
-  orders & revenue (paid vs unpaid), bookings, leads by status, top products — all from
-  persisted rows, per business timezone, 7/30/90-day ranges. Empty states, no fake numbers.
-* Billing (`modules/billing/paystack.ts`, `billing.service.ts`, `/app/billing`, owner-only
-  `billing.manage`): plans from DB (seed), `POST https://api.paystack.co/transaction/initialize`
-  (amount in pesewas, GHS, reference = our PaymentTransaction id, callback_url
-  `/app/billing/callback`), server verify `GET /transaction/verify/:reference` (check status,
-  amount, currency, reference), webhook `/api/webhooks/paystack` verifying
-  `x-paystack-signature` = HMAC-SHA512(raw body, PAYSTACK_SECRET_KEY), idempotent by
-  reference/event id; subscription lifecycle (TRIALING → ACTIVE → PAST_DUE → CANCELLED),
-  plan limits enforced via `getPlanLimits`; billing history. Without keys: honest
-  "payments not configured" state. Order payments: mark paid manually or by Paystack link;
-  emit PAYMENT_CONFIRMED workflow event.
+Phase 11 — Super-admin (`/admin/*`, `requireSuperAdmin` — `User.platformRole` set by seed from
+PLATFORM_ADMIN_EMAILS; every admin action audited with actorType ADMIN):
+* Overview: businesses, active subscriptions, MRR from SUCCESS payments, AI cost, jobs.
+* Businesses: list/search, detail (plan, usage, members, integrations), suspend/restore
+  (Business.status), support notes (SupportNote).
+* Plans: edit prices/limits/features/isActive (SubscriptionPlan), never delete in use.
+* Subscriptions & payments: list, manual extend/activate with reason (audited).
+* Monitoring: Job (failed/dead + retryJob), WebhookEvent (failed), ErrorEvent, EmailLog.
+* Audit log viewer; contact inquiries (ContactInquiry) with status; announcements.
+* Platform settings: `ai.globalEnabled` kill switch (modules/administration/platform-settings.ts).
+
+Phase 10 notes (done): analytics in `modules/analytics/analytics.service.ts` (+ `/app/analytics`,
+`components/analytics/daily-column-chart.tsx`); billing in `modules/billing/{paystack,
+billing.service,billing.jobs,billing.actions}.ts`, `/app/billing`, `/api/webhooks/paystack`,
+`/api/billing/paystack/callback`; lifecycle in cron; seat limits in team.service; staff
+"Mark paid" for orders (PAYMENT_CONFIRMED). See docs/PAYSTACK_BILLING_GUIDE.md.
 
 Phase 9 notes (done): templates in `config/industry-templates.ts` + `config/workflow-templates.ts`;
 `modules/onboarding/template.service.ts` (`getTemplateOverview`, `applyIndustryTemplate` —

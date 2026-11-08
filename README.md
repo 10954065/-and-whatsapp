@@ -20,6 +20,10 @@ the owner in control.
 | [docs/DATABASE_SCHEMA.md](./docs/DATABASE_SCHEMA.md) | Data model, constraints, row-level security |
 | [docs/SECURITY_PLAN.md](./docs/SECURITY_PLAN.md) | Security controls and their status |
 | [docs/AI_SYSTEM_DOCUMENTATION.md](./docs/AI_SYSTEM_DOCUMENTATION.md) | AI engine, routing, tools, guardrails, cost |
+| [docs/QUEUE_AND_WORKER_GUIDE.md](./docs/QUEUE_AND_WORKER_GUIDE.md) | Background jobs, cron sweeper, worker |
+| [docs/META_INTEGRATION_GUIDE.md](./docs/META_INTEGRATION_GUIDE.md) | Meta app, webhooks and Instagram setup |
+| [docs/WHATSAPP_INTEGRATION_GUIDE.md](./docs/WHATSAPP_INTEGRATION_GUIDE.md) | WhatsApp Business Platform connection |
+| [docs/PAYSTACK_BILLING_GUIDE.md](./docs/PAYSTACK_BILLING_GUIDE.md) | Subscription payments, webhooks, lifecycle |
 | [docs/TEST_REPORT.md](./docs/TEST_REPORT.md) | What is tested and the latest results |
 | [CHANGELOG.md](./CHANGELOG.md) | Changes by phase |
 

@@ -147,8 +147,26 @@ export function ActionButton({
   );
 }
 
-/** Select that submits immediately (e.g. order or lead status). */
-export function StatusSelect({ action, values, name, current, options }: { action: FormAction; values: Record<string, string>; name: string; current: string; options: string[] }) {
+/** Compact select + submit (e.g. order or lead status, payment method). */
+export function StatusSelect({
+  action,
+  values,
+  name,
+  current,
+  options,
+  labels = {},
+  ariaLabel = "Status",
+  submitLabel = "Save",
+}: {
+  action: FormAction;
+  values: Record<string, string>;
+  name: string;
+  current: string;
+  options: string[];
+  labels?: Record<string, string>;
+  ariaLabel?: string;
+  submitLabel?: string;
+}) {
   const { state, onSubmit, isPending } = useActionForm(action);
   useEffect(() => {
     if (state && !state.ok) toast.error(state.error);
@@ -159,15 +177,15 @@ export function StatusSelect({ action, values, name, current, options }: { actio
       {Object.entries(values).map(([key, value]) => (
         <input key={key} type="hidden" name={key} value={value} />
       ))}
-      <select name={name} defaultValue={current} className="h-7 rounded-md border bg-background px-1.5 text-xs" aria-label="Status">
+      <select name={name} defaultValue={current} className="h-7 rounded-md border bg-background px-1.5 text-xs" aria-label={ariaLabel}>
         {options.map((option) => (
           <option key={option} value={option}>
-            {option.toLowerCase()}
+            {labels[option] ?? option.toLowerCase()}
           </option>
         ))}
       </select>
       <SubmitButton size="xs" variant="ghost" isPending={isPending}>
-        Save
+        {submitLabel}
       </SubmitButton>
     </form>
   );

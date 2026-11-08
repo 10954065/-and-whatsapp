@@ -38,6 +38,7 @@ interchangeable; every runner claims jobs the same way, so any combination can r
 | `webhook.meta` | Process a persisted, signature-verified Meta webhook event |
 | `ai.reply` | Generate and send the AI reply for a conversation (burst-merged) |
 | `automation.event` | Run every ACTIVE workflow for one business event (deduplicated per workflow) |
+| `webhook.paystack` | Confirm a signed Paystack `charge.success` through the verify API |
 | `notification.email` | Fan out a team notification to its recipients, then send one email per job |
 
 ## Operating the cron sweeper manually

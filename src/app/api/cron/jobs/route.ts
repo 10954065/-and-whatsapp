@@ -4,6 +4,7 @@ import { safeEqual } from "@/lib/security/crypto";
 import { processDueJobs } from "@/lib/queue";
 import { purgeExpiredRateLimits } from "@/lib/security/rate-limit";
 import { purgeExpiredSessions } from "@/lib/auth/session";
+import { runBillingLifecycle } from "@/modules/billing/billing.service";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -15,7 +16,8 @@ export async function GET(request: Request) {
   if (!secret || !safeEqual(provided, secret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const jobs = await processDueJobs({ workerId: "cron", timeBudgetMs: 45_000, limit: 100 });
+  const billing = await runBillingLifecycle();
+  const jobs = await processDueJobs({ workerId: "cron", timeBudgetMs: 40_000, limit: 100 });
   const [rateLimitBuckets, sessions] = await Promise.all([purgeExpiredRateLimits(), purgeExpiredSessions()]);
-  return NextResponse.json({ jobs, purged: { rateLimitBuckets, sessions } });
+  return NextResponse.json({ jobs, billing, purged: { rateLimitBuckets, sessions } });
 }

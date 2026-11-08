@@ -18,6 +18,7 @@ const KIND_LABEL: Record<string, string> = {
   "booking.created": "Booking",
   "stock.low": "Stock",
   automation: "Automation",
+  billing: "Billing",
 };
 
 export default async function NotificationsPage() {

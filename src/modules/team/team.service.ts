@@ -11,6 +11,7 @@ import { hashToken, randomToken } from "@/lib/security/crypto";
 import { enforceRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";
 import type { TenantActor } from "@/lib/auth/tenant";
 import { recordAudit } from "@/modules/administration/audit.service";
+import { getPlanLimits } from "@/modules/billing/usage";
 import { emailSchema } from "@/modules/auth/auth.schemas";
 
 const INVITATION_TTL_MS = 7 * 86_400_000;
@@ -49,6 +50,18 @@ function assertCanAssign(actor: TenantActor, role: MemberRole): void {
   }
 }
 
+/** Active members plus outstanding invitations (other than a re-invite of the same email) count as seats. */
+async function assertSeatAvailable(businessId: string, email: string): Promise<void> {
+  const [limits, members, invitations] = await Promise.all([
+    getPlanLimits(businessId),
+    prisma.businessMembership.count({ where: { businessId, status: "ACTIVE" } }),
+    prisma.invitation.count({ where: { businessId, status: "PENDING", expiresAt: { gt: new Date() }, email: { not: email } } }),
+  ]);
+  if (members + invitations >= limits.staffSeats) {
+    throw fail.precondition(`Your plan includes ${limits.staffSeats} team seat${limits.staffSeats === 1 ? "" : "s"}, and they're all in use. Upgrade in Billing or remove a member first.`);
+  }
+}
+
 export async function inviteMember(actor: TenantActor, input: z.infer<typeof inviteSchema>): Promise<void> {
   if (!actor.emailVerified) throw fail.precondition("Confirm your email address before inviting your team.");
   assertCanAssign(actor, input.role);
@@ -61,6 +74,7 @@ export async function inviteMember(actor: TenantActor, input: z.infer<typeof inv
     });
     if (membership) throw fail.conflict("That person is already a member of this workspace.");
   }
+  await assertSeatAvailable(actor.businessId, input.email);
 
   const token = randomToken(32);
   await withTenantTx(actor.businessId, async (tx) => {

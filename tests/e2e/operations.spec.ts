@@ -42,6 +42,26 @@ test("owner adds a product and customer, creates an order and sees stock drop", 
   await expect(page.getByRole("link", { name: "New order #1" })).toBeVisible();
   await page.getByRole("button", { name: "Mark all as read" }).click();
   await expect(page.getByRole("link", { name: "Notifications", exact: true })).toBeVisible();
+
+  await page.goto("/app/orders");
+  await page.getByLabel("Payment method for order 1").selectOption("cash");
+  await page.getByRole("button", { name: "Mark paid" }).click();
+  await expect(page.getByText("paid", { exact: true })).toBeVisible();
+
+  await page.goto("/app/analytics?days=7");
+  await expect(page.getByRole("heading", { name: "Analytics" })).toBeVisible();
+  await expect(page.getByText("Power bank 20000mAh")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Order value per day" })).toBeVisible();
+});
+
+test("owner sees the trial, real plan prices and an honest payments status in billing", async ({ page }) => {
+  await registerWithWorkspace(page);
+  await page.goto("/app/billing");
+  await expect(page.getByRole("heading", { name: "Billing" })).toBeVisible();
+  await expect(page.getByText("Free trial", { exact: true })).toBeVisible();
+  await expect(page.getByText(/GH₵\s?299/).first()).toBeVisible();
+  await expect(page.getByText(/Online payments are not configured|Confirm your email address before paying/)).toBeVisible();
+  await expect(page.getByText("Team seats (incl. invitations)")).toBeVisible();
 });
 
 test("owner applies the industry template and gets starter workflows as drafts", async ({ page }) => {

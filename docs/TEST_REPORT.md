@@ -11,12 +11,34 @@ npm run build && npm run test:e2e   # Playwright against `next start`
 Integration tests run against a real PostgreSQL database (`sunleon_test`), migrated with
 `prisma migrate deploy` before the suite.
 
-## Latest run — Phase 9 (2026-11-08)
+## Latest run — Phase 10 (2026-11-08)
 
 | Suite | Files | Tests | Result |
 | --- | --- | --- | --- |
-| Unit + integration (Vitest) | 19 | 181 | ✅ pass |
-| E2E (`tests/e2e`, Chromium) | 2 | 6 | ✅ pass |
+| Unit + integration (Vitest) | 22 | 201 | ✅ pass |
+| E2E (`tests/e2e`, Chromium) | 2 | 7 | ✅ pass |
+
+Phase 10 additions:
+* **Billing:** billing-period arithmetic (month-end clamping, extension rules), lapse rules,
+  and Paystack signatures (HMAC-SHA512 of the raw body; tampered bodies and wrong algorithms
+  are rejected).
+* **Payments, against a scripted Paystack API:** checkout initialisation; pending payments
+  change nothing; concurrent confirmations apply once; early renewals extend the period;
+  amount or currency mismatches and abandoned checkouts are rejected; unknown references are
+  ignored; webhooks need a valid signature, are stored once and confirm through the verify
+  API.
+* **Recovery (from the security review):** a stored but unenqueued webhook is re-enqueued
+  on redelivery; payments still pending are retried and reconciled by the daily sweep; stale
+  checkouts are abandoned; two concurrent payments both count (row lock); switching plans
+  credits unused time; refunds are flagged for review.
+* **Lifecycle and limits:** trial end, grace and expiry with exactly one notice each;
+  plan-limited team seats; staff-recorded order payments trigger PAYMENT_CONFIRMED workflows.
+* **Analytics:** counts only the business's own data, excludes test-console runs and
+  cancelled orders, buckets by local day, and returns honest nulls when empty.
+* **E2E:** mark an order paid, analytics with real data, and the billing page with an honest
+  payments status.
+
+**Paystack has not been verified live** (no keys in this environment).
 
 Phase 9 additions: every industry template references real workflow templates and registered
 tools; workflow templates are valid definitions; knowledge-profile parsing and neutralised

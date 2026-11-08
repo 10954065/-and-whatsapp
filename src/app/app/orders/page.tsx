@@ -7,11 +7,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { prisma } from "@/lib/db/prisma";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { requireTenant } from "@/lib/auth/tenant";
-import { createOrderAction, updateOrderStatusAction } from "@/modules/commerce/commerce.actions";
+import { createOrderAction, markOrderPaidAction, updateOrderStatusAction } from "@/modules/commerce/commerce.actions";
 
 export const metadata: Metadata = { title: "Orders" };
 
 const STATUSES = ["PENDING", "CONFIRMED", "PROCESSING", "READY", "SHIPPED", "DELIVERED", "CANCELLED", "RETURNED"];
+
+/** Customers pay the business directly; staff record how. */
+const PAYMENT_METHODS: Record<string, string> = { mobile_money: "Mobile money", cash: "Cash", bank_transfer: "Bank transfer", card: "Card", other: "Other" };
 
 export default async function OrdersPage() {
   const context = await requireTenant();
@@ -52,7 +55,21 @@ export default async function OrdersPage() {
                     </TableCell>
                     <TableCell>{formatMoney(order.totalMinor, order.currency)}</TableCell>
                     <TableCell>
-                      <Badge variant={order.paymentStatus === "PAID" ? "default" : "outline"}>{order.paymentStatus.toLowerCase()}</Badge>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant={order.paymentStatus === "PAID" ? "default" : "outline"}>{order.paymentStatus.toLowerCase()}</Badge>
+                        {canWrite && ["UNPAID", "PENDING", "FAILED"].includes(order.paymentStatus) && !["CANCELLED", "RETURNED"].includes(order.status) ? (
+                          <StatusSelect
+                            action={markOrderPaidAction}
+                            values={{ orderId: order.id }}
+                            name="method"
+                            current="mobile_money"
+                            options={Object.keys(PAYMENT_METHODS)}
+                            labels={PAYMENT_METHODS}
+                            ariaLabel={`Payment method for order ${order.number}`}
+                            submitLabel="Mark paid"
+                          />
+                        ) : null}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {canWrite ? (

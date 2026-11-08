@@ -8,17 +8,18 @@ import { enqueueJob } from "@/lib/queue";
 
 export const NOTIFICATION_EMAIL_JOB = "notification.email";
 
-export type NotificationKind = "ai.escalation" | "order.created" | "booking.created" | "stock.low" | "automation";
+export type NotificationKind = "ai.escalation" | "order.created" | "booking.created" | "stock.low" | "automation" | "billing";
 
 type PreferenceField = keyof Pick<BusinessSettings, "notifyOnEscalation" | "notifyOnNewOrder" | "notifyOnNewBooking" | "notifyOnLowStock">;
 
-/** Which business setting switches each kind on or off (automation alerts are explicit workflow steps). */
+/** Which business setting switches each kind on or off (automation steps and billing notices always notify). */
 const PREFERENCE: Record<NotificationKind, PreferenceField | null> = {
   "ai.escalation": "notifyOnEscalation",
   "order.created": "notifyOnNewOrder",
   "booking.created": "notifyOnNewBooking",
   "stock.low": "notifyOnLowStock",
   automation: null,
+  billing: null,
 };
 
 export interface TeamNotification {

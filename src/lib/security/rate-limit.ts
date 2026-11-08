@@ -26,6 +26,8 @@ export const RATE_LIMITS = {
   webhookIp: { name: "webhook:ip", limit: 1_200, windowSeconds: 60 },
   aiTestConsole: { name: "ai-test:business", limit: 60, windowSeconds: 3_600 },
   upload: { name: "upload:business", limit: 100, windowSeconds: 3_600 },
+  billingCallback: { name: "billing-callback:ip", limit: 30, windowSeconds: 600 },
+  checkout: { name: "checkout:business", limit: 10, windowSeconds: 3_600 },
 } satisfies Record<string, RateLimitRule>;
 
 /**

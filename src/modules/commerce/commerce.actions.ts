@@ -7,7 +7,7 @@ import type { ActionResult } from "@/lib/monitoring/errors";
 import { parseInput, runAction } from "@/lib/http/action";
 import { getRequestMeta } from "@/lib/auth/request";
 import { requireTenantAction, toActor } from "@/lib/auth/tenant";
-import { adjustStock, createOrder, createProduct, productSchema, updateOrderStatus } from "@/modules/commerce/commerce.service";
+import { adjustStock, createOrder, createProduct, markOrderPaid, productSchema, updateOrderStatus } from "@/modules/commerce/commerce.service";
 
 async function actorWith(permission: Permission) {
   const context = await requireTenantAction(permission);
@@ -75,5 +75,18 @@ export async function updateOrderStatusAction(_previous: ActionResult<unknown> |
       revalidatePath("/app/orders");
     },
     { source: "commerce.order_status", successMessage: "Order updated." },
+  );
+}
+
+const markPaidSchema = z.object({ orderId: z.string().min(1), method: z.enum(["cash", "mobile_money", "bank_transfer", "card", "other"]).default("other") });
+
+export async function markOrderPaidAction(_previous: ActionResult<unknown> | null, formData: FormData): Promise<ActionResult<unknown>> {
+  return runAction(
+    async () => {
+      const input = parseInput(markPaidSchema, formData);
+      await markOrderPaid(await actorWith("orders.write"), input.orderId, input.method);
+      revalidatePath("/app/orders");
+    },
+    { source: "commerce.mark_paid", successMessage: "Payment recorded." },
   );
 }

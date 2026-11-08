@@ -269,6 +269,25 @@ const FULFILMENT_FLOW: Record<OrderStatus, OrderStatus[]> = {
   RETURNED: [],
 };
 
+/**
+ * Records that the business collected payment for an order (cash, MoMo, bank transfer).
+ * Customer payments go straight to the business, so this is a staff action, never an AI one.
+ */
+export async function markOrderPaid(actor: TenantActor, orderId: string, method: string) {
+  const now = new Date();
+  const order = await withTenantTx(actor.businessId, async (tx) => {
+    const updated = await tx.order.updateMany({
+      where: { id: orderId, businessId: actor.businessId, paymentStatus: { in: ["UNPAID", "PENDING", "FAILED"] }, status: { notIn: ["CANCELLED", "RETURNED"] } },
+      data: { paymentStatus: "PAID", paidAt: now },
+    });
+    if (!updated.count) throw fail.validation("This order can't be marked as paid (already paid, refunded or cancelled).");
+    await recordAudit({ businessId: actor.businessId, actorType: "USER", actorId: actor.userId, action: "order.marked_paid", entityType: "Order", entityId: orderId, metadata: { method }, ipAddress: actor.ipAddress }, tx);
+    return tx.order.findUniqueOrThrow({ where: { id: orderId } });
+  });
+  await emitWorkflowEvent({ trigger: "PAYMENT_CONFIRMED", eventId: `payment:order:${order.id}`, businessId: actor.businessId, depth: 0, customerId: order.customerId, conversationId: order.conversationId, orderTotalMinor: order.totalMinor });
+  return order;
+}
+
 /** Moves fulfilment status along allowed transitions; cancellations return stock. Payment status is separate. */
 export async function updateOrderStatus(actor: TenantActor, orderId: string, status: OrderStatus, reason?: string) {
   return withTenantTx(actor.businessId, async (tx) => {
