@@ -39,6 +39,7 @@ export const APP_NAVIGATION: NavSection[] = [
     items: [
       { href: "/app/dashboard", label: "Dashboard", icon: "dashboard", permission: "business.read" },
       { href: "/app/setup", label: "Setup guide", icon: "setup", permission: "business.read" },
+      { href: "/app/inbox", label: "Inbox", icon: "inbox", permission: "inbox.read" },
     ],
   },
   {
@@ -51,6 +52,7 @@ export const APP_NAVIGATION: NavSection[] = [
   {
     title: "Workspace",
     items: [
+      { href: "/app/integrations", label: "Integrations", icon: "integrations", permission: "integrations.read" },
       { href: "/app/team", label: "Team", icon: "team", permission: "team.read" },
       { href: "/app/settings", label: "Settings", icon: "settings", permission: "business.read" },
     ],

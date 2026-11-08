@@ -1,0 +1,237 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Bot, Inbox, UserRound } from "lucide-react";
+import { AccessDenied, EmptyState } from "@/components/app/page-primitives";
+import {
+  ControlToggle,
+  ConversationSettings,
+  InboxAutoRefresh,
+  NoteForm,
+  ReplyComposer,
+  SimulateMessageForm,
+} from "@/components/inbox/inbox-client";
+import { Badge } from "@/components/ui/badge";
+import { prisma } from "@/lib/db/prisma";
+import { formatDateTime, formatMoney, formatRelative } from "@/lib/format";
+import { requireTenant, toActor } from "@/lib/auth/tenant";
+import { cn } from "@/lib/utils";
+import { getConversationDetail, listConversations, markRead, type InboxFilters } from "@/modules/messaging/inbox.service";
+import { isWithinServiceWindow } from "@/modules/messaging/outbound.service";
+
+export const metadata: Metadata = { title: "Inbox" };
+
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+const CHANNEL_LABEL: Record<string, string> = { WHATSAPP: "WhatsApp", INSTAGRAM: "Instagram", SANDBOX: "Test" };
+const FILTERS = [
+  { key: "", label: "All open" },
+  { key: "unread", label: "Unread" },
+  { key: "mine", label: "Assigned to me" },
+  { key: "WHATSAPP", label: "WhatsApp" },
+  { key: "INSTAGRAM", label: "Instagram" },
+  { key: "RESOLVED", label: "Resolved" },
+];
+
+export default async function InboxPage({ searchParams }: { searchParams: SearchParams }) {
+  const context = await requireTenant();
+  if (!context.can("inbox.read")) return <AccessDenied what="the inbox" />;
+  const params = await searchParams;
+  const filter = typeof params.filter === "string" ? params.filter : "";
+  const search = typeof params.q === "string" ? params.q.slice(0, 80) : undefined;
+  const filters: InboxFilters = {
+    unread: filter === "unread",
+    mine: filter === "mine",
+    channel: filter === "WHATSAPP" || filter === "INSTAGRAM" ? filter : undefined,
+    status: filter === "RESOLVED" ? "RESOLVED" : undefined,
+    search,
+  };
+  const conversations = await listConversations(context.businessId, context.user.id, filters);
+  const selectedId = typeof params.conversation === "string" ? params.conversation : conversations[0]?.id;
+  const detail = selectedId ? await getConversationDetail(context.businessId, selectedId) : null;
+  if (detail && detail.conversation.unreadCount > 0) await markRead(toActor(context), detail.conversation.id);
+  const [members, sandbox] = await Promise.all([
+    prisma.businessMembership.findMany({ where: { businessId: context.businessId, status: "ACTIVE" }, include: { user: { select: { id: true, name: true } } } }),
+    prisma.integration.findFirst({ where: { businessId: context.businessId, channel: "SANDBOX", status: "CONNECTED" } }),
+  ]);
+  const canReply = context.can("inbox.reply");
+  const query = (extra: Record<string, string>) => new URLSearchParams({ ...(filter ? { filter } : {}), ...(search ? { q: search } : {}), ...extra }).toString();
+
+  return (
+    <div className="-mx-4 -my-8 grid h-[calc(100svh-3.5rem)] grid-cols-1 lg:-mx-8 lg:grid-cols-[20rem_minmax(0,1fr)_18rem]">
+      <InboxAutoRefresh />
+      <aside className="flex min-h-0 flex-col border-r bg-card">
+        <form className="border-b p-3" action="/app/inbox">
+          {filter ? <input type="hidden" name="filter" value={filter} /> : null}
+          <input name="q" defaultValue={search} placeholder="Search customers or messages" aria-label="Search conversations" className="h-9 w-full rounded-lg border bg-background px-3 text-sm" />
+        </form>
+        <nav aria-label="Inbox filters" className="flex flex-wrap gap-1 border-b p-2">
+          {FILTERS.map((option) => (
+            <Link
+              key={option.key}
+              href={`/app/inbox?${new URLSearchParams({ ...(option.key ? { filter: option.key } : {}), ...(search ? { q: search } : {}) }).toString()}`}
+              className={cn("rounded-full px-2.5 py-1 text-xs font-medium", filter === option.key ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-accent")}
+            >
+              {option.label}
+            </Link>
+          ))}
+        </nav>
+        <ul className="min-h-0 flex-1 overflow-y-auto">
+          {conversations.length === 0 ? <li className="p-6 text-center text-sm text-muted-foreground">No conversations here yet.</li> : null}
+          {conversations.map((conversation) => (
+            <li key={conversation.id}>
+              <Link
+                href={`/app/inbox?${query({ conversation: conversation.id })}`}
+                className={cn("block border-b px-4 py-3 hover:bg-muted/60", conversation.id === selectedId && "bg-accent")}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="flex-1 truncate font-medium">{conversation.customer.displayName}</span>
+                  <span className="text-[11px] text-muted-foreground">{formatRelative(conversation.lastMessageAt)}</span>
+                </div>
+                <p className="truncate text-sm text-muted-foreground">{conversation.lastMessagePreview}</p>
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  <Badge variant="outline" className="text-[10px]">{CHANNEL_LABEL[conversation.channel]}</Badge>
+                  {conversation.control === "HUMAN" ? <Badge variant="secondary" className="text-[10px]">Human</Badge> : <Badge className="bg-primary/12 text-[10px] text-primary">AI</Badge>}
+                  {conversation.unreadCount > 0 ? <Badge className="ml-auto text-[10px]">{conversation.unreadCount}</Badge> : null}
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </aside>
+
+      <section className="flex min-h-0 flex-col bg-background">
+        {detail ? (
+          <>
+            <header className="flex items-center gap-3 border-b bg-card px-4 py-3">
+              <div className="flex-1">
+                <p className="font-semibold">{detail.conversation.customer.displayName}</p>
+                <p className="text-xs text-muted-foreground">
+                  {CHANNEL_LABEL[detail.conversation.channel]} · {detail.conversation.control === "AI" ? "AI is handling this conversation" : "A person is handling this conversation"}
+                </p>
+              </div>
+              {canReply ? <ControlToggle conversationId={detail.conversation.id} control={detail.conversation.control} /> : null}
+            </header>
+            <ol className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4" aria-label="Messages">
+              {detail.messages.map((message) => {
+                const outbound = message.direction === "OUTBOUND";
+                return (
+                  <li key={message.id} className={cn("flex", outbound ? "justify-end" : "justify-start")}>
+                    <div className="max-w-[75%]">
+                      <div className={cn("rounded-2xl px-3.5 py-2 text-sm whitespace-pre-wrap", outbound ? "rounded-br-md bg-primary text-primary-foreground" : "rounded-bl-md bg-card shadow-sm")}>
+                        {message.text ?? `[${message.type.toLowerCase()}]`}
+                      </div>
+                      <p className={cn("mt-1 flex items-center gap-1 px-1 text-[11px] text-muted-foreground", outbound && "justify-end")}>
+                        {message.sender === "AI" ? <Bot className="size-3" aria-label="Sent by AI" /> : message.sender === "STAFF" ? <UserRound className="size-3" aria-label="Sent by staff" /> : null}
+                        {formatDateTime(message.createdAt, context.business.timezone)}
+                        {outbound ? ` · ${message.deliveryStatus.toLowerCase()}` : ""}
+                        {message.errorMessage ? ` · ${message.errorMessage}` : ""}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+            {canReply ? (
+              <ReplyComposer
+                conversationId={detail.conversation.id}
+                disabledReason={
+                  detail.conversation.channel !== "SANDBOX" && !isWithinServiceWindow(detail.conversation.lastInboundAt)
+                    ? "The 24-hour reply window has closed. WhatsApp requires an approved template."
+                    : null
+                }
+              />
+            ) : null}
+          </>
+        ) : (
+          <div className="flex flex-1 items-center justify-center p-8">
+            <EmptyState
+              icon={Inbox}
+              title="No conversations yet"
+              description="Messages from WhatsApp and Instagram appear here. Turn on the test channel in Integrations to try it now."
+            />
+          </div>
+        )}
+      </section>
+
+      <aside className="hidden min-h-0 space-y-6 overflow-y-auto border-l bg-card p-4 lg:block">
+        {detail ? (
+          <>
+            <section>
+              <h2 className="text-sm font-semibold">Customer</h2>
+              <p className="mt-1 text-sm">{detail.conversation.customer.displayName}</p>
+              {detail.conversation.customer.phone ? <p className="text-xs text-muted-foreground">{detail.conversation.customer.phone}</p> : null}
+              <div className="mt-2 flex flex-wrap gap-1">
+                {detail.conversation.customer.leads.map((lead) => (
+                  <Badge key={lead.id} variant="secondary">Lead · {lead.status.toLowerCase()}</Badge>
+                ))}
+              </div>
+            </section>
+            {detail.conversation.customer.orders.length ? (
+              <section>
+                <h2 className="text-sm font-semibold">Recent orders</h2>
+                <ul className="mt-1 space-y-1 text-xs">
+                  {detail.conversation.customer.orders.map((order) => (
+                    <li key={order.id}>#{order.number} · {formatMoney(order.totalMinor, order.currency)} · {order.paymentStatus.toLowerCase()}</li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+            {detail.conversation.customer.bookings.length ? (
+              <section>
+                <h2 className="text-sm font-semibold">Bookings</h2>
+                <ul className="mt-1 space-y-1 text-xs">
+                  {detail.conversation.customer.bookings.map((booking) => (
+                    <li key={booking.id}>{booking.service.name} · {formatDateTime(booking.startsAt, context.business.timezone)}</li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+            {context.can("inbox.manage") ? (
+              <section>
+                <h2 className="mb-2 text-sm font-semibold">Conversation</h2>
+                <ConversationSettings
+                  conversationId={detail.conversation.id}
+                  status={detail.conversation.status}
+                  assignedToId={detail.conversation.assignedToId}
+                  tags={detail.conversation.tags}
+                  members={members.map((member) => ({ id: member.user.id, name: member.user.name }))}
+                />
+              </section>
+            ) : null}
+            {detail.aiRuns.length ? (
+              <section>
+                <h2 className="text-sm font-semibold">AI activity</h2>
+                <ul className="mt-1 space-y-1.5 text-xs text-muted-foreground">
+                  {detail.aiRuns.map((run) => (
+                    <li key={run.id}>
+                      {formatRelative(run.createdAt)} · {run.status.toLowerCase()} · {run.tier}
+                      {run.actions.length ? ` · ${run.actions.map((action) => action.tool).join(", ")}` : ""}
+                      {run.policyFlags.length ? ` · ${run.policyFlags.join(", ")}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+            <section>
+              <h2 className="mb-2 text-sm font-semibold">Internal notes</h2>
+              <ul className="mb-2 space-y-2 text-xs">
+                {detail.conversation.notes.map((note) => (
+                  <li key={note.id} className="rounded-lg bg-muted p-2">
+                    <span className="font-medium">{note.author.name}:</span> {note.body}
+                  </li>
+                ))}
+              </ul>
+              {canReply ? <NoteForm conversationId={detail.conversation.id} /> : null}
+            </section>
+          </>
+        ) : null}
+        {sandbox && canReply ? (
+          <section className="rounded-xl border border-dashed p-3">
+            <h2 className="mb-2 text-sm font-semibold">Simulate a customer (test channel)</h2>
+            <SimulateMessageForm />
+          </section>
+        ) : null}
+      </aside>
+    </div>
+  );
+}

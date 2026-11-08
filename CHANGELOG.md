@@ -1,5 +1,16 @@
 # Changelog
 
+## Phases 5–6 — Meta integrations and unified inbox
+
+* Official WhatsApp Cloud API and Instagram API with Instagram Login clients; signature-verified,
+  deduplicated, persisted webhooks processed in background jobs.
+* WhatsApp connection with Graph-verified, encrypted system-user tokens; Instagram OAuth with
+  hashed single-use state and long-lived tokens; health checks; sandbox test channel.
+* Messaging engine: conservative customer identity matching, opt-out/opt-in keywords with consent
+  records, 24-hour service-window enforcement, idempotent sends, delivery receipts, preview sandboxing.
+* AI reply job (burst-merging), unified inbox with filters, search, takeover/return, assignment,
+  status, tags, internal notes, customer panel, AI activity and polling refresh.
+
 ## Phase 4 — Knowledge base and background jobs
 
 * PostgreSQL-backed job queue: idempotent enqueue, SKIP LOCKED claiming, exponential

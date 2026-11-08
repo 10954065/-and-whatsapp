@@ -116,7 +116,7 @@ describe("guided setup", () => {
   it("derives progress from real data and remembers skipped optional steps", async () => {
     const { actor, business } = await setupWorkspace();
     let progress = await getSetupProgress(business.id);
-    expect(progress.steps.map((step) => step.id)).toEqual(["profile", "hours", "knowledge", "ai", "test", "activate", "team"]);
+    expect(progress.steps.map((step) => step.id)).toEqual(["profile", "hours", "knowledge", "channel", "ai", "test", "activate", "team"]);
     expect(progress.steps.every((step) => step.status === "todo")).toBe(true);
 
     await updateBusinessProfile(actor("OWNER"), {
@@ -145,7 +145,7 @@ describe("guided setup", () => {
     await skipSetupStep(actor("OWNER"), "team");
 
     progress = await getSetupProgress(business.id);
-    expect(progress.steps.map((step) => step.status)).toEqual(["done", "done", "todo", "todo", "todo", "todo", "skipped"]);
+    expect(progress.steps.map((step) => step.status)).toEqual(["done", "done", "todo", "todo", "todo", "todo", "todo", "skipped"]);
     expect(progress.isComplete).toBe(false);
   });
 });

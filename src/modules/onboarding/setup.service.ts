@@ -60,6 +60,15 @@ export const SETUP_STEPS: SetupStep[] = [
     isDone: (signals) => signals.knowledgeSources > 0,
   },
   {
+    id: "channel",
+    title: "Connect WhatsApp or Instagram",
+    description: "Link your official business account so customer messages reach your inbox. You can start with the test channel.",
+    href: "/app/integrations",
+    actionLabel: "Connect a channel",
+    isOptional: true,
+    isDone: (signals) => signals.connectedChannels > 0,
+  },
+  {
     id: "ai",
     title: "Configure your AI employee",
     description: "Choose its name, tone, what it may do on its own and your spending limits.",

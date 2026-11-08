@@ -11,9 +11,9 @@ Resume from this file if a session is interrupted. Update it at the end of every
 | 2 — Business onboarding | ✅ Complete (58 Vitest + 3 Playwright pass, build pass) | phase 2 commit |
 | 3 — AI engine | ✅ Complete (90 Vitest + 3 Playwright pass, build pass; live model not verified — no API key) | phase 3 commit |
 | 4 — Knowledge base | ✅ Complete (132 Vitest + 3 Playwright pass, build pass; Voyage + R2 not live-verified) | phase 4 commit |
-| 5 — Meta integrations | ⏳ Next | |
-| 6 — Unified inbox | ⬜ | |
-| 7 — Business operations | ⬜ | |
+| 5 — Meta integrations | ✅ Implemented (144 Vitest + 3 Playwright pass); not live-verified — needs Meta app + App Review | phase 5-6 commit |
+| 6 — Unified inbox | ✅ Complete (sandbox pipeline tested end to end; polling refresh) | phase 5-6 commit |
+| 7 — Business operations | ⏳ Next | |
 | 8 — Automation studio | ⬜ | |
 | 9 — Industry templates | ⬜ | |
 | 10 — Analytics & billing | ⬜ | |
@@ -93,7 +93,32 @@ Notes:
 
 ## Next steps
 
-Phase 5 — Meta integrations + messaging core (do 5 and 6 together if context allows):
+Phase 7 — Business operations:
+1. `modules/crm`: customers list/detail page `/app/customers` (search, tags, notes, history,
+   assignment), leads page `/app/leads` (pipeline statuses, convert from conversation),
+   follow-up tasks list.
+2. `modules/commerce`: products/variants/categories CRUD (`/app/products`), inventory with
+   `StockMovement` (`/app/inventory`), orders (`/app/orders`) with transactional stock decrement
+   (`UPDATE ... SET stockQuantity = stockQuantity - n WHERE stockQuantity >= n` inside
+   withTenantTx), order numbers via BusinessCounter atomic increment, payment status separate
+   from fulfilment; AI tools get_product_info, check_stock, create_order, get_order_status
+   registered via `registerTools` (import the tools module from orchestrator or
+   `modules/ai/tools/index.ts`).
+3. `modules/bookings`: services/staff/working hours (`/app/services`), availability calculator
+   (timezone-aware, buffers, time off, existing bookings), bookings page `/app/bookings`;
+   create booking relies on `Booking_no_overlap` exclusion constraint (catch error code 23P01
+   → "slot just taken"); AI tools check_availability, create_booking.
+4. Add nav items and tests (stock race, double-booking race, availability math, tenant isolation).
+
+Phase 5/6 notes: Meta client/parsers `modules/integrations/meta.ts`; integration service
+`modules/integrations/integration.service.ts`; webhook `app/api/webhooks/meta/route.ts` →
+job `webhook.meta` → `modules/messaging/inbound.service.ts` → job `ai.reply`
+(`modules/messaging/messaging.jobs.ts`) → `outbound.service.ts`. Inbox service
+`modules/messaging/inbox.service.ts`; actions `messaging.actions.ts`. QStash dispatcher not
+yet implemented (inline + cron only) — add `setJobDispatcher` QStash variant in Phase 12.
+`automation.event` jobs are NOT enqueued yet — add in Phase 8 together with the handler.
+
+Older plan (done) — Phase 5 — Meta integrations + messaging core:
 1. `modules/integrations/meta/` — `signature.ts` (X-Hub-Signature-256 HMAC-SHA256 of raw body
    with META_APP_SECRET; Instagram uses INSTAGRAM_APP_SECRET), `graph.ts` (fetch wrapper,
    `https://graph.facebook.com/${META_GRAPH_API_VERSION}` and `https://graph.instagram.com/...`),
