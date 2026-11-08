@@ -93,6 +93,17 @@ Notes:
 
 ## Next steps
 
+Phase 8 — Automation studio (design):
+* `modules/workflows/workflow.schemas.ts`: definition = { conditions: [{field: "channel"|"customer_tag"|"message_contains"|"lead_status"|"order_total_gte"|"within_business_hours", op, value}], actions: [{type: "send_message"(text, requires 24h window + consent)|"assign_conversation"(userId)|"add_customer_tag"(tag)|"notify_team"(title)|"create_follow_up"(title, dueInHours)|"create_lead"(interest)}] } (max 10 actions).
+* `workflow.service.ts`: create/update (new WorkflowVersion each save, currentVersion++), activate/pause, listRuns.
+* `workflow.engine.ts`: `emitEvent(businessId, trigger, payload, {eventId, depth})` → enqueue `automation.event` (idempotency `automation:<trigger>:<eventId>`); handler loads ACTIVE workflows for trigger, creates WorkflowRun with dedupeKey `<workflowId>:<eventId>` (unique → skip duplicates), depth > 3 → SKIPPED (loop prevention), evaluates conditions, executes actions in order (each action idempotent with key `<runId>:<index>`), records steps JSON, status.
+* Emit points: inbound message (WHATSAPP_MESSAGE/INSTAGRAM_MESSAGE + NEW_CUSTOMER when isNewCustomer) in `messaging/inbound.service.ts handleInboundMessage`; NEW_LEAD in crm.createLead + capture_lead tool; NEW_ORDER in commerce.createOrder (after tx); BOOKING_CREATED/CANCELLED in bookings; PAYMENT_CONFIRMED in Phase 10.
+* Register `modules/workflows/workflow.jobs.ts` in `src/workers/handlers.ts`.
+* UI `/app/automation`: list workflows + builder form (trigger select, up to 3 condition rows, up to 5 action rows), versions, recent runs; nav item (automation.read / automation.manage). Usage metric WORKFLOW_EXECUTION + plan limit workflowExecutionsPerMonth.
+* Tests: condition evaluation, dedupe, depth limit, end-to-end message → workflow → tag added.
+
+Older notes:
+
 Phase 7 (DONE) remaining (UI only — services exist in `modules/commerce/commerce.service.ts`
 [createProduct, adjustStock, createOrder, updateOrderStatus, searchProducts] and
 `modules/bookings/bookings.service.ts` [findAvailability, createBooking, cancelBooking,
