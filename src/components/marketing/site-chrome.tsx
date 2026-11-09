@@ -110,6 +110,8 @@ export function SiteHeader() {
   );
 }
 
+const COMPANY_URL = "https://sunleonrouterenterprise.com";
+
 const FOOTER_COLUMNS = [
   {
     title: "Product",
@@ -125,7 +127,7 @@ const FOOTER_COLUMNS = [
     links: [
       { href: "/about", label: "About" },
       { href: "/contact", label: "Contact" },
-      { href: "https://sunleonrouterenterprise.com", label: "Sunleon Router Enterprise" },
+      { href: COMPANY_URL, label: "Sunleon Router Enterprise" },
     ],
   },
   {
@@ -173,7 +175,18 @@ export function SiteFooter() {
       </div>
       <div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 pb-6 text-xs text-muted-foreground sm:flex-row sm:justify-between">
         <p>© {new Date().getFullYear()} Sunleon Router Enterprise. All rights reserved.</p>
-        <p>Made in Accra, Ghana</p>
+        <p>
+          Created by{" "}
+          <a
+            href={COMPANY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="link-underline font-medium text-foreground/80 transition-colors hover:text-foreground"
+          >
+            Sunleon Router Enterprise
+          </a>{" "}
+          · Accra, Ghana
+        </p>
       </div>
       <p
         aria-hidden="true"
