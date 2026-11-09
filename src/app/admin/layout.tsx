@@ -50,7 +50,7 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
             <ShieldCheck className="mx-auto size-10 text-primary" aria-hidden="true" />
             <h1 className="mt-4 text-xl font-bold">Two-factor authentication required</h1>
             <p className="mt-2 text-sm text-muted-foreground">The admin console can change every workspace. Turn on two-factor authentication for your account, then sign in again.</p>
-            <Link href="/app/account" className="mt-4 inline-block font-semibold text-primary hover:underline">
+            <Link href="/app/account" className="mt-4 inline-block font-medium text-foreground link-underline">
               Set up two-factor authentication
             </Link>
           </div>

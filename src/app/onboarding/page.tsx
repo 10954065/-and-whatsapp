@@ -20,9 +20,9 @@ export default async function OnboardingPage({ searchParams }: { searchParams: S
   if (memberships.length > 0 && !isCreatingAnother) redirect("/app/dashboard");
 
   return (
-    <div className="relative min-h-svh overflow-hidden bg-background">
-      <div className="bg-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(ellipse_at_top,black,transparent_65%)]" />
-      <div className="relative mx-auto flex min-h-svh max-w-xl flex-col px-6 py-10">
+    <div className="grain relative min-h-svh overflow-hidden bg-background">
+      <div aria-hidden="true" className="pointer-events-none absolute -top-64 -right-48 size-[40rem] rounded-full bg-sun-soft" />
+      <div className="relative mx-auto flex min-h-svh max-w-2xl flex-col px-6 py-8">
         <div className="flex items-center justify-between">
           <Logo href={memberships.length ? "/app/dashboard" : "/"} />
           <form action={logoutAction}>
@@ -31,18 +31,23 @@ export default async function OnboardingPage({ searchParams }: { searchParams: S
             </Button>
           </form>
         </div>
-        <div className="flex flex-1 flex-col justify-center py-12">
-          <p className="text-xs font-semibold tracking-[0.18em] text-primary uppercase">Your workspace</p>
-          <h1 className="mt-3 text-3xl font-bold sm:text-4xl">Tell us about your business</h1>
-          <p className="mt-3 text-muted-foreground">
-            Your workspace keeps your customers, conversations and AI employee separate from every other business.
-            You can change these details later.
+        <div className="flex flex-1 flex-col justify-center py-14">
+          <p className="flex items-center gap-2.5 text-sm text-muted-foreground">
+            <span className="size-2 rounded-full bg-sun" aria-hidden="true" />
+            Your workspace
           </p>
-          <div className="mt-8 rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
+          <h1 className="mt-5 font-display text-5xl leading-[0.98] font-normal tracking-[-0.018em] sm:text-6xl">
+            Tell us about <span className="italic">your business.</span>
+          </h1>
+          <p className="mt-5 max-w-lg text-lg leading-relaxed text-muted-foreground">
+            Your workspace keeps your customers and conversations separate from every other business. You can change
+            these details later.
+          </p>
+          <div className="surface mt-10 rounded-[2rem] p-6 sm:p-9">
             <CreateBusinessForm />
           </div>
           {isCreatingAnother && memberships.length > 0 ? (
-            <Link href="/app/dashboard" className="mt-6 text-center text-sm font-medium text-primary hover:underline">
+            <Link href="/app/dashboard" className="link-underline mt-6 self-center text-sm font-medium">
               Cancel and return to your workspace
             </Link>
           ) : null}

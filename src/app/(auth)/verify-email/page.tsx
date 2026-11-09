@@ -23,7 +23,7 @@ export default async function VerifyEmailPage({ searchParams }: { searchParams: 
         <MailCheck className="size-6" aria-hidden="true" />
       </span>
       <div className="grid gap-2">
-        <h1 className="text-3xl font-bold">Confirm your email</h1>
+        <h1 className="font-display text-[2.75rem] leading-none font-normal tracking-[-0.015em]">Confirm your email</h1>
         <p className="text-muted-foreground">
           {token
             ? "Press the button below to confirm this email address belongs to you."
@@ -33,7 +33,7 @@ export default async function VerifyEmailPage({ searchParams }: { searchParams: 
       {token ? <VerifyEmailForm token={token} /> : null}
       {!token && session && !session.user.emailVerifiedAt ? <ResendVerificationForm /> : null}
       {!token && !session ? (
-        <Link href="/login" className="text-sm font-semibold text-primary hover:underline">
+        <Link href="/login" className="text-sm font-medium text-foreground link-underline">
           Back to sign in
         </Link>
       ) : null}

@@ -20,7 +20,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
   if (!found || !found.isUsable) {
     body = (
       <>
-        <h1 className="text-2xl font-bold">This invitation is no longer valid</h1>
+        <h1 className="font-display text-[2.75rem] leading-none font-normal tracking-[-0.015em]">This invitation is no longer valid</h1>
         <p className="text-muted-foreground">It may have expired, been revoked or already been used. Ask the person who invited you to send a new one.</p>
       </>
     );
@@ -28,7 +28,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
     const { invitation } = found;
     const heading = (
       <>
-        <h1 className="text-2xl font-bold">Join {invitation.business.name}</h1>
+        <h1 className="font-display text-[2.75rem] leading-none font-normal tracking-[-0.015em]">Join {invitation.business.name}</h1>
         <p className="text-muted-foreground">
           {invitation.invitedBy.name} invited <span className="font-medium text-foreground">{invitation.email}</span> to join as{" "}
           {ROLE_LABELS[invitation.role]}.

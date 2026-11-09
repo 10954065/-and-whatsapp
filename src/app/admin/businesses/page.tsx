@@ -64,7 +64,7 @@ export default async function AdminBusinessesPage({ searchParams }: { searchPara
             {result.rows.map((business) => (
               <tr key={business.id} className="border-b last:border-0">
                 <td className="px-4 py-2">
-                  <Link href={`/admin/businesses/${business.id}`} className="font-medium text-primary hover:underline">
+                  <Link href={`/admin/businesses/${business.id}`} className="font-medium text-foreground link-underline">
                     {business.name}
                   </Link>
                   <span className="block text-xs text-muted-foreground">{business.slug}</span>

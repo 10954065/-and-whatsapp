@@ -18,7 +18,7 @@ export default async function MfaPage({ searchParams }: { searchParams: SearchPa
   return (
     <div className="grid gap-8">
       <div className="grid gap-2">
-        <h1 className="text-3xl font-bold">Two-factor check</h1>
+        <h1 className="font-display text-[2.75rem] leading-none font-normal tracking-[-0.015em]">Two-factor check</h1>
         <p className="text-muted-foreground">
           Signed in as <span className="font-medium text-foreground">{session.user.email}</span>.
         </p>

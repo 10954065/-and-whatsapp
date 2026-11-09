@@ -38,7 +38,7 @@ export function LoginForm({ next }: { next?: string }) {
       />
       <input type="hidden" name="next" value={next ?? ""} />
       <div className="-mt-1 flex justify-end">
-        <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
+        <Link href="/forgot-password" className="text-sm font-medium text-foreground link-underline">
           Forgot password?
         </Link>
       </div>
@@ -79,11 +79,11 @@ export function RegisterForm({ next }: { next?: string }) {
           <Label htmlFor="acceptTerms" className="text-sm leading-5 font-normal text-muted-foreground">
             <span>
               I agree to the{" "}
-              <Link href="/terms" className="font-medium text-primary hover:underline">
+              <Link href="/terms" className="font-medium text-foreground link-underline">
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link href="/privacy" className="font-medium text-primary hover:underline">
+              <Link href="/privacy" className="font-medium text-foreground link-underline">
                 Privacy Policy
               </Link>
               .

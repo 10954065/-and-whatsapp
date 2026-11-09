@@ -25,8 +25,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
   return (
     <div className="grid gap-8">
       <div className="grid gap-2">
-        <h1 className="text-3xl font-bold">Welcome back</h1>
-        <p className="text-muted-foreground">Sign in to manage your AI employee and customers.</p>
+        <h1 className="font-display text-[2.75rem] leading-none font-normal tracking-[-0.015em]">Welcome back</h1>
+        <p className="text-muted-foreground">Sign in to pick up your conversations and orders.</p>
       </div>
       {noticeKey ? (
         <p role="status" className="rounded-lg border border-success/30 bg-success/10 px-3 py-2.5 text-sm">
@@ -36,7 +36,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
       <LoginForm next={next} />
       <p className="text-center text-sm text-muted-foreground">
         New to SUNLEON AI?{" "}
-        <Link href="/register" className="font-semibold text-primary hover:underline">
+        <Link href="/register" className="font-medium text-foreground link-underline">
           Create an account
         </Link>
       </p>

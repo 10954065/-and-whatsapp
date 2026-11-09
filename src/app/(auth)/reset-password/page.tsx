@@ -13,7 +13,7 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
   return (
     <div className="grid gap-8">
       <div className="grid gap-2">
-        <h1 className="text-3xl font-bold">Choose a new password</h1>
+        <h1 className="font-display text-[2.75rem] leading-none font-normal tracking-[-0.015em]">Choose a new password</h1>
         <p className="text-muted-foreground">You&apos;ll be signed out of all other devices.</p>
       </div>
       {token ? (
@@ -21,7 +21,7 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
       ) : (
         <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm">
           This reset link is incomplete.{" "}
-          <Link href="/forgot-password" className="font-semibold text-primary hover:underline">
+          <Link href="/forgot-password" className="font-medium text-foreground link-underline">
             Request a new link
           </Link>
           .

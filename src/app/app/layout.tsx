@@ -65,7 +65,7 @@ export default async function AppLayout({ children }: Readonly<{ children: React
           <div className="flex flex-wrap items-center gap-2 border-b border-warning/30 bg-warning/10 px-4 py-2 text-sm lg:px-8">
             <MailWarning className="size-4 text-warning" aria-hidden="true" />
             <span>Confirm your email address to connect channels, invite your team and activate your AI employee.</span>
-            <Link href="/verify-email" className="font-semibold text-primary hover:underline">
+            <Link href="/verify-email" className="font-medium text-foreground link-underline">
               Resend confirmation
             </Link>
           </div>
@@ -75,7 +75,7 @@ export default async function AppLayout({ children }: Readonly<{ children: React
             <ShieldAlert className="size-4 text-destructive" aria-hidden="true" />
             <span>This workspace will be permanently deleted on {formatDate(pendingDeletion.purgeAfter, context.business.timezone)}.</span>
             {context.role === "OWNER" ? (
-              <Link href="/app/settings#data" className="font-semibold text-primary hover:underline">
+              <Link href="/app/settings#data" className="font-medium text-foreground link-underline">
                 Cancel deletion
               </Link>
             ) : null}
@@ -86,7 +86,7 @@ export default async function AppLayout({ children }: Readonly<{ children: React
             <CreditCard className="size-4 text-destructive" aria-hidden="true" />
             <span>Your plan has ended, so AI replies and automations are paused. Your data is safe.</span>
             {context.can("billing.manage") ? (
-              <Link href="/app/billing" className="font-semibold text-primary hover:underline">
+              <Link href="/app/billing" className="font-medium text-foreground link-underline">
                 Choose a plan
               </Link>
             ) : (

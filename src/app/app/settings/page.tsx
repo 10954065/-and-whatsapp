@@ -99,7 +99,7 @@ export default async function SettingsPage() {
           <Section id="data" title="Your data" description="Download everything this workspace holds, or delete it permanently. Only the owner can do this.">
             <div className="grid gap-6">
               <div>
-                <a href="/api/export/business" className="text-sm font-semibold text-primary hover:underline">
+                <a href="/api/export/business" className="text-sm font-medium text-foreground link-underline">
                   Download all workspace data (JSON)
                 </a>
                 <p className="mt-1 text-xs text-muted-foreground">Customers, conversations, orders, bookings, products, knowledge and settings. Channel credentials are never included.</p>

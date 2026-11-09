@@ -19,7 +19,7 @@ export default async function AdminOverviewPage() {
       <PageHeader eyebrow="Platform" title="Overview" description="Live figures from the platform database. Revenue counts verified Paystack payments in the last 30 days." />
       {!aiEnabled ? (
         <p className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm">
-          AI is switched off for every workspace. <Link href="/admin/settings" className="font-semibold text-primary hover:underline">Change in Settings</Link>
+          AI is switched off for every workspace. <Link href="/admin/settings" className="font-medium text-foreground link-underline">Change in Settings</Link>
         </p>
       ) : null}
       <section aria-label="Key numbers" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
