@@ -269,7 +269,7 @@ export function TestConsole({ isProviderConfigured }: { isProviderConfigured: bo
           <p className="mx-auto max-w-xs pt-16 text-center text-sm text-muted-foreground">
             {isProviderConfigured
               ? "Write a message as if you were a customer. Write actions are simulated, so nothing is saved or sent."
-              : "The AI provider (Anthropic API key) is not configured on this platform yet, so test replies are unavailable."}
+              : "The AI provider is not configured on this platform yet, so test replies are unavailable."}
           </p>
         ) : null}
         {turns.map((turn, index) => (
@@ -333,7 +333,7 @@ export function TestConsole({ isProviderConfigured }: { isProviderConfigured: bo
           <Send />
         </Button>
         {turns.length > 0 ? (
-          <Button type="button" variant="ghost" size="sm" onClick={() => setTurns([])}>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setTurns([])} disabled={isPending} title="Clear this test conversation">
             Reset
           </Button>
         ) : null}
