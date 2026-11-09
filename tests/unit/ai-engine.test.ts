@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildMessages } from "@/modules/ai/context";
-import { postcheck, preflight, removeDashes, SAFE_HOLDING_REPLY, type PreflightInput } from "@/modules/ai/policy";
+import { formatForChannel, postcheck, preflight, removeDashes, SAFE_HOLDING_REPLY, type PreflightInput } from "@/modules/ai/policy";
 import { estimateCostMicros } from "@/modules/ai/pricing";
 import { renderTemplate } from "@/modules/ai/prompts";
 import { supportsServerFallback } from "@/modules/ai/llm/anthropic";
@@ -132,6 +132,19 @@ describe("removeDashes", () => {
   it("keeps hyphens that belong to words, numbers, dates and links", () => {
     const text = "Your follow-up is booked for 2026-11-09. Call 024-555-1234 or see https://ama.shop/kente-midi. It's -5% off a T-shirt.";
     expect(removeDashes(text)).toBe(text);
+  });
+});
+
+describe("formatForChannel", () => {
+  const reply = "## Your order\n• **Item:** Kente midi dress\n• __Total:__ GH₵ 450\nKeep *this* as written.";
+
+  it("turns Markdown bold into WhatsApp bold and drops heading marks", () => {
+    expect(formatForChannel(reply, "WHATSAPP")).toBe("Your order\n• *Item:* Kente midi dress\n• *Total:* GH₵ 450\nKeep *this* as written.");
+  });
+
+  it("removes Markdown markers on channels that show them as plain text", () => {
+    expect(formatForChannel(reply, "INSTAGRAM")).toBe("Your order\n• Item: Kente midi dress\n• Total: GH₵ 450\nKeep *this* as written.");
+    expect(formatForChannel(reply, "SANDBOX")).toBe(formatForChannel(reply, "INSTAGRAM"));
   });
 });
 

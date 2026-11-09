@@ -157,6 +157,18 @@ export function removeDashes(text: string): string {
   return DASH_RULES.reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), text).trim();
 }
 
+/**
+ * Models often answer in Markdown, which the channels do not render. "**bold**" becomes
+ * WhatsApp's own "*bold*" and plain text elsewhere; heading marks are dropped.
+ */
+export function formatForChannel(text: string, channel: "WHATSAPP" | "INSTAGRAM" | "SANDBOX"): string {
+  const bold = channel === "WHATSAPP" ? "*$1*" : "$1";
+  return text
+    .replace(/\*\*(?=\S)([^*\n]+?)\*\*/g, bold)
+    .replace(/__(?=\S)([^_\n]+?)__/g, bold)
+    .replace(/^#{1,6}[ \t]+/gm, "");
+}
+
 /** Channel message limits (WhatsApp text 4096 chars; Instagram text 1000 bytes). */
 export function clampForChannel(text: string, channel: "WHATSAPP" | "INSTAGRAM" | "SANDBOX"): string {
   const limit = channel === "INSTAGRAM" ? 950 : 4_000;

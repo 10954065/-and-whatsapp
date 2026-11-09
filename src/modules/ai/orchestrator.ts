@@ -8,7 +8,7 @@ import { buildBusinessFacts, buildMessages, buildSystemPrompt, type Conversation
 import { escalateConversation } from "@/modules/ai/escalation";
 import { industryGuidanceFor } from "@/modules/ai/industry-guidance";
 import { getLlmClient, LlmProviderError, modelForTier, type LlmClient, type LlmMessage } from "@/modules/ai/llm";
-import { clampForChannel, postcheck, preflight, PREFLIGHT_LABELS, removeDashes, type PreflightBlock } from "@/modules/ai/policy";
+import { clampForChannel, formatForChannel, postcheck, preflight, PREFLIGHT_LABELS, removeDashes, type PreflightBlock } from "@/modules/ai/policy";
 import { addUsage, emptyUsage, estimateCostMicros, type TokenUsage } from "@/modules/ai/pricing";
 import { getActivePrompt } from "@/modules/ai/prompts";
 import { routeTier, TIER_EFFORT, type ModelTier } from "@/modules/ai/router";
@@ -248,7 +248,7 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
   }
 
   const flags: string[] = [];
-  let finalReply: string | null = removeDashes(replyText) || null;
+  let finalReply: string | null = formatForChannel(removeDashes(replyText), input.channel) || null;
   if (finalReply) {
     const check = postcheck({ reply: finalReply, verifiedText: verifiedFacts.join("\n"), paymentVerified });
     flags.push(...check.flags);
