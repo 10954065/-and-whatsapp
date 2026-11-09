@@ -1,5 +1,31 @@
 # Changelog
 
+## Design refresh
+
+* New visual identity: warm paper, deep ink and a single sun accent, with a matching dark
+  theme. Inter (optical sizes) for the interface, Instrument Serif for display type, and a
+  sunrise logo mark.
+* Removed the generic template look: gradients, glowing blobs, grid backgrounds, gradient
+  text, sparkle and robot icons, uppercase eyebrow labels and emoji in product copy.
+* No em or en dashes in interface copy. The customer agent prompt (version 2) asks replies
+  to avoid them and to use emoji only when the customer does.
+* "AI employee" is now "assistant" throughout the product.
+* Home page:
+  * an iPhone showcase that plays a WhatsApp order and an Instagram booking, with typing
+    indicators, read receipts and notification cards for the work done behind the scenes;
+  * a scroll-driven receipt that follows one order to verified payment;
+  * a live hand-over conversation in the "you stay in charge" section.
+  Animations pause off screen and on hover, and show static content when reduced motion is
+  on. Every conversation is labelled as an example.
+* Sign-in, sign-up, onboarding and every marketing page follow the editorial style.
+* Workspace:
+  * iOS-style sidebar, translucent top bar, large titles and widget-style figures;
+  * a dashboard built from stored data (local-time greeting, setup ring, latest
+    conversations, this week's chart, upcoming bookings, recent orders);
+  * the inbox rebuilt as a messaging app that opens at the newest message and animates new
+    arrivals.
+* Destructive actions use red buttons. The admin console has its own dark header and tabs.
+
 ## Phase 12 — Production hardening
 
 * QStash dispatcher for job wake-ups and retries, with a signature-verified delivery route.
