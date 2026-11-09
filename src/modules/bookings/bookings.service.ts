@@ -170,14 +170,16 @@ export async function createBooking(input: CreateBookingInput) {
 }
 
 export async function cancelBooking(actor: TenantActor, bookingId: string, reason?: string) {
-  await withTenantTx(actor.businessId, async (tx) => {
+  const booking = await withTenantTx(actor.businessId, async (tx) => {
     const result = await tx.booking.updateMany({
       where: { id: bookingId, businessId: actor.businessId, status: { in: ["PENDING", "CONFIRMED"] } },
       data: { status: "CANCELLED", cancelledAt: new Date(), cancellationReason: reason ?? null },
     });
     if (!result.count) throw fail.notFound("Booking");
     await recordAudit({ businessId: actor.businessId, actorType: "USER", actorId: actor.userId, action: "booking.cancelled", entityType: "Booking", entityId: bookingId }, tx);
+    return tx.booking.findUniqueOrThrow({ where: { id: bookingId }, select: { customerId: true, conversationId: true } });
   });
+  await emitWorkflowEvent({ trigger: "BOOKING_CANCELLED", eventId: `booking-cancelled:${bookingId}`, businessId: actor.businessId, depth: 0, customerId: booking.customerId, conversationId: booking.conversationId });
 }
 
 export const serviceSchema = z.object({

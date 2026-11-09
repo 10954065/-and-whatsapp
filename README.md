@@ -7,7 +7,8 @@ SUNLEON AI gives every business an AI employee that answers customers on WhatsAp
 Instagram, qualifies leads, takes authorised orders and bookings, follows up, and keeps
 the owner in control.
 
-> Status: under active development. See [BUILD_PROGRESS.md](./BUILD_PROGRESS.md).
+> Status: all build phases (0–12) are complete. Read [docs/PRODUCTION_READINESS.md](./docs/PRODUCTION_READINESS.md)
+> for what is verified, what still needs live credentials, and what is not done.
 
 ## Documentation
 
@@ -25,6 +26,12 @@ the owner in control.
 | [docs/WHATSAPP_INTEGRATION_GUIDE.md](./docs/WHATSAPP_INTEGRATION_GUIDE.md) | WhatsApp Business Platform connection |
 | [docs/PAYSTACK_BILLING_GUIDE.md](./docs/PAYSTACK_BILLING_GUIDE.md) | Subscription payments, webhooks, lifecycle |
 | [docs/TEST_REPORT.md](./docs/TEST_REPORT.md) | What is tested and the latest results |
+| [docs/PRODUCTION_READINESS.md](./docs/PRODUCTION_READINESS.md) | Final status report and go-live order |
+| [docs/ENVIRONMENT_VARIABLES.md](./docs/ENVIRONMENT_VARIABLES.md) | Every environment variable |
+| [docs/VERCEL_DEPLOYMENT.md](./docs/VERCEL_DEPLOYMENT.md) | Deploying on Vercel |
+| [docs/DATABASE_DEPLOYMENT.md](./docs/DATABASE_DEPLOYMENT.md) | Neon setup, migrations, backups |
+| [docs/OPERATIONS_RUNBOOK.md](./docs/OPERATIONS_RUNBOOK.md) | Daily checks, incidents, secret rotation |
+| [docs/API_DOCUMENTATION.md](./docs/API_DOCUMENTATION.md) | HTTP endpoints (webhooks, cron, health, export) |
 | [CHANGELOG.md](./CHANGELOG.md) | Changes by phase |
 
 ## Local development

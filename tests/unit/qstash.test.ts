@@ -1,6 +1,6 @@
 import { createHash, createHmac } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { resetEnvCache } from "@/lib/env";
+import { env, resetEnvCache } from "@/lib/env";
 import { publishJobWakeUp, verifyQStashSignature } from "@/lib/queue/qstash";
 
 const URL = "http://localhost:3000/api/queue/qstash";
@@ -62,6 +62,12 @@ describe("QStash wake-ups", () => {
     expect(JSON.parse(String(init.body))).toEqual({ jobId: "job_42" });
     const notBefore = String(Math.ceil(runAt.getTime() / 1000));
     expect(init.headers).toMatchObject({ authorization: "Bearer qstash_test_token", "upstash-not-before": notBefore, "upstash-deduplication-id": `job_42-${notBefore}` });
+  });
+
+  it("treats an empty QSTASH_URL from .env.example as unset", () => {
+    process.env.QSTASH_URL = "";
+    resetEnvCache();
+    expect(env().QSTASH_URL).toBeUndefined();
   });
 
   it("never throws when QStash is unreachable (the cron sweeper is the fallback)", async () => {

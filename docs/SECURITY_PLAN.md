@@ -17,7 +17,7 @@ Status legend: ✅ implemented and tested · 🟡 implemented, not yet covered b
 | Password reset revokes all sessions | ✅ | `resetPassword` |
 | No account enumeration on password reset | ✅ | `requestPasswordReset` |
 | Email confirmation via POST (scanner-safe) | 🟡 | `/verify-email` |
-| TOTP MFA with encrypted secret and hashed single-use recovery codes | 🟡 | `modules/auth/mfa.service.ts` |
+| TOTP MFA with encrypted secret and hashed single-use recovery codes | ✅ | `modules/auth/mfa.service.ts`, `tests/integration/mfa.test.ts` |
 | Platform super-admin promotion only after email ownership is proven | 🟡 | `verifyEmail` |
 
 ## Authorisation and tenant isolation

@@ -15,8 +15,24 @@ Integration tests run against a real PostgreSQL database (`sunleon_test`), migra
 
 | Suite | Files | Tests | Result |
 | --- | --- | --- | --- |
-| Unit + integration (Vitest) | 25 | 215 | ✅ pass |
+| Unit + integration (Vitest) | 29 | 237 | ✅ pass |
 | E2E (`tests/e2e`, Chromium) | 4 | 10 | ✅ pass |
+
+Coverage (`npm run test:coverage`, `src/lib` + `src/modules` + `src/config`): **lines 82.8 %**,
+statements 79.0 %, functions 77.3 %, branches 65.9 %. Request-scoped auth helpers are covered by
+E2E only, which the coverage run does not count.
+
+Added in the final pass:
+* **MFA:** real TOTP enrolment, drift window, single-use recovery codes, disable with password.
+* **AI tools, run as the orchestrator does:** products, stock, unpaid orders, order status,
+  availability, bookings, business info, leads and follow-ups. Test mode never writes.
+* **CRM:** no automatic merging, notes, leads and tasks.
+* **Channels:** WhatsApp connect, health and disconnect, and Instagram Login with single-use
+  state, all against a scripted Graph API.
+* **Provider clients:** Meta and Instagram clients, Voyage batching and validation, and
+  SSRF-safe fetching that re-validates redirects.
+* **Automation:** booking-cancelled automations; the workflow builder's form parsing and
+  versioning.
 
 Phase 12 additions:
 * **QStash signatures:** current and next keys accepted. Forged keys, tampered bodies, other

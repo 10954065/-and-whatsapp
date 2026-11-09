@@ -12,6 +12,16 @@
     stored files);
   * account deletion with personal data removed.
 * Daily purge of message content past each business's retention setting.
+* "Booking cancelled" automations now run (the trigger is emitted on cancellation).
+* An empty `QSTASH_URL` (as in `.env.example`) no longer fails environment validation.
+* New tests:
+  * MFA;
+  * the AI tool executors, CRM and channel connection flows;
+  * the Meta, Instagram and Voyage clients;
+  * SSRF-safe fetching.
+  Line coverage is now 82.8 %.
+* Docs: ENVIRONMENT_VARIABLES, VERCEL_DEPLOYMENT, DATABASE_DEPLOYMENT, OPERATIONS_RUNBOOK,
+  API_DOCUMENTATION and PRODUCTION_READINESS (final report).
 
 ## Phase 11 — Super-admin console
 

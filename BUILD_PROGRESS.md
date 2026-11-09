@@ -18,7 +18,7 @@ Resume from this file if a session is interrupted. Update it at the end of every
 | 9 — Industry templates | ✅ Complete (181 Vitest + 6 Playwright pass, build pass) | phase 9 commit |
 | 10 — Analytics & billing | ✅ Implemented (201 Vitest + 7 Playwright pass, build pass; security-reviewed); Paystack not live-verified — no keys | phase 10 commit |
 | 11 — Super-admin | ✅ Complete (205 Vitest + 9 Playwright pass, build pass) | phase 11 commit |
-| 12 — Production hardening | ✅ Code complete (215 Vitest + 10 Playwright pass, build pass); deployment docs + final report | phase 12 commits |
+| 12 — Production hardening | ✅ Complete (237 Vitest + 10 Playwright pass, build pass; lines coverage 82.8 %) | phase 12 commits |
 
 ## Local environment
 
@@ -93,18 +93,9 @@ Notes:
 
 ## Next steps
 
-Phase 12 — Production hardening:
-* QStash dispatcher: `setJobDispatcher` publishing `{jobId}` to `/api/queue/qstash` when
-  QSTASH_TOKEN is set; route verifies `Upstash-Signature` (current + next signing keys) and
-  runs `runJobById`. Keep the cron sweeper as the safety net.
-* Health endpoint `/api/health` (DB round-trip, migration state, provider configuration
-  booleans; no secrets).
-* Data rights: owner data export (JSON of business data via job → storage or direct download),
-  workspace deletion request (DataRequest; soft delete + purge job after a grace period),
-  user account deletion.
-* Retention purge job honouring `BusinessSettings.messageRetentionDays` (daily cron).
-* Docs: ENVIRONMENT_VARIABLES, VERCEL_DEPLOYMENT, DATABASE_DEPLOYMENT, OPERATIONS_RUNBOOK,
-  PRODUCTION_READINESS (with the four-status final report), API_DOCUMENTATION.
+All phases are complete. The final status (verified / not live-verified / blocked / not
+completed) and the recommended go-live order are in `docs/PRODUCTION_READINESS.md`. Any
+follow-up work should start from its "NOT COMPLETED" table.
 
 Phase 11 notes (done): `/admin/*` (layout + pages: overview, businesses, business detail,
 plans, monitoring, inquiries, announcements, settings, audit). Services in
