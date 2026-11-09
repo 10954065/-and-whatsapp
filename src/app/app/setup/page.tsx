@@ -22,7 +22,7 @@ export default async function SetupPage() {
     <>
       <PageHeader
         eyebrow="Setup guide"
-        title={progress.isComplete ? "You're all set up" : "Let's get your AI employee ready"}
+        title={progress.isComplete ? "You're all set up" : "Let's get your assistant ready"}
         description="Your progress is saved automatically. Come back any time."
       />
       <div className="mb-6 rounded-2xl border bg-card p-6">

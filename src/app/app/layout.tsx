@@ -33,13 +33,15 @@ export default async function AppLayout({ children }: Readonly<{ children: React
     roleLabel: ROLE_LABELS[membership.role],
   }));
 
+  const shellBusiness = { id: context.businessId, name: context.business.name, roleLabel: ROLE_LABELS[context.role] };
+
   return (
     <div className="flex min-h-svh bg-background">
-      <AppSidebar sections={sections} />
+      <AppSidebar sections={sections} business={shellBusiness} businesses={businesses} />
       <div className="flex min-w-0 flex-1 flex-col">
         <AppTopbar
           sections={sections}
-          business={{ id: context.businessId, name: context.business.name, roleLabel: ROLE_LABELS[context.role] }}
+          business={shellBusiness}
           businesses={businesses}
           user={{ name: context.user.name, email: context.user.email }}
           unreadNotifications={unreadNotifications}
@@ -64,7 +66,7 @@ export default async function AppLayout({ children }: Readonly<{ children: React
         {!context.user.emailVerifiedAt ? (
           <div className="flex flex-wrap items-center gap-2 border-b border-warning/30 bg-warning/10 px-4 py-2 text-sm lg:px-8">
             <MailWarning className="size-4 text-warning" aria-hidden="true" />
-            <span>Confirm your email address to connect channels, invite your team and activate your AI employee.</span>
+            <span>Confirm your email address to connect channels, invite your team and switch on the assistant.</span>
             <Link href="/verify-email" className="font-medium text-foreground link-underline">
               Resend confirmation
             </Link>
@@ -105,8 +107,8 @@ export default async function AppLayout({ children }: Readonly<{ children: React
             </div>
           </main>
         ) : (
-          <main className="flex-1 px-4 py-8 lg:px-8">
-            <div className="mx-auto w-full max-w-7xl">{children}</div>
+          <main className="flex-1 px-4 pt-8 pb-16 sm:px-6 lg:px-10 lg:pt-10">
+            <div className="mx-auto w-full max-w-6xl">{children}</div>
           </main>
         )}
       </div>

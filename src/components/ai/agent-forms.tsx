@@ -82,7 +82,7 @@ export function AgentConfigForm({ values, tools, disabled }: { values: AgentForm
           />
           <Field label="Default language" name="language" defaultValue={values.language} hint="e.g. en, fr, tw" errors={fieldErrors(state, "language")} />
         </div>
-        <Field label="Role" name="roleDescription" defaultValue={values.roleDescription ?? ""} hint="One sentence on what this AI employee does." errors={fieldErrors(state, "roleDescription")} />
+        <Field label="Role" name="roleDescription" defaultValue={values.roleDescription ?? ""} hint="One sentence on what this assistant does." errors={fieldErrors(state, "roleDescription")} />
         <Field label="Greeting" name="greeting" defaultValue={values.greeting ?? ""} placeholder="Hi! I'm Ama from Adwoa's Kitchen 👋 How can I help?" errors={fieldErrors(state, "greeting")} />
         <Field
           label="Instructions from the owner"
@@ -177,7 +177,7 @@ export function AgentConfigForm({ values, tools, disabled }: { values: AgentForm
       {disabled ? null : (
         <div>
           <SubmitButton isPending={isPending} pendingLabel="Saving…">
-            Save AI employee settings
+            Save assistant settings
           </SubmitButton>
         </div>
       )}
@@ -199,7 +199,7 @@ export function AgentStatusControls({ enabled, emergencyStop, canManage }: { ena
       <form onSubmit={activate.onSubmit}>
         <input type="hidden" name="value" value={enabled ? "off" : "on"} />
         <SubmitButton variant={enabled ? "outline" : "default"} isPending={activate.isPending}>
-          <Power /> {enabled ? "Deactivate" : "Activate AI employee"}
+          <Power /> {enabled ? "Deactivate" : "Activate assistant"}
         </SubmitButton>
       </form>
       <form onSubmit={stop.onSubmit}>

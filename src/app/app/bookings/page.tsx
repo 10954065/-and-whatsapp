@@ -45,7 +45,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Sea
         <section className="rounded-2xl border bg-card p-6">
           <h2 className="mb-3 font-semibold">Upcoming</h2>
           {upcoming.length === 0 ? (
-            <EmptyState icon={CalendarClock} title="No upcoming bookings" description="Bookings made by your team or AI employee appear here." />
+            <EmptyState icon={CalendarClock} title="No upcoming bookings" description="Bookings made by your team or assistant appear here." />
           ) : (
             <ul className="divide-y text-sm">
               {upcoming.map((booking) => (

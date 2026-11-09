@@ -53,7 +53,7 @@ export async function takeOverAction(_previous: ActionResult | null, formData: F
 export async function returnToAiAction(_previous: ActionResult | null, formData: FormData): Promise<ActionResult> {
   return runAction(async () => void (await returnToAi(await actorWith("inbox.reply"), parseInput(conversationIdSchema, formData).conversationId), revalidatePath("/app/inbox")), {
     source: "inbox.return",
-    successMessage: "The AI employee will handle new messages again.",
+    successMessage: "The assistant will handle new messages again.",
   });
 }
 

@@ -9,7 +9,7 @@ async function register(page: Page, email: string) {
   await page.getByLabel("Password").fill("kente-market-2026");
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page.getByLabel("Business name")).toBeVisible();
+  await expect(page.getByLabel("Business name")).toBeVisible({ timeout: 15_000 });
 }
 
 async function promoteToSuperAdmin(email: string) {

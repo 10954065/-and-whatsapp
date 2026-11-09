@@ -22,7 +22,7 @@ test("visitor registers, creates a workspace, signs out and signs back in", asyn
   await page.getByRole("button", { name: "Create workspace" }).click();
 
   await expect(page).toHaveURL(/\/app\/setup$/);
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("get your AI employee ready");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("get your assistant ready");
   await expect(page.getByText("Confirm your email address")).toBeVisible();
 
   // Complete the profile step from the setup guide and see progress update.

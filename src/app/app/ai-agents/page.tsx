@@ -12,11 +12,11 @@ import { listTools } from "@/modules/ai/tools";
 import { ALWAYS_ALLOWED_TOOLS } from "@/modules/ai/tools/registry";
 import { dayPeriod, getAiSpend, getPlanLimits, getUsage, monthPeriod } from "@/modules/billing/usage";
 
-export const metadata: Metadata = { title: "AI employee" };
+export const metadata: Metadata = { title: "Assistant" };
 
 export default async function AiAgentsPage() {
   const context = await requireTenant();
-  if (!context.can("ai.read")) return <AccessDenied what="the AI employee" />;
+  if (!context.can("ai.read")) return <AccessDenied what="the assistant" />;
   const now = new Date();
   const [agent, spend, limits, messagesToday, messagesMonth, recentRuns] = await Promise.all([
     getOrCreateAgent(context.businessId),
@@ -46,9 +46,9 @@ export default async function AiAgentsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="AI employee"
+        eyebrow="Assistant"
         title={agent.name}
-        description={agent.roleDescription ?? "Your AI employee answers customers using your business knowledge and the rules below."}
+        description={agent.roleDescription ?? "Your assistant answers customers using your business knowledge and the rules below."}
         actions={<AgentStatusControls enabled={agent.enabled} emergencyStop={agent.emergencyStop} canManage={canManage} />}
       />
       {!providerConfigured ? (

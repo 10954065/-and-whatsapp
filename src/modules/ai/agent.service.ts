@@ -55,7 +55,7 @@ export const agentConfigSchema = z.object({
 
 export type AgentConfigInput = z.infer<typeof agentConfigSchema>;
 
-/** Returns the business's AI employee, creating it from the industry template on first use. */
+/** Returns the business's assistant, creating it from the industry template on first use. */
 export async function getOrCreateAgent(businessId: string): Promise<AiAgent> {
   const existing = await prisma.aiAgent.findUnique({ where: { businessId } });
   if (existing) return existing;
@@ -97,7 +97,7 @@ export async function updateAgentConfig(actor: TenantActor, input: AgentConfigIn
 export async function setAgentEnabled(actor: TenantActor, enabled: boolean): Promise<void> {
   const agent = await getOrCreateAgent(actor.businessId);
   if (enabled) {
-    if (!actor.emailVerified) throw fail.precondition("Confirm your email address before activating your AI employee.");
+    if (!actor.emailVerified) throw fail.precondition("Confirm your email address before activating your assistant.");
     if (!isAnthropicConfigured()) throw fail.precondition("The AI provider is not configured on this platform yet.");
     const tested = await prisma.aiRun.count({ where: { businessId: actor.businessId, trigger: "TEST_CONSOLE", status: "SUCCEEDED" } });
     if (tested === 0) throw fail.precondition("Send at least one successful test message in the test console before activating.");

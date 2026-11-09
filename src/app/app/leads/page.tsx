@@ -21,7 +21,7 @@ export default async function LeadsPage() {
   const canWrite = context.can("leads.write");
   return (
     <>
-      <PageHeader title="Leads" description="Buying interest captured by your AI employee and team, from new to won." />
+      <PageHeader title="Leads" description="Buying interest captured by your assistant and team, from new to won." />
       <div className="grid gap-4 overflow-x-auto pb-2 md:grid-cols-3 xl:grid-cols-6">
         {STATUSES.map((status) => {
           const column = leads.filter((lead) => lead.status === status);
@@ -52,7 +52,7 @@ export default async function LeadsPage() {
       </div>
       <section className="mt-6 rounded-2xl border bg-card p-6">
         <h2 className="mb-3 font-semibold">Follow-ups due</h2>
-        {tasks.length === 0 ? <p className="text-sm text-muted-foreground">Nothing due. Follow-ups created by your AI employee appear here.</p> : null}
+        {tasks.length === 0 ? <p className="text-sm text-muted-foreground">Nothing due. Follow-ups created by your assistant appear here.</p> : null}
         <ul className="divide-y text-sm">
           {tasks.map((task) => (
             <li key={task.id} className="flex items-center gap-3 py-2">

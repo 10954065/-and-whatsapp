@@ -31,7 +31,7 @@ export default async function OrdersPage() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <section className="overflow-hidden rounded-2xl border bg-card">
           {orders.length === 0 ? (
-            <EmptyState className="m-6" icon={ShoppingBag} title="No orders yet" description="Orders created by you or your AI employee appear here." />
+            <EmptyState className="m-6" icon={ShoppingBag} title="No orders yet" description="Orders created by you or your assistant appear here." />
           ) : (
             <Table>
               <TableHeader>

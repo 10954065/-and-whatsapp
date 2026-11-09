@@ -32,7 +32,7 @@ describe("team notifications", () => {
     const orders = await notificationsOf(business.id, "order.created");
     expect(orders.map((notification) => notification.title)).toEqual(["New order #1", "New order #2", "New order #3"]);
     expect(orders[0].body).toContain("Esi");
-    expect(orders[0].body).toContain("taken by your AI employee");
+    expect(orders[0].body).toContain("taken by your assistant");
     const low = await notificationsOf(business.id, "stock.low");
     expect(low).toHaveLength(1);
     expect(low[0]).toMatchObject({ title: "Power bank is running low", body: "5 left (alert level 5).", link: "/app/inventory" });

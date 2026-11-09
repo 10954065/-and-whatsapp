@@ -233,7 +233,7 @@ export async function runBillingLifecycle(now: Date = new Date()) {
     WHERE "status" = 'GRACE' AND "graceUntil" < ${now} RETURNING "businessId"`;
 
   for (const { businessId } of trials) {
-    await notifyTeam({ businessId, kind: "billing", title: "Your free trial has ended", body: "Choose a plan in Billing to turn your AI employee and automations back on. Your data is safe.", link: "/app/billing" });
+    await notifyTeam({ businessId, kind: "billing", title: "Your free trial has ended", body: "Choose a plan in Billing to turn your assistant and automations back on. Your data is safe.", link: "/app/billing" });
   }
   for (const { businessId } of grace) {
     await notifyTeam({ businessId, kind: "billing", title: `Your plan has ended. Renew within ${GRACE_DAYS} days`, body: "Everything keeps working during the grace period. Pay for the next period in Billing to avoid interruption.", link: "/app/billing" });

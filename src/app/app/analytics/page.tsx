@@ -119,7 +119,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Se
           )}
         </div>
         <div className="rounded-2xl border bg-card p-5">
-          <h2 className="font-semibold">AI employee</h2>
+          <h2 className="font-semibold">Assistant</h2>
           <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
             <Figure label="Answered" value={formatNumber(data.ai.succeeded)} />
             <Figure label="Escalated to your team" value={formatNumber(data.ai.escalated)} />

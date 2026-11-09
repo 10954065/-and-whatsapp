@@ -39,10 +39,10 @@ export default async function SettingsPage() {
     <>
       <PageHeader
         title="Business settings"
-        description={isReadOnly ? "You can view these settings. Ask an owner or admin to change them." : "Details your team and your AI employee rely on."}
+        description={isReadOnly ? "You can view these settings. Ask an owner or admin to change them." : "Details your team and your assistant rely on."}
       />
       <div className="grid gap-6">
-        <Section id="profile" title="Business profile" description="Shown to your AI employee as trusted facts about your business.">
+        <Section id="profile" title="Business profile" description="Shown to your assistant as trusted facts about your business.">
           <BusinessProfileForm
             disabled={isReadOnly}
             values={{

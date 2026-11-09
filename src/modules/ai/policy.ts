@@ -45,7 +45,7 @@ export const PREFLIGHT_LABELS: Record<PreflightBlock, string> = {
   platform_disabled: "AI replies are paused platform-wide by SUNLEON AI.",
   business_inactive: "This workspace is not active.",
   emergency_stop: "The emergency stop is on.",
-  agent_disabled: "The AI employee is not activated.",
+  agent_disabled: "The assistant is not activated.",
   human_control: "A team member has taken over this conversation.",
   outside_hours: "The AI only replies during opening hours.",
   daily_message_limit: "The daily AI message limit has been reached.",

@@ -39,7 +39,7 @@ export function IndustryTemplateForm(props: IndustryTemplateFormProps) {
 
       <fieldset disabled={props.disabled} className="grid gap-6">
         <div className="grid gap-4">
-          <p className="text-sm font-semibold">Tell your AI employee the basics</p>
+          <p className="text-sm font-semibold">Tell your assistant the basics</p>
           {props.fields.map((field) => (
             <Field
               key={field.key}
@@ -91,9 +91,9 @@ export function IndustryTemplateForm(props: IndustryTemplateFormProps) {
           <label className="flex items-start gap-3 text-sm">
             <input type="checkbox" name="applyAgentDefaults" value="on" defaultChecked={!props.agentConfigured} className="mt-0.5 size-4" />
             <span>
-              <span className="font-medium">Set my AI employee&apos;s tone, role and tools to this template</span>
+              <span className="font-medium">Set my assistant&apos;s tone, role and tools to this template</span>
               <span className="block text-muted-foreground">
-                {props.agentConfigured ? "You've already configured your AI employee; this replaces its tone, role and permitted tools." : "Recommended for a new workspace."}
+                {props.agentConfigured ? "You've already configured your assistant; this replaces its tone, role and permitted tools." : "Recommended for a new workspace."}
               </span>
             </span>
           </label>

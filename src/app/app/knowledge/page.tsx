@@ -38,7 +38,7 @@ export default async function KnowledgePage() {
     <>
       <PageHeader
         title="Knowledge base"
-        description="Everything your AI employee is allowed to say comes from here and your business profile. It never shares this with other businesses."
+        description="Everything your assistant is allowed to say comes from here and your business profile. It never shares this with other businesses."
       />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <section className="overflow-hidden rounded-2xl border bg-card">
@@ -46,7 +46,7 @@ export default async function KnowledgePage() {
             <EmptyState
               className="m-6"
               icon={BookOpen}
-              title="Teach your AI employee"
+              title="Teach your assistant"
               description="Start with your ten most common customer questions, your delivery and returns policies, and a price list."
             />
           ) : (

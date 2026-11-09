@@ -39,7 +39,7 @@ export const SETUP_STEPS: SetupStep[] = [
   {
     id: "profile",
     title: "Describe your business",
-    description: "Add a short description and how customers can reach you. Your AI employee uses this in every conversation.",
+    description: "Add a short description and how customers can reach you. Your assistant uses this in every conversation.",
     href: "/app/settings#profile",
     actionLabel: "Edit profile",
     isOptional: false,
@@ -65,7 +65,7 @@ export const SETUP_STEPS: SetupStep[] = [
   },
   {
     id: "knowledge",
-    title: "Teach your AI employee",
+    title: "Teach your assistant",
     description: "Add FAQs, policies, price lists or documents. The AI only answers from what you provide.",
     href: "/app/knowledge",
     actionLabel: "Add knowledge",
@@ -83,7 +83,7 @@ export const SETUP_STEPS: SetupStep[] = [
   },
   {
     id: "ai",
-    title: "Configure your AI employee",
+    title: "Configure your assistant",
     description: "Choose its name, tone, what it may do on its own and your spending limits.",
     href: "/app/ai-agents",
     actionLabel: "Configure",
@@ -92,7 +92,7 @@ export const SETUP_STEPS: SetupStep[] = [
   },
   {
     id: "test",
-    title: "Test your AI employee",
+    title: "Test your assistant",
     description: "Chat with it in the private test console. Nothing is sent to customers.",
     href: "/app/ai-agents",
     actionLabel: "Open test console",
@@ -101,7 +101,7 @@ export const SETUP_STEPS: SetupStep[] = [
   },
   {
     id: "activate",
-    title: "Activate your AI employee",
+    title: "Activate your assistant",
     description: "Turn it on once you're happy with the test replies. You can pause it any time.",
     href: "/app/ai-agents",
     actionLabel: "Activate",

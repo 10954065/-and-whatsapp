@@ -92,7 +92,7 @@ export async function getTemplateOverview(businessId: string): Promise<TemplateO
 /**
  * Applies the business's industry template: saves the knowledge answers (replacing answers from
  * other templates), adds the chosen starter workflows as drafts (once each, ever), and — only
- * when asked — resets the AI employee's tone, role and permitted tools to the template.
+ * when asked — resets the assistant's tone, role and permitted tools to the template.
  */
 export async function applyIndustryTemplate(actor: TenantActor, input: ApplyTemplateInput, options: { canManageAutomation: boolean }) {
   const agent = input.applyAgentDefaults ? await getOrCreateAgent(actor.businessId) : null;

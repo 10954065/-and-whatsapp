@@ -21,7 +21,7 @@ export async function saveAgentConfigAction(_previous: ActionResult | null, form
       await updateAgentConfig(await aiActor(), parseInput(agentConfigSchema, formData));
       revalidatePath("/app/ai-agents");
     },
-    { source: "ai.save_config", successMessage: "AI employee settings saved." },
+    { source: "ai.save_config", successMessage: "Assistant settings saved." },
   );
 }
 
@@ -34,7 +34,7 @@ export async function setAgentEnabledAction(_previous: ActionResult | null, form
       await setAgentEnabled(await aiActor(), value === "on");
       revalidatePath("/app/ai-agents");
     },
-    { source: "ai.set_enabled", successMessage: "AI employee status updated." },
+    { source: "ai.set_enabled", successMessage: "Assistant status updated." },
   );
 }
 

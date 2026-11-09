@@ -43,9 +43,9 @@ export function DailyColumnChart({ title, data, valueLabel, emptyMessage }: { ti
   const activePoint = active === null ? null : data[active];
 
   return (
-    <figure className="rounded-2xl border bg-card p-5">
+    <figure className="surface rounded-[1.25rem] p-5">
       <figcaption className="mb-4 flex items-baseline justify-between gap-3">
-        <span className="font-semibold">{title}</span>
+        <span className="text-[15px] font-semibold tracking-[-0.01em]">{title}</span>
         <span className="text-xs text-muted-foreground">{data.length} days</span>
       </figcaption>
       {!hasData ? (
@@ -77,7 +77,7 @@ export function DailyColumnChart({ title, data, valueLabel, emptyMessage }: { ti
                   onBlur={() => setActive(null)}
                 >
                   <span
-                    className="w-full rounded-t-[4px] bg-primary transition-[filter] group-hover:brightness-110 group-focus-visible:ring-2 group-focus-visible:ring-ring"
+                    className="w-full rounded-t-[4px] bg-chart-1 transition-[filter] group-hover:brightness-110 group-focus-visible:ring-2 group-focus-visible:ring-ring"
                     style={{ height: point.value > 0 ? `max(2px, ${(point.value / max) * 100}%)` : 0, maxWidth: MAX_BAR_PX }}
                   />
                 </button>
@@ -85,7 +85,7 @@ export function DailyColumnChart({ title, data, valueLabel, emptyMessage }: { ti
             </div>
             {activePoint && active !== null ? (
               <div
-                className="pointer-events-none absolute -top-2 z-10 -translate-x-1/2 -translate-y-full rounded-lg border bg-popover px-2.5 py-1.5 text-xs whitespace-nowrap shadow-md"
+                className="pointer-events-none absolute -top-2 z-10 -translate-x-1/2 -translate-y-full rounded-xl bg-popover px-2.5 py-1.5 text-xs whitespace-nowrap shadow-[var(--shadow-hairline),var(--shadow-lifted)]"
                 style={{ left: `${((active + 0.5) / data.length) * 100}%` }}
                 role="status"
               >

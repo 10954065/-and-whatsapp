@@ -181,7 +181,7 @@ export async function createOrder(input: CreateOrderInput) {
       if (!isValid) throw fail.validation("That discount code is not valid for this order.");
       discount = code.type === "PERCENT" ? Math.floor((subtotal * code.value) / 100) : Math.min(code.value, subtotal);
       if (input.maxDiscountPercent !== undefined && discount > Math.floor((subtotal * input.maxDiscountPercent) / 100)) {
-        throw fail.forbidden("This discount exceeds what the AI employee may apply. A team member must approve it.");
+        throw fail.forbidden("This discount exceeds what the assistant may apply. A team member must approve it.");
       }
       discountCode = code.code;
       await tx.discount.update({ where: { id: code.id }, data: { redemptionCount: { increment: 1 } } });
@@ -251,7 +251,7 @@ export async function createOrder(input: CreateOrderInput) {
     businessId: input.businessId,
     kind: "order.created",
     title: `New order #${created.number}`,
-    body: `${customer?.displayName ?? "A customer"} · ${formatMoney(created.totalMinor, created.currency)}${input.createdByType === "AI" ? " · taken by your AI employee" : ""}`,
+    body: `${customer?.displayName ?? "A customer"} · ${formatMoney(created.totalMinor, created.currency)}${input.createdByType === "AI" ? " · taken by your assistant" : ""}`,
     link: "/app/orders",
   });
   await notifyIfStockLow(input.businessId, stockChanges);

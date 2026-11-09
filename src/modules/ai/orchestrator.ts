@@ -77,7 +77,7 @@ function localTime(timezone: string, now: Date): string {
 }
 
 /**
- * Runs the AI employee for one customer message: policy pre-checks, model routing,
+ * Runs the assistant for one customer message: policy pre-checks, model routing,
  * retrieval, a bounded tool-use loop with gated tool execution, reply post-checks,
  * and full accounting (AiRun, AiAction, AiUsageRecord, usage counters).
  */
