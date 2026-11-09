@@ -241,7 +241,10 @@ export function TestConsole({ isProviderConfigured }: { isProviderConfigured: bo
     return { role: "assistant", text: result.reply ?? result.blockedMessage ?? "(no reply)", meta };
   };
 
-  useEffect(() => bottom.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), [turns]);
+  // Block body on purpose: newer browsers return a Promise from scrollIntoView, which React would treat as a cleanup.
+  useEffect(() => {
+    bottom.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [turns]);
 
   const send = () => {
     const message = draft.trim();
