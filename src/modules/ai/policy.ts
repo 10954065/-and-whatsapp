@@ -128,6 +128,34 @@ export function postcheck({ reply, verifiedText, paymentVerified }: PostcheckInp
   return { ok: true, flags, reply };
 }
 
+/** En dash, em dash, horizontal bar, or two or more hyphens used as punctuation. */
+const PUNCTUATION_DASH = "(?:[–—―]|-{2,})";
+
+/** Applied in order; later rules rely on earlier ones having handled lines, lists and ranges. */
+const DASH_RULES: [RegExp, string][] = [
+  [/^[ \t]*(?:[-–—―][ \t]*){3,}$/gm, ""], // divider lines: --- or ———
+  [/^([ \t]*)-[ \t]+/gm, "$1• "], // "- item" lists
+  [new RegExp(`^[ \\t]*${PUNCTUATION_DASH}[ \\t]*`, "gm"), ""], // a dash opening a line ("— Ama")
+  [new RegExp(`(?:[ \\t]*${PUNCTUATION_DASH}|[ \\t]+-)[ \\t]*$`, "gm"), ""], // a dash closing a line
+  [new RegExp(`(\\d[\\w.:]*)[ \\t]*${PUNCTUATION_DASH}[ \\t]*(?=\\d)`, "g"), "$1 to "], // 9–5, 10am — 2pm
+  [/(\d[\w.:]*)[ \t]+-[ \t]+(?=\d)/g, "$1 to "], // 9am - 5pm
+  [/(\p{L})–(?=\p{L})/gu, "$1 to "], // Mon–Fri
+  [new RegExp(`[ \\t]*${PUNCTUATION_DASH}[ \\t]*`, "g"), ", "], // "great — thanks"
+  [/(\S)[ \t]+-[ \t]+(?=\S)/g, "$1, "], // "great - thanks"
+  [/([.!?;:,])[ \t]*,/g, "$1"], // tidy "!," and ",,"
+  [/,[ \t]*([.!?;:])/g, "$1"], // tidy ", ."
+  [/\n{3,}/g, "\n\n"],
+];
+
+/**
+ * Removes dashes used as punctuation so replies read like a person typed them: em and en
+ * dashes, "--" and a spaced " - " become commas, ranges become "to", "- item" lists become
+ * bullets and divider lines go. Hyphens inside words, phone numbers, dates and links stay.
+ */
+export function removeDashes(text: string): string {
+  return DASH_RULES.reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), text).trim();
+}
+
 /** Channel message limits (WhatsApp text 4096 chars; Instagram text 1000 bytes). */
 export function clampForChannel(text: string, channel: "WHATSAPP" | "INSTAGRAM" | "SANDBOX"): string {
   const limit = channel === "INSTAGRAM" ? 950 : 4_000;

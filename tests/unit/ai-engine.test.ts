@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildMessages } from "@/modules/ai/context";
-import { postcheck, preflight, SAFE_HOLDING_REPLY, type PreflightInput } from "@/modules/ai/policy";
+import { postcheck, preflight, removeDashes, SAFE_HOLDING_REPLY, type PreflightInput } from "@/modules/ai/policy";
 import { estimateCostMicros } from "@/modules/ai/pricing";
 import { renderTemplate } from "@/modules/ai/prompts";
 import { supportsServerFallback } from "@/modules/ai/llm/anthropic";
@@ -108,6 +108,29 @@ describe("postcheck", () => {
   });
   it("blocks medical advice", () => {
     expect(postcheck({ reply: "You probably have a sinus infection; take 500 mg twice a day.", verifiedText: "", paymentVerified: false }).flags).toContain("medical_advice");
+  });
+});
+
+describe("removeDashes", () => {
+  it.each([
+    ["Great choice — it's in stock.", "Great choice, it's in stock."],
+    ["Great choice – it's in stock.", "Great choice, it's in stock."],
+    ["Great choice -- it's in stock.", "Great choice, it's in stock."],
+    ["Great choice - it's in stock.", "Great choice, it's in stock."],
+    ["Great choice—it's in stock.", "Great choice, it's in stock."],
+    ["We're open 9am – 5pm, Mon–Fri.", "We're open 9am to 5pm, Mon to Fri."],
+    ["Sizes 10 - 14, priced GH₵ 100–200.", "Sizes 10 to 14, priced GH₵ 100 to 200."],
+    ["Thanks! — Ama", "Thanks! Ama"],
+    ["See you soon —", "See you soon"],
+    ["We have:\n- Kente dress\n- Batik shirt", "We have:\n• Kente dress\n• Batik shirt"],
+    ["Hello\n---\nBye", "Hello\n\nBye"],
+  ])("rewrites %j", (input, expected) => {
+    expect(removeDashes(input)).toBe(expected);
+  });
+
+  it("keeps hyphens that belong to words, numbers, dates and links", () => {
+    const text = "Your follow-up is booked for 2026-11-09. Call 024-555-1234 or see https://ama.shop/kente-midi. It's -5% off a T-shirt.";
+    expect(removeDashes(text)).toBe(text);
   });
 });
 

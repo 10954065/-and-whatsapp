@@ -54,7 +54,10 @@ use keeps whatever state the provider needs. Configuration: `ENVIRONMENT_VARIABL
 6. **Post-check (`policy.ts → postcheck`)** — blocks replies containing money amounts not found
    in business facts, retrieved knowledge or tool results; payment confirmations without a
    verified payment; and medical advice. Blocked replies are replaced with a holding message
-   and the conversation is escalated. Replies are clamped to channel limits.
+   and the conversation is escalated. Before that, `removeDashes` rewrites dashes used as
+   punctuation (em and en dashes, `--`, a spaced ` - `) into commas, ranges into "to" and
+   `- item` lists into bullets; hyphens inside words, numbers, dates and links stay. Replies
+   are clamped to channel limits.
 7. **Refusals and failures** — refusals (Claude `refusal`; OpenAI-style `refusal` or
    `content_filter`), empty replies and provider errors escalate to a human with a polite
    holding reply (live mode). The provider's error message is stored on the `AiRun`.

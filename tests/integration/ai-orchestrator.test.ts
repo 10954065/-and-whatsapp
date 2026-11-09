@@ -73,6 +73,13 @@ describe("runAgent", () => {
     expect(await prisma.usageCounter.count({ where: { businessId: business.id, metric: "AI_MESSAGE" } })).toBe(2);
   });
 
+  it("removes dashes from the reply before it is stored and sent", async () => {
+    const { input } = await setup();
+    const result = await runAgent(input, { llm: fakeLlm([{ text: "Lovely choice — it's in stock. We're open 9am – 5pm, so pop in any time." }]) });
+    expect(result.reply).toBe("Lovely choice, it's in stock. We're open 9am to 5pm, so pop in any time.");
+    expect((await prisma.aiRun.findUniqueOrThrow({ where: { id: result.runId! } })).responseText).toBe(result.reply);
+  });
+
   it("executes permitted write tools inside the tenant and loops back to the model", async () => {
     const { business, customer, input } = await setup();
     const llm = fakeLlm([
