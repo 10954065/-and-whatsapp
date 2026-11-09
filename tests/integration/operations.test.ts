@@ -55,7 +55,7 @@ describe("orders and inventory", () => {
     await prisma.discount.create({ data: { businessId: business.id, code: "BIG50", type: "PERCENT", value: 50 } });
     await expect(
       createOrder({ businessId: business.id, customerId: customer.id, items: [{ variantId: product.variants[0].id, quantity: 1 }], discountCode: "big50", maxDiscountPercent: 10, createdByType: "AI" }),
-    ).rejects.toThrow(/exceeds what the AI/);
+    ).rejects.toThrow(/exceeds what the assistant/);
     await expect(
       createOrder({ businessId: other.business.id, customerId: other.customer.id, items: [{ variantId: product.variants[0].id, quantity: 1 }], createdByType: "AI" }),
     ).rejects.toThrow(/unavailable/);
