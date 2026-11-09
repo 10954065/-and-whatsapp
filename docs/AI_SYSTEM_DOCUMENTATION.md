@@ -47,7 +47,9 @@ use keeps whatever state the provider needs. Configuration: `ENVIRONMENT_VARIABL
    Every tool call goes through `tools/registry.ts → executeTool`:
    * tool must exist and be permitted for the business (`search_knowledge`,
      `get_business_info`, `escalate_to_human` are always on);
-   * input validated with the tool's Zod schema (errors, including malformed JSON arguments, are returned to the model as error tool results);
+   * input validated with the tool's Zod schema (errors, including malformed JSON arguments, are returned to the model as error tool results;
+     optional fields also accept `null`, which counts as not provided, because several models send
+     it and Groq rejects tool calls that break the schema; such a rejection is retried);
    * write tools listed in `approvalRequiredTools` create an `ApprovalRequest` instead;
    * test-console runs simulate write tools;
    * the business id comes from server context only, and writes run in `withTenantTx` (RLS).

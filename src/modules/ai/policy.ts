@@ -133,6 +133,7 @@ const PUNCTUATION_DASH = "(?:[–—―]|-{2,})";
 
 /** Applied in order; later rules rely on earlier ones having handled lines, lists and ranges. */
 const DASH_RULES: [RegExp, string][] = [
+  [/[‐‑]/g, "-"], // typographic and non-breaking hyphens (some models write "e‑commerce")
   [/^[ \t]*(?:[-–—―][ \t]*){3,}$/gm, ""], // divider lines: --- or ———
   [/^([ \t]*)-[ \t]+/gm, "$1• "], // "- item" lists
   [new RegExp(`^[ \\t]*${PUNCTUATION_DASH}[ \\t]*`, "gm"), ""], // a dash opening a line ("— Ama")

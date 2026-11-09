@@ -6,6 +6,8 @@ import { aiProviderLabel, getLlmClient, isAiConfigured, LlmProviderError, modelF
 import { createAnthropicClient } from "@/modules/ai/llm/anthropic";
 import { createOpenAiCompatibleClient } from "@/modules/ai/llm/openai-compatible";
 import { estimateCostMicros } from "@/modules/ai/pricing";
+import { executeTool, toolDefinitions } from "@/modules/ai/tools";
+import type { ToolContext } from "@/modules/ai/tools/types";
 
 const AI_KEYS = [
   "AI_PROVIDER",
@@ -107,6 +109,39 @@ describe("AI provider settings", () => {
     expect(() => env()).toThrow(/AI_MODEL_PRICES: must be valid JSON/);
     setEnv({ AI_MODEL_PRICES: JSON.stringify({ "gpt-5-mini": { input: "cheap" } }) });
     expect(() => env()).toThrow(/AI_MODEL_PRICES/);
+  });
+});
+
+describe("tool schemas across providers", () => {
+  const testContext: ToolContext = {
+    businessId: "biz_1",
+    conversationId: null,
+    customerId: null,
+    aiRunId: "run_1",
+    mode: "test",
+    timezone: "Africa/Accra",
+    currency: "GHS",
+    maxDiscountPercent: 0,
+  };
+
+  it("lets optional fields be null and keeps required ones strict", () => {
+    const [captureLead] = toolDefinitions(["capture_lead"]);
+    const properties = captureLead.inputSchema.properties as Record<string, Record<string, unknown>>;
+    expect(captureLead.inputSchema.required).toEqual(["interest"]);
+    expect(properties.interest).toMatchObject({ type: "string" });
+    expect(properties.estimated_value).toMatchObject({
+      anyOf: [{ type: "integer" }, { type: "null" }],
+      description: expect.stringContaining("pesewas"),
+    });
+    expect(captureLead.inputSchema).not.toHaveProperty("$schema");
+  });
+
+  it("treats null as not provided when the model fills an unknown optional field", async () => {
+    const policy = { permitted: ["capture_lead"], approvalRequired: [] };
+    const nulled = await executeTool("capture_lead", { interest: "Kente midi dress, size M", estimated_value: null }, testContext, policy);
+    expect(nulled.status).toBe("EXECUTED");
+    const missing = await executeTool("capture_lead", { interest: null }, testContext, policy);
+    expect(missing).toMatchObject({ status: "FAILED", outcome: { message: expect.stringContaining("interest") } });
   });
 });
 
@@ -337,6 +372,13 @@ describe("OpenAI-compatible adapter", () => {
     ]);
     expect((await client.create(request())).text).toBe("Finally");
     expect(fetchStub).toHaveBeenCalledTimes(3);
+  });
+
+  it("asks again when the provider rejects the model's own tool call", async () => {
+    const rejected = { error: { message: "Tool call validation failed: parameters for tool capture_lead did not match schema", code: "tool_use_failed" } };
+    const { client, fetchStub } = provider([{ status: 400, body: rejected }, { body: completion({ content: "Noted, thank you!" }) }]);
+    expect((await client.create(request())).text).toBe("Noted, thank you!");
+    expect(fetchStub).toHaveBeenCalledTimes(2);
   });
 
   it("fails fast on a bad key with the provider's own message", async () => {

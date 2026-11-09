@@ -124,6 +124,7 @@ describe("removeDashes", () => {
     ["See you soon —", "See you soon"],
     ["We have:\n- Kente dress\n- Batik shirt", "We have:\n• Kente dress\n• Batik shirt"],
     ["Hello\n---\nBye", "Hello\n\nBye"],
+    ["We build e‑commerce sites ‑ fast.", "We build e-commerce sites, fast."],
   ])("rewrites %j", (input, expected) => {
     expect(removeDashes(input)).toBe(expected);
   });

@@ -5,6 +5,8 @@ import { LlmProviderError } from "@/modules/ai/llm/types";
 
 const RETRYABLE_STATUSES = new Set([408, 409, 429, 500, 502, 503, 504]);
 const MAX_RETRY_AFTER_MS = 10_000;
+/** Error code some providers return when the model's own tool call failed their schema check. */
+const TOOL_CALL_REJECTED = "tool_use_failed";
 
 const toolCallSchema = z.looseObject({
   id: z.string().nullish(),
@@ -154,16 +156,17 @@ export function fromChatCompletion(body: unknown): LlmResponse {
   };
 }
 
-async function errorDetail(response: Response): Promise<string> {
+async function errorDetail(response: Response): Promise<{ message: string; code: string | null }> {
   const text = await response.text().catch(() => "");
   try {
-    const json = JSON.parse(text) as { error?: string | { message?: unknown }; message?: unknown };
+    const json = JSON.parse(text) as { error?: string | { message?: unknown; code?: unknown }; message?: unknown };
     const message = typeof json.error === "string" ? json.error : (json.error?.message ?? json.message);
-    if (typeof message === "string" && message) return message.slice(0, 300);
+    const code = typeof json.error === "object" && typeof json.error.code === "string" ? json.error.code : null;
+    if (typeof message === "string" && message) return { message: message.slice(0, 300), code };
   } catch {
     // Not JSON: fall through to the raw body.
   }
-  return text.slice(0, 300) || response.statusText;
+  return { message: text.slice(0, 300) || response.statusText, code: null };
 }
 
 function retryAfterMs(response: Response): number | null {
@@ -223,7 +226,13 @@ export function createOpenAiCompatibleClient(options: OpenAiCompatibleOptions): 
           await sleep(retryAfterMs(response) ?? retryDelayMs * 2 ** attempt);
           continue;
         }
-        throw new LlmProviderError(`Provider error ${response.status}: ${await errorDetail(response)}`, response.status);
+        const detail = await errorDetail(response);
+        // Groq rejects a reply whose tool call broke the schema; a fresh sample usually gets it right.
+        if (canRetry && detail.code === TOOL_CALL_REJECTED) {
+          await sleep(retryDelayMs * 2 ** attempt);
+          continue;
+        }
+        throw new LlmProviderError(`Provider error ${response.status}: ${detail.message}`, response.status);
       }
     },
   };

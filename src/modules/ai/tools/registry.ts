@@ -34,11 +34,41 @@ export function permittedToolNames(configured: string[]): string[] {
   return TOOLS.filter((tool) => names.has(tool.name)).map((tool) => tool.name);
 }
 
+/**
+ * Optional fields also accept null. Several models send null for "unknown", and some
+ * providers (Groq) reject the whole reply when the tool call does not match the schema.
+ */
+function allowNullForOptional(schema: Record<string, unknown>): Record<string, unknown> {
+  const properties = schema.properties as Record<string, Record<string, unknown>> | undefined;
+  const items = schema.items;
+  const required = new Set((schema.required as string[] | undefined) ?? []);
+  const nullable = (key: string, property: Record<string, unknown>) => {
+    const inner = allowNullForOptional(property);
+    if (required.has(key)) return inner;
+    const { description, ...rest } = inner;
+    return { anyOf: [rest, { type: "null" }], ...(description === undefined ? {} : { description }) };
+  };
+  return {
+    ...schema,
+    ...(properties ? { properties: Object.fromEntries(Object.entries(properties).map(([key, property]) => [key, nullable(key, property)])) } : {}),
+    ...(items && typeof items === "object" && !Array.isArray(items) ? { items: allowNullForOptional(items as Record<string, unknown>) } : {}),
+  };
+}
+
+/** Null means "not provided", matching the nullable schema the model was given. */
+function withoutNulls(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withoutNulls);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== null).map(([key, entry]) => [key, withoutNulls(entry)]));
+  }
+  return value;
+}
+
 export function toolDefinitions(names: string[]): LlmToolDefinition[] {
   return TOOLS.filter((tool) => names.includes(tool.name)).map((tool) => {
     const inputSchema = { ...(z.toJSONSchema(tool.schema) as Record<string, unknown>) };
     delete inputSchema.$schema;
-    return { name: tool.name, description: tool.description, inputSchema };
+    return { name: tool.name, description: tool.description, inputSchema: allowNullForOptional(inputSchema) };
   });
 }
 
@@ -64,7 +94,7 @@ export async function executeTool(
     return { status: "DENIED", outcome: { ok: false, message: "This action is not enabled for this business. Offer to involve a team member instead." } };
   }
 
-  const parsed = tool.schema.safeParse(rawInput);
+  const parsed = tool.schema.safeParse(withoutNulls(rawInput));
   if (!parsed.success) {
     const issues = parsed.error.issues.map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`).join("; ");
     return { status: "FAILED", outcome: { ok: false, message: `Invalid input: ${issues}` } };
