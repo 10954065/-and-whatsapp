@@ -58,11 +58,11 @@ every tenant service runs through it, the runtime `DATABASE_URL` can use a login
 | Environment validation; no secrets in code or client bundles | 🟡 |
 | Log redaction of password/token/secret/key/cookie fields | ✅ |
 | Audit log for auth events and workspace creation | ✅ |
-| Data export / account deletion | ⏳ Phase 12 |
-| Message retention purge | ⏳ Phase 12 |
+| Owner data export (JSON, no credentials), workspace deletion with 7-day grace and cancel, account deletion with anonymisation | ✅ |
+| Message retention purge honouring each business's setting (daily cron) | ✅ |
 | Webhook signature verification: Meta (HMAC-SHA256) and Paystack (HMAC-SHA512, verified before any database work) | ✅ |
 | Payments confirmed only by server-side verify with amount/currency/reference checks, applied exactly once | ✅ |
-| QStash signature verification | ⏳ Phase 12 |
+| QStash signature verification (JWT, key rotation, body hash) | ✅ |
 | SSRF protection for website knowledge import | ⏳ Phase 4 |
 | File upload validation | ⏳ Phase 4 |
 

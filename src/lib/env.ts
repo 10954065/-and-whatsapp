@@ -41,6 +41,8 @@ const envSchema = z.object({
   OBJECT_STORAGE_SECRET_KEY: optionalString,
   QUEUE_PROVIDER: z.enum(["inline", "qstash"]).default("inline"),
   QSTASH_TOKEN: optionalString,
+  /** Regional QStash API base URL; defaults to https://qstash.upstash.io. */
+  QSTASH_URL: z.url().optional(),
   QSTASH_CURRENT_SIGNING_KEY: optionalString,
   QSTASH_NEXT_SIGNING_KEY: optionalString,
 });

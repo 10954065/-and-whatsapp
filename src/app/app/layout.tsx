@@ -9,14 +9,17 @@ import { prisma } from "@/lib/db/prisma";
 import { getActiveAnnouncements } from "@/modules/administration/monitoring.service";
 import { isSubscriptionLapsed } from "@/modules/billing/billing.service";
 import { countUnreadNotifications } from "@/modules/notifications/notification.service";
+import { getPendingDeletion } from "@/modules/privacy/privacy.service";
+import { formatDate } from "@/lib/format";
 
 export default async function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const context = await requireTenant();
-  const [memberships, unreadNotifications, subscription, announcements] = await Promise.all([
+  const [memberships, unreadNotifications, subscription, announcements, pendingDeletion] = await Promise.all([
     listUserMemberships(context.user.id),
     countUnreadNotifications(context.businessId),
     prisma.subscription.findUnique({ where: { businessId: context.businessId }, select: { status: true, trialEndsAt: true } }),
     getActiveAnnouncements(),
+    getPendingDeletion(context.businessId),
   ]);
 
   const sections = APP_NAVIGATION.map((section) => ({
@@ -65,6 +68,17 @@ export default async function AppLayout({ children }: Readonly<{ children: React
             <Link href="/verify-email" className="font-semibold text-primary hover:underline">
               Resend confirmation
             </Link>
+          </div>
+        ) : null}
+        {pendingDeletion ? (
+          <div role="alert" className="flex flex-wrap items-center gap-2 border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-sm lg:px-8">
+            <ShieldAlert className="size-4 text-destructive" aria-hidden="true" />
+            <span>This workspace will be permanently deleted on {formatDate(pendingDeletion.purgeAfter, context.business.timezone)}.</span>
+            {context.role === "OWNER" ? (
+              <Link href="/app/settings#data" className="font-semibold text-primary hover:underline">
+                Cancel deletion
+              </Link>
+            ) : null}
           </div>
         ) : null}
         {isSubscriptionLapsed(subscription) && context.business.status === "ACTIVE" ? (

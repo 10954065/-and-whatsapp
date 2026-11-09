@@ -13,7 +13,7 @@ type FormAction = (previous: ActionResult<unknown> | null, formData: FormData) =
 export interface FieldSpec {
   name: string;
   label: string;
-  type?: "text" | "number" | "email" | "tel" | "textarea" | "select" | "checkbox" | "date" | "time" | "datetime-local" | "checkboxes";
+  type?: "text" | "number" | "email" | "tel" | "password" | "textarea" | "select" | "checkbox" | "date" | "time" | "datetime-local" | "checkboxes";
   placeholder?: string;
   options?: { value: string; label: string }[];
   defaultValue?: string;

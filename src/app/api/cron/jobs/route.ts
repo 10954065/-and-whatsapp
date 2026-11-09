@@ -5,6 +5,7 @@ import { processDueJobs } from "@/lib/queue";
 import { purgeExpiredRateLimits } from "@/lib/security/rate-limit";
 import { purgeExpiredSessions } from "@/lib/auth/session";
 import { runBillingLifecycle } from "@/modules/billing/billing.service";
+import { processScheduledDeletions, purgeExpiredMessages } from "@/modules/privacy/privacy.service";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -17,7 +18,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const billing = await runBillingLifecycle();
-  const jobs = await processDueJobs({ workerId: "cron", timeBudgetMs: 40_000, limit: 100 });
+  const [workspacesDeleted, expiredMessages] = [await processScheduledDeletions(), await purgeExpiredMessages()];
+  const jobs = await processDueJobs({ workerId: "cron", timeBudgetMs: 35_000, limit: 100 });
   const [rateLimitBuckets, sessions] = await Promise.all([purgeExpiredRateLimits(), purgeExpiredSessions()]);
-  return NextResponse.json({ jobs, billing, purged: { rateLimitBuckets, sessions } });
+  return NextResponse.json({ jobs, billing, purged: { rateLimitBuckets, sessions, workspacesDeleted, expiredMessages } });
 }

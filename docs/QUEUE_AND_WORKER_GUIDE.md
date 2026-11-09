@@ -9,7 +9,7 @@ interchangeable; every runner claims jobs the same way, so any combination can r
 | --- | --- | --- |
 | Inline (`after()`) | Immediately after the request that enqueued the job | Nothing (default) |
 | Cron sweeper `GET /api/cron/jobs` | Daily on Vercel Hobby (`vercel.json`), every minute on Pro | `CRON_SECRET` |
-| QStash dispatcher (Phase 5) | Push delivery with retries and delays | `QUEUE_PROVIDER=qstash`, QStash keys |
+| QStash dispatcher | Push wake-up at the job's run time, including retry back-offs | `QUEUE_PROVIDER=qstash`, `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY` (+ `QSTASH_NEXT_SIGNING_KEY`, optional `QSTASH_URL`) |
 | Standalone worker `npm run worker` | Continuous polling on any container host (e.g. Railway) | `DATABASE_URL` |
 
 ## Guarantees
@@ -21,6 +21,21 @@ interchangeable; every runner claims jobs the same way, so any combination can r
 * **Dead letters** — after the last attempt, or for `PermanentJobError`, the job becomes `DEAD`
   and an `ErrorEvent` is recorded. Recover with `retryJob(id)` (Admin → Monitoring).
 * **Bounded execution** — sweeps stop at a job limit and a time budget (45 s on Vercel).
+
+## QStash
+
+With `QUEUE_PROVIDER=qstash` and the keys set, every new job and every retry publishes
+`{ "jobId": "…" }` to `POST {APP_URL}/api/queue/qstash`. The publish is delayed with
+`Upstash-Not-Before` and deduplicated per job and run time. The route verifies `Upstash-Signature`
+before doing anything:
+* an HS256 JWT signed with the current key, falling back to the next key;
+* issuer `Upstash`;
+* subject equal to our URL;
+* `exp` and `nbf`;
+* the SHA-256 of the raw body.
+
+It then claims the job atomically. A failed publish is only logged, and the cron sweeper runs
+anything QStash never delivered. QStash's free tier (1,000 messages/day) suits launch volumes.
 
 ## Adding a job type
 

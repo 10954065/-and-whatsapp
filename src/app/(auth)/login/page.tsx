@@ -11,6 +11,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 const NOTICES: Record<string, string> = {
   reset: "Your password was changed. Sign in with your new password.",
   verified: "Email confirmed. Sign in to continue.",
+  deleted: "Your account was deleted and your personal details were removed.",
 };
 
 export default async function LoginPage({ searchParams }: { searchParams: SearchParams }) {

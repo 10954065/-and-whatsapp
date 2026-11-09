@@ -28,6 +28,7 @@ export const RATE_LIMITS = {
   upload: { name: "upload:business", limit: 100, windowSeconds: 3_600 },
   billingCallback: { name: "billing-callback:ip", limit: 30, windowSeconds: 600 },
   checkout: { name: "checkout:business", limit: 10, windowSeconds: 3_600 },
+  dataExport: { name: "export:business", limit: 5, windowSeconds: 3_600 },
 } satisfies Record<string, RateLimitRule>;
 
 /**

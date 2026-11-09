@@ -3,6 +3,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { logger } from "@/lib/monitoring/logger";
 import { reportError } from "@/lib/monitoring/report";
+import { isQStashEnabled, publishJobWakeUp } from "@/lib/queue/qstash";
 
 export interface JobInfo {
   id: string;
@@ -29,10 +30,16 @@ export function registerJobHandler(type: string, handler: JobHandler): void {
 /** Wake-up strategy for new jobs. Replaced by the QStash dispatcher when configured. */
 export type JobDispatcher = (job: { id: string; runAt: Date }) => Promise<void> | void;
 
-let dispatcher: JobDispatcher = inlineDispatcher;
+let customDispatcher: JobDispatcher | null = null;
 
-export function setJobDispatcher(next: JobDispatcher): void {
-  dispatcher = next;
+/** Overrides the wake-up strategy (tests); otherwise QStash when configured, else inline. */
+export function setJobDispatcher(next: JobDispatcher | null): void {
+  customDispatcher = next;
+}
+
+function dispatcher(job: { id: string; runAt: Date }): Promise<void> | void {
+  if (customDispatcher) return customDispatcher(job);
+  return isQStashEnabled() ? publishJobWakeUp(job) : inlineDispatcher(job);
 }
 
 /** Runs the job right after the current response (Next.js `after`). Outside a request it no-ops; the sweeper picks it up. */
@@ -134,18 +141,24 @@ async function executeClaimed(job: ClaimedJob): Promise<boolean> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const isDead = error instanceof PermanentJobError || job.attempts >= job.maxAttempts;
+    const retryAt = new Date(Date.now() + backoffMs(job.attempts));
     await prisma.job.update({
       where: { id: job.id },
       data: {
         status: isDead ? "DEAD" : "PENDING",
-        runAt: isDead ? undefined : new Date(Date.now() + backoffMs(job.attempts)),
+        runAt: isDead ? undefined : retryAt,
         lastError: message.slice(0, 2_000),
         lockedBy: null,
         lockExpiresAt: null,
       },
     });
-    if (isDead) await reportError(error, { source: `job.${job.type}`, businessId: job.businessId, jobId: job.id });
-    else logger.warn("job.retry_scheduled", { jobId: job.id, type: job.type, attempt: job.attempts, error: message });
+    if (isDead) {
+      await reportError(error, { source: `job.${job.type}`, businessId: job.businessId, jobId: job.id });
+    } else {
+      logger.warn("job.retry_scheduled", { jobId: job.id, type: job.type, attempt: job.attempts, error: message });
+      // QStash wakes the retry at its back-off time; inline mode leaves it to the sweeper.
+      await dispatcher({ id: job.id, runAt: retryAt });
+    }
     return false;
   }
 }

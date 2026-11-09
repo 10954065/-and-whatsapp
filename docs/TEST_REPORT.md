@@ -11,12 +11,29 @@ npm run build && npm run test:e2e   # Playwright against `next start`
 Integration tests run against a real PostgreSQL database (`sunleon_test`), migrated with
 `prisma migrate deploy` before the suite.
 
-## Latest run — Phase 11 (2026-11-08)
+## Latest run — Phase 12 (2026-11-09)
 
 | Suite | Files | Tests | Result |
 | --- | --- | --- | --- |
-| Unit + integration (Vitest) | 23 | 205 | ✅ pass |
-| E2E (`tests/e2e`, Chromium) | 3 | 9 | ✅ pass |
+| Unit + integration (Vitest) | 25 | 215 | ✅ pass |
+| E2E (`tests/e2e`, Chromium) | 4 | 10 | ✅ pass |
+
+Phase 12 additions:
+* **QStash signatures:** current and next keys accepted. Forged keys, tampered bodies, other
+  URLs, other issuers, expired and not-yet-valid tokens are rejected.
+* **QStash publishing:** wake-ups carry the delay and deduplication headers, and a failed
+  publish never throws.
+* **QStash route:** a signed call runs a stored job exactly once; a forged call gets 401.
+* **Health:** the endpoint reports the database and migration state and exposes provider
+  booleans only.
+* **Export:** contains customers and messages, never credentials or password hashes, and is
+  owner-only.
+* **Workspace deletion:** needs the exact name; it can be cancelled; it purges everything after
+  the grace period despite RESTRICT foreign keys, and the audit trail is kept.
+* **Retention:** applies only to the business that set it.
+* **Account deletion:** blocked for owners; for other members it strips personal data and
+  sessions.
+* **E2E:** export download, then schedule and cancel deletion.
 
 Phase 11 additions:
 * **Workspace administration:** search and status filters; suspend and restore with a

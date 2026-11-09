@@ -12,6 +12,9 @@ import { formatDate } from "@/lib/format";
 import { requireTenant } from "@/lib/auth/tenant";
 import { getBusinessSettings } from "@/modules/businesses/settings.service";
 import { getTemplateOverview } from "@/modules/onboarding/template.service";
+import { ActionButton, QuickForm } from "@/components/operations/operations-forms";
+import { cancelWorkspaceDeletionAction, requestWorkspaceDeletionAction } from "@/modules/privacy/privacy.actions";
+import { DELETION_GRACE_DAYS, getPendingDeletion } from "@/modules/privacy/privacy.service";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -27,7 +30,8 @@ function Section({ id, title, description, children }: { id: string; title: stri
 
 export default async function SettingsPage() {
   const context = await requireTenant();
-  const [business, overview] = await Promise.all([getBusinessSettings(context.businessId), getTemplateOverview(context.businessId)]);
+  const [business, overview, pendingDeletion] = await Promise.all([getBusinessSettings(context.businessId), getTemplateOverview(context.businessId), getPendingDeletion(context.businessId)]);
+  const isOwner = context.role === "OWNER";
   const isReadOnly = !context.can("business.update");
   const settings = business.settings;
 
@@ -91,6 +95,36 @@ export default async function SettingsPage() {
             }}
           />
         </Section>
+        {isOwner ? (
+          <Section id="data" title="Your data" description="Download everything this workspace holds, or delete it permanently. Only the owner can do this.">
+            <div className="grid gap-6">
+              <div>
+                <a href="/api/export/business" className="text-sm font-semibold text-primary hover:underline">
+                  Download all workspace data (JSON)
+                </a>
+                <p className="mt-1 text-xs text-muted-foreground">Customers, conversations, orders, bookings, products, knowledge and settings. Channel credentials are never included.</p>
+              </div>
+              {pendingDeletion ? (
+                <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm">
+                  <p className="font-semibold">This workspace will be permanently deleted on {formatDate(pendingDeletion.purgeAfter, business.timezone)}.</p>
+                  <p className="mt-1 mb-3 text-muted-foreground">Everything keeps working until then. After that, all data and files are removed and cannot be recovered.</p>
+                  <ActionButton action={cancelWorkspaceDeletionAction} values={{}} label="Cancel deletion" />
+                </div>
+              ) : (
+                <div>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Deleting removes every customer, conversation, order, booking, file and setting after a {DELETION_GRACE_DAYS}-day grace period, during which you can cancel. Download your data first.
+                  </p>
+                  <QuickForm
+                    action={requestWorkspaceDeletionAction}
+                    submitLabel="Delete this workspace"
+                    fields={[{ name: "confirmName", label: `Type “${business.name}” to confirm`, placeholder: business.name }]}
+                  />
+                </div>
+              )}
+            </div>
+          </Section>
+        ) : null}
       </div>
     </>
   );

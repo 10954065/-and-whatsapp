@@ -1,5 +1,18 @@
 # Changelog
 
+## Phase 12 — Production hardening
+
+* QStash dispatcher for job wake-ups and retries, with a signature-verified delivery route.
+  The cron sweeper remains the safety net.
+* `/api/health`: database round-trip, latest migration, overdue jobs, and provider
+  configuration (booleans only).
+* Data rights:
+  * owner export of the whole workspace as JSON;
+  * workspace deletion with a 7-day grace period, cancellation and a full purge (including
+    stored files);
+  * account deletion with personal data removed.
+* Daily purge of message content past each business's retention setting.
+
 ## Phase 11 — Super-admin console
 
 * `/admin` for platform super-admins only (404 for everyone else), and only on a session

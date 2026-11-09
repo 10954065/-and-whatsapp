@@ -3,8 +3,10 @@ import { BadgeCheck, MailWarning } from "lucide-react";
 import { PageHeader } from "@/components/app/page-primitives";
 import { ChangePasswordForm, DisableMfaForm, MfaSetup } from "@/components/account/security-forms";
 import { ResendVerificationForm } from "@/components/auth/auth-forms";
+import { QuickForm } from "@/components/operations/operations-forms";
 import { Badge } from "@/components/ui/badge";
 import { requireTenant } from "@/lib/auth/tenant";
+import { deleteAccountAction } from "@/modules/privacy/privacy.actions";
 
 export const metadata: Metadata = { title: "Account & security" };
 
@@ -71,6 +73,12 @@ export default async function AccountPage() {
           ) : (
             <MfaSetup />
           )}
+        </Section>
+        <Section
+          title="Delete account"
+          description="Removes your sign-in and personal details from every workspace. If you own a workspace, delete it or hand it over first."
+        >
+          <QuickForm action={deleteAccountAction} submitLabel="Delete my account" fields={[{ name: "password", label: "Your password", type: "password" }]} />
         </Section>
       </div>
     </>
