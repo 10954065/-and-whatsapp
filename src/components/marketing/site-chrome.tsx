@@ -173,7 +173,7 @@ export function SiteFooter() {
           </div>
         ))}
       </div>
-      <div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 pb-6 text-xs text-muted-foreground sm:flex-row sm:justify-between">
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-1.5 px-6 pb-6 text-center text-xs text-muted-foreground">
         <p>© {new Date().getFullYear()} Sunleon Router Enterprise. All rights reserved.</p>
         <p>
           Created by{" "}
