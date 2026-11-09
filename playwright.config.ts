@@ -11,6 +11,8 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: "retain-on-failure",
+    // PW_SLOW_MO=400 slows every action down so a headed run can be watched.
+    launchOptions: { slowMo: Number(process.env.PW_SLOW_MO ?? 0) },
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
