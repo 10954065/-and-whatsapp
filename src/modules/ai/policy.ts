@@ -130,21 +130,23 @@ export function postcheck({ reply, verifiedText, paymentVerified }: PostcheckInp
 
 /** En dash, em dash, horizontal bar, or two or more hyphens used as punctuation. */
 const PUNCTUATION_DASH = "(?:[–—―]|-{2,})";
+/** Any horizontal whitespace: models also write no-break and narrow no-break spaces ("9 – 19"). */
+const SPACE = "[^\\S\\r\\n]";
 
 /** Applied in order; later rules rely on earlier ones having handled lines, lists and ranges. */
 const DASH_RULES: [RegExp, string][] = [
   [/[‐‑]/g, "-"], // typographic and non-breaking hyphens (some models write "e‑commerce")
-  [/^[ \t]*(?:[-–—―][ \t]*){3,}$/gm, ""], // divider lines: --- or ———
-  [/^([ \t]*)-[ \t]+/gm, "$1• "], // "- item" lists
-  [new RegExp(`^[ \\t]*${PUNCTUATION_DASH}[ \\t]*`, "gm"), ""], // a dash opening a line ("— Ama")
-  [new RegExp(`(?:[ \\t]*${PUNCTUATION_DASH}|[ \\t]+-)[ \\t]*$`, "gm"), ""], // a dash closing a line
-  [new RegExp(`(\\d[\\w.:]*)[ \\t]*${PUNCTUATION_DASH}[ \\t]*(?=\\d)`, "g"), "$1 to "], // 9–5, 10am — 2pm
-  [/(\d[\w.:]*)[ \t]+-[ \t]+(?=\d)/g, "$1 to "], // 9am - 5pm
+  [/^[^\S\r\n]*(?:[-–—―][^\S\r\n]*){3,}$/gm, ""], // divider lines: --- or ———
+  [/^([^\S\r\n]*)-[^\S\r\n]+/gm, "$1• "], // "- item" lists
+  [new RegExp(`^${SPACE}*${PUNCTUATION_DASH}${SPACE}*`, "gm"), ""], // a dash opening a line ("— Ama")
+  [new RegExp(`(?:${SPACE}*${PUNCTUATION_DASH}|${SPACE}+-)${SPACE}*$`, "gm"), ""], // a dash closing a line
+  [new RegExp(`(\\d[\\w.:]*)${SPACE}*${PUNCTUATION_DASH}${SPACE}*(?=\\d)`, "g"), "$1 to "], // 9–5, 10am — 2pm
+  [/(\d[\w.:]*)[^\S\r\n]+-[^\S\r\n]+(?=\d)/g, "$1 to "], // 9am - 5pm
   [/(\p{L})–(?=\p{L})/gu, "$1 to "], // Mon–Fri
-  [new RegExp(`[ \\t]*${PUNCTUATION_DASH}[ \\t]*`, "g"), ", "], // "great — thanks"
-  [/(\S)[ \t]+-[ \t]+(?=\S)/g, "$1, "], // "great - thanks"
-  [/([.!?;:,])[ \t]*,/g, "$1"], // tidy "!," and ",,"
-  [/,[ \t]*([.!?;:])/g, "$1"], // tidy ", ."
+  [new RegExp(`${SPACE}*${PUNCTUATION_DASH}${SPACE}*`, "g"), ", "], // "great — thanks"
+  [/(\S)[^\S\r\n]+-[^\S\r\n]+(?=\S)/g, "$1, "], // "great - thanks"
+  [/([.!?;:,])[^\S\r\n]*,/g, "$1"], // tidy "!," and ",,"
+  [/,[^\S\r\n]*([.!?;:])/g, "$1"], // tidy ", ."
   [/\n{3,}/g, "\n\n"],
 ];
 
