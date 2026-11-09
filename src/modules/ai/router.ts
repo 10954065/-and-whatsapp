@@ -1,5 +1,3 @@
-import { env } from "@/lib/env";
-
 export type ModelTier = "fast" | "standard" | "advanced";
 export const MODEL_TIERS: ModelTier[] = ["fast", "standard", "advanced"];
 
@@ -19,9 +17,9 @@ export interface RoutingDecision {
 }
 
 /**
- * Cheapest suitable tier first. Haiku handles greetings, FAQs and routine tool use;
- * Sonnet takes long or multi-part conversations; Opus is reserved for complaints and
- * disputes where careful reasoning and tone matter most.
+ * Cheapest suitable tier first. The fast model handles greetings, FAQs and routine tool
+ * use; the standard model takes long or multi-part conversations; the advanced model is
+ * reserved for complaints and disputes where careful reasoning and tone matter most.
  */
 export function routeTier({ text, historyLength, override }: RoutingInput): RoutingDecision {
   if (override && (MODEL_TIERS as string[]).includes(override)) {
@@ -35,25 +33,9 @@ export function routeTier({ text, historyLength, override }: RoutingInput): Rout
   return { tier: "fast", reason: "routine enquiry" };
 }
 
-export function modelForTier(tier: ModelTier): string {
-  const config = env();
-  return {
-    fast: config.ANTHROPIC_MODEL_FAST,
-    standard: config.ANTHROPIC_MODEL_STANDARD,
-    advanced: config.ANTHROPIC_MODEL_ADVANCED,
-  }[tier];
-}
-
 /** Customer chat responds well at low effort; complaints get a little more thought. */
 export const TIER_EFFORT: Record<ModelTier, "low" | "medium"> = {
   fast: "low",
   standard: "low",
   advanced: "medium",
 };
-
-/** Models that accept the server-side `fallbacks: "default"` safety fallback. */
-const FALLBACK_CAPABLE = new Set(["claude-sonnet-5-5", "claude-opus-5-5", "claude-opus-5", "claude-fable-5-1"]);
-
-export function supportsServerFallback(model: string): boolean {
-  return FALLBACK_CAPABLE.has(model);
-}

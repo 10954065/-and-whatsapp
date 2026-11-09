@@ -1,34 +1,28 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import type { BetaMessage, MessageCreateParamsNonStreaming } from "@anthropic-ai/sdk/resources/beta/messages/messages";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "@/lib/db/prisma";
-import type { LlmClient } from "@/modules/ai/client";
+import { resetEnvCache } from "@/lib/env";
+import { LlmProviderError, type LlmClient, type LlmRequest, type LlmResponse } from "@/modules/ai/llm";
 import { runAgent, type AgentRunInput } from "@/modules/ai/orchestrator";
 import { createBusinessFor, createUser } from "./helpers";
 
-type Step = { text?: string; tool?: { name: string; input: unknown }; stop?: "end_turn" | "tool_use" | "refusal" };
+type Step = { text?: string; tool?: { name: string; input: unknown }; stop?: "end_turn" | "tool_use" | "refusal"; tokens?: number };
 
-/** Scripted stand-in for the Anthropic API: returns one canned response per call. */
-function fakeLlm(steps: Step[]): LlmClient & { calls: MessageCreateParamsNonStreaming[] } {
-  const calls: MessageCreateParamsNonStreaming[] = [];
+/** Scripted stand-in for the model provider: returns one canned response per call. */
+function fakeLlm(steps: Step[]): LlmClient & { calls: LlmRequest[] } {
+  const calls: LlmRequest[] = [];
   return {
     calls,
-    async create(params) {
-      calls.push(params);
+    async create(request) {
+      calls.push(request);
       const step = steps[Math.min(calls.length - 1, steps.length - 1)];
-      const content = step.tool
-        ? [{ type: "tool_use", id: `toolu_${calls.length}`, name: step.tool.name, input: step.tool.input }]
-        : [{ type: "text", text: step.text ?? "", citations: null }];
+      const tokens = step.tokens ?? 1_000;
       return {
-        id: `msg_${calls.length}`,
-        type: "message",
-        role: "assistant",
-        model: params.model,
-        content,
-        stop_reason: step.stop ?? (step.tool ? "tool_use" : "end_turn"),
-        stop_sequence: null,
-        stop_details: null,
-        usage: { input_tokens: 1_000, output_tokens: 100, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
-      } as unknown as BetaMessage;
+        text: step.text ?? "",
+        toolCalls: step.tool ? [{ id: `call_${calls.length}`, name: step.tool.name, input: step.tool.input }] : [],
+        stopReason: step.stop ?? (step.tool ? "tool_use" : "end_turn"),
+        usage: { inputTokens: tokens, outputTokens: tokens / 10, cacheReadTokens: 0, cacheWriteTokens: 0 },
+        providerTurn: { provider: "openai-compatible", raw: { toolCalls: [] } },
+      } satisfies LlmResponse;
     },
   };
 }
@@ -71,8 +65,8 @@ describe("runAgent", () => {
 
     expect(result.status).toBe("SUCCEEDED");
     expect(result.reply).toContain("Which size");
-    expect(llm.calls[0].tool_choice).toEqual({ type: "auto" });
-    expect(llm.calls[0]).not.toHaveProperty("temperature");
+    expect(llm.calls[0]).toMatchObject({ model: "claude-haiku-5-5", effort: "low", maxOutputTokens: 1_024, endUserId: business.id });
+    expect(llm.calls[0].tools.map((tool) => tool.name)).toContain("capture_lead");
     const run = await prisma.aiRun.findUniqueOrThrow({ where: { id: result.runId! } });
     expect(run).toMatchObject({ status: "SUCCEEDED", inputTokens: 1_000, outputTokens: 100, promptVersion: 2 });
     expect(await prisma.aiUsageRecord.count({ where: { businessId: business.id } })).toBe(1);
@@ -90,8 +84,8 @@ describe("runAgent", () => {
     expect(result.actions).toEqual([expect.objectContaining({ tool: "capture_lead", status: "EXECUTED" })]);
     const lead = await prisma.lead.findFirstOrThrow({ where: { businessId: business.id, customerId: customer.id } });
     expect(lead).toMatchObject({ capturedBy: "AI", interest: "Kente midi dress, size M" });
-    const secondCall = llm.calls[1].messages.at(-1);
-    expect(JSON.stringify(secondCall)).toContain("tool_result");
+    expect(llm.calls[1].messages.at(-2)).toMatchObject({ role: "assistant", toolCalls: [{ id: "call_1", name: "capture_lead" }] });
+    expect(llm.calls[1].messages.at(-1)).toMatchObject({ role: "tool", toolCallId: "call_1", isError: false });
   });
 
   it("denies tools the business has not permitted", async () => {
@@ -146,6 +140,22 @@ describe("runAgent", () => {
     expect((await prisma.conversation.findUniqueOrThrow({ where: { id: failing.conversation.id } })).control).toBe("HUMAN");
   });
 
+  it("records the provider's error message and spends no allowance on a failed call", async () => {
+    const { input, business } = await setup();
+    const rejected: LlmClient = { create: async () => Promise.reject(new LlmProviderError("Provider error 401: Invalid API key", 401)) };
+    const result = await runAgent(input, { llm: rejected });
+    const run = await prisma.aiRun.findUniqueOrThrow({ where: { id: result.runId! } });
+    expect(run).toMatchObject({ status: "FAILED", error: "Provider error 401: Invalid API key" });
+    expect(await prisma.usageCounter.count({ where: { businessId: business.id, metric: "AI_MESSAGE" } })).toBe(0);
+  });
+
+  it("counts a reply against the plan even when the provider reports no token usage", async () => {
+    const { input, business } = await setup();
+    const result = await runAgent(input, { llm: fakeLlm([{ text: "Hello Efua, how can I help?", tokens: 0 }]) });
+    expect(result.status).toBe("SUCCEEDED");
+    expect(await prisma.usageCounter.count({ where: { businessId: business.id, metric: "AI_MESSAGE" } })).toBe(2);
+  });
+
   it("does not spend tokens when preflight blocks the run", async () => {
     const { input, business } = await setup({ enabled: false });
     const llm = fakeLlm([{ text: "should not be called" }]);
@@ -158,5 +168,39 @@ describe("runAgent", () => {
     await prisma.platformSetting.create({ data: { key: "ai.globalEnabled", value: false } });
     expect((await runAgent(input, { llm })).blockedReason).toBe("platform_disabled");
     expect(llm.calls).toHaveLength(0);
+  });
+});
+
+describe("runAgent with an OpenAI-compatible provider", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    for (const key of ["AI_PROVIDER", "AI_API_KEY", "AI_BASE_URL", "AI_MODEL"]) delete process.env[key];
+    resetEnvCache();
+  });
+
+  it("runs the full tool loop from configuration alone", async () => {
+    Object.assign(process.env, { AI_PROVIDER: "openai-compatible", AI_API_KEY: "sk-test", AI_BASE_URL: "https://llm.example.test/v1", AI_MODEL: "test-model" });
+    resetEnvCache();
+    const bodies: { messages: unknown[] }[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+        if (!String(url).startsWith("https://llm.example.test/")) throw new Error(`Unexpected request to ${String(url)}`);
+        bodies.push(JSON.parse(String(init?.body)));
+        const isFirst = bodies.length === 1;
+        const message = isFirst
+          ? { role: "assistant", content: null, tool_calls: [{ id: "call_1", type: "function", function: { name: "capture_lead", arguments: '{"interest":"Kente midi dress"}' } }] }
+          : { role: "assistant", content: "Lovely! The team will follow up about the kente dress." };
+        return Response.json({ choices: [{ message, finish_reason: isFirst ? "tool_calls" : "stop" }], usage: { prompt_tokens: 500, completion_tokens: 40 } });
+      }),
+    );
+    const { business, customer, input } = await setup();
+    const result = await runAgent(input);
+
+    expect(result).toMatchObject({ status: "SUCCEEDED", model: "test-model", reply: expect.stringContaining("kente dress") });
+    const lead = await prisma.lead.findFirstOrThrow({ where: { businessId: business.id, customerId: customer.id } });
+    expect(lead).toMatchObject({ capturedBy: "AI", interest: "Kente midi dress" });
+    expect(bodies[1].messages).toContainEqual({ role: "tool", tool_call_id: "call_1", content: expect.any(String) });
+    expect(await prisma.aiRun.findUniqueOrThrow({ where: { id: result.runId! } })).toMatchObject({ inputTokens: 1_000, outputTokens: 80 });
   });
 });

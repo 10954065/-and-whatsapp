@@ -11,4 +11,7 @@ process.env.OUTBOUND_MESSAGING_MODE = "sandbox";
 process.env.QUEUE_PROVIDER = "inline";
 delete process.env.RESEND_API_KEY;
 delete process.env.ANTHROPIC_API_KEY;
+for (const key of ["AI_PROVIDER", "AI_API_KEY", "AI_BASE_URL", "AI_MODEL", "AI_MODEL_FAST", "AI_MODEL_STANDARD", "AI_MODEL_ADVANCED", "AI_MODEL_PRICES", "ANTHROPIC_MODEL_FAST", "ANTHROPIC_MODEL_STANDARD", "ANTHROPIC_MODEL_ADVANCED"]) {
+  delete process.env[key];
+}
 delete process.env.VOYAGE_API_KEY;

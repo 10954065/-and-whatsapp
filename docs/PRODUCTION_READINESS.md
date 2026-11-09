@@ -51,7 +51,7 @@ paths in `lib/auth/session.ts`) are exercised by the E2E suite, but E2E runs are
 
 | Item | Needed to verify |
 | --- | --- |
-| Anthropic Claude live replies (Haiku/Sonnet/Opus 5.5 tiers, server-side fallback beta) | `ANTHROPIC_API_KEY`; run the test console, then a sandbox conversation |
+| Live AI replies: Anthropic (Haiku/Sonnet/Opus 5.5 tiers, server-side fallback beta), or an OpenAI-compatible provider (adapter tested against scripted HTTP responses only) | `AI_API_KEY` (plus `AI_PROVIDER`, `AI_BASE_URL`, `AI_MODEL` for other providers); run the test console, then a sandbox conversation |
 | Voyage embeddings + semantic retrieval | `VOYAGE_API_KEY`; reprocess one knowledge source |
 | Paystack subscription checkout, verification, webhooks, reconciliation | Test-mode secret key, then `PAYSTACK_BILLING_GUIDE.md` go-live checklist |
 | Resend email (verification, reset, invitations, notifications) | `RESEND_API_KEY` and a verified sending domain |

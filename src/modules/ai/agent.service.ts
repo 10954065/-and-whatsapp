@@ -6,7 +6,7 @@ import { withTenantTx } from "@/lib/db/tenant";
 import type { TenantActor } from "@/lib/auth/tenant";
 import { fail } from "@/lib/monitoring/errors";
 import { recordAudit } from "@/modules/administration/audit.service";
-import { isAnthropicConfigured } from "@/modules/ai/client";
+import { isAiConfigured } from "@/modules/ai/llm";
 import { DEFAULT_PERMITTED_TOOLS } from "@/modules/ai/tools/registry";
 
 const checkbox = z.preprocess((value) => value === "on" || value === "true" || value === true, z.boolean());
@@ -98,7 +98,7 @@ export async function setAgentEnabled(actor: TenantActor, enabled: boolean): Pro
   const agent = await getOrCreateAgent(actor.businessId);
   if (enabled) {
     if (!actor.emailVerified) throw fail.precondition("Confirm your email address before activating your assistant.");
-    if (!isAnthropicConfigured()) throw fail.precondition("The AI provider is not configured on this platform yet.");
+    if (!isAiConfigured()) throw fail.precondition("The AI provider is not configured on this platform yet.");
     const tested = await prisma.aiRun.count({ where: { businessId: actor.businessId, trigger: "TEST_CONSOLE", status: "SUCCEEDED" } });
     if (tested === 0) throw fail.precondition("Send at least one successful test message in the test console before activating.");
   }

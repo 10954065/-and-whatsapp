@@ -27,7 +27,7 @@ endpoints below exist for providers (webhooks, OAuth, payments, queue), for oper
   "time": "2026-11-09T07:00:00.000Z",
   "database": { "ok": true, "latencyMs": 12, "latestMigration": "20261108204940_contact_inquiries", "migrationFinished": true },
   "queue": { "overdueJobs": 0 },
-  "providers": { "anthropic": true, "voyage": false, "meta": true, "whatsappEmbeddedSignup": false, "instagram": true, "paystack": true, "resend": true, "objectStorage": true, "qstash": false }
+  "providers": { "ai": true, "voyage": false, "meta": true, "whatsappEmbeddedSignup": false, "instagram": true, "paystack": true, "resend": true, "objectStorage": true, "qstash": false }
 }
 ```
 

@@ -5,12 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { providerStatus } from "@/lib/env";
 import { requireAdminConsole } from "@/lib/auth/current";
 import { setAiEnabledAction } from "@/modules/administration/admin.actions";
+import { aiProviderLabel } from "@/modules/ai/llm";
 import { isAiGloballyEnabled } from "@/modules/administration/monitoring.service";
 
 export const metadata: Metadata = { title: "Settings" };
 
 const PROVIDERS: { key: keyof ReturnType<typeof providerStatus>; label: string }[] = [
-  { key: "anthropic", label: "Anthropic (AI replies)" },
+  { key: "ai", label: "AI replies" },
   { key: "voyage", label: "Voyage (semantic knowledge search)" },
   { key: "meta", label: "Meta app & webhooks" },
   { key: "instagram", label: "Instagram Login" },
@@ -49,7 +50,7 @@ export default async function AdminSettingsPage() {
           <ul className="grid gap-2 text-sm">
             {PROVIDERS.map((provider) => (
               <li key={provider.key} className="flex items-center justify-between gap-3">
-                <span>{provider.label}</span>
+                <span>{provider.key === "ai" ? `${provider.label}: ${aiProviderLabel()}` : provider.label}</span>
                 <Badge variant={providers[provider.key] ? "secondary" : "outline"}>{providers[provider.key] ? "configured" : "not configured"}</Badge>
               </li>
             ))}

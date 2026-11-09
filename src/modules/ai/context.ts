@@ -1,5 +1,5 @@
-import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 import type { AiTone, Channel, Industry } from "@/generated/prisma/enums";
+import type { LlmMessage } from "@/modules/ai/llm/types";
 import { renderTemplate } from "@/modules/ai/prompts";
 import { parseKnowledgeProfile } from "@/modules/businesses/knowledge-profile";
 import type { BusinessHours } from "@/modules/businesses/settings.schemas";
@@ -115,13 +115,13 @@ export function buildMessages(input: {
   knowledge: KnowledgeSnippet[];
   localTime: string;
   isOpenNow: boolean;
-}): BetaMessageParam[] {
-  const messages: BetaMessageParam[] = [];
+}): LlmMessage[] {
+  const messages: LlmMessage[] = [];
   for (const turn of input.history) {
     const role = turn.role === "customer" ? "user" : "assistant";
     if (messages.length === 0 && role === "assistant") continue;
     const last = messages.at(-1);
-    if (last && last.role === role && typeof last.content === "string") {
+    if (last && last.role === role) {
       last.content = `${last.content}\n${turn.text}`;
     } else {
       messages.push({ role, content: turn.text });
@@ -139,7 +139,7 @@ export function buildMessages(input: {
   ].join("\n\n");
 
   const last = messages.at(-1);
-  if (last && last.role === "user" && typeof last.content === "string") {
+  if (last && last.role === "user") {
     last.content = `${last.content}\n\n${finalText}`;
   } else {
     messages.push({ role: "user", content: finalText });

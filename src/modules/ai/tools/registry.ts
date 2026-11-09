@@ -1,7 +1,7 @@
 import { z } from "zod";
-import type { BetaTool } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 import type { AiActionStatus, Prisma } from "@/generated/prisma/client";
 import { withTenantTx } from "@/lib/db/tenant";
+import type { LlmToolDefinition } from "@/modules/ai/llm/types";
 import {
   businessInfoTool,
   captureLeadTool,
@@ -34,15 +34,11 @@ export function permittedToolNames(configured: string[]): string[] {
   return TOOLS.filter((tool) => names.has(tool.name)).map((tool) => tool.name);
 }
 
-export function toolDefinitions(names: string[]): BetaTool[] {
+export function toolDefinitions(names: string[]): LlmToolDefinition[] {
   return TOOLS.filter((tool) => names.includes(tool.name)).map((tool) => {
     const inputSchema = { ...(z.toJSONSchema(tool.schema) as Record<string, unknown>) };
     delete inputSchema.$schema;
-    return {
-      name: tool.name,
-      description: tool.description,
-      input_schema: inputSchema as BetaTool["input_schema"],
-    };
+    return { name: tool.name, description: tool.description, inputSchema };
   });
 }
 

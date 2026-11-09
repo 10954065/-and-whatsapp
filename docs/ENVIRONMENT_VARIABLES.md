@@ -34,14 +34,41 @@ configured" in the app (and in Admin → Settings) instead of failing.
 | --- | --- | --- |
 | `OUTBOUND_MESSAGING_MODE` | `live` on production deployments, `sandbox` everywhere else | `sandbox` records outbound WhatsApp/Instagram messages without sending them. **Preview deployments are always sandboxed**, whatever this says. |
 
-## AI (Anthropic Claude)
+## AI provider
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `ANTHROPIC_API_KEY` | — | Enables AI replies and the test console. Without it, AI runs are skipped and messages wait for the team. |
-| `ANTHROPIC_MODEL_FAST` | `claude-haiku-5-5` | Fast tier (short, simple messages). |
-| `ANTHROPIC_MODEL_STANDARD` | `claude-sonnet-5-5` | Standard tier. |
-| `ANTHROPIC_MODEL_ADVANCED` | `claude-opus-5-5` | Advanced tier. |
+| `AI_PROVIDER` | `anthropic` | `anthropic` (Claude, native API) or `openai-compatible` (any provider that speaks the OpenAI Chat Completions format). |
+| `AI_API_KEY` | — | The provider's API key. Enables AI replies and the test console; without it, AI runs are skipped and messages wait for the team. For `anthropic`, the older `ANTHROPIC_API_KEY` is also accepted. |
+| `AI_BASE_URL` | `https://api.openai.com/v1` for `openai-compatible`; none for `anthropic` | The provider's API endpoint (table below). For Anthropic, set it only to route through a proxy or gateway. |
+| `AI_MODEL` | Claude 5.5 models for `anthropic`; **required** for `openai-compatible` | Model id used for every tier. |
+| `AI_MODEL_FAST` | `AI_MODEL` (Anthropic: `claude-haiku-5-5`) | Fast tier (short, simple messages). |
+| `AI_MODEL_STANDARD` | `AI_MODEL` (Anthropic: `claude-sonnet-5-5`), else the fast model | Standard tier. |
+| `AI_MODEL_ADVANCED` | `AI_MODEL` (Anthropic: `claude-opus-5-5`), else the standard model | Advanced tier. |
+| `AI_MODEL_PRICES` | — | JSON, USD per million tokens, for models without built-in prices: `{"model-id":{"input":0.5,"output":1.5}}` (optional `cacheRead`, `cacheWrite`; left out, they are charged at the input rate). Unpriced models are estimated at the Claude Opus rate so budgets never under-count. Invalid JSON stops the app at startup. |
+
+`openai-compatible` endpoints for common providers (the app appends `/chat/completions`):
+
+| Provider | `AI_BASE_URL` |
+| --- | --- |
+| OpenAI | `https://api.openai.com/v1` (default) |
+| Google Gemini | `https://generativelanguage.googleapis.com/v1beta/openai` |
+| OpenRouter (one key, many models) | `https://openrouter.ai/api/v1` |
+| Groq | `https://api.groq.com/openai/v1` |
+| DeepSeek | `https://api.deepseek.com` |
+| Mistral | `https://api.mistral.ai/v1` |
+| Ollama (self-hosted) | `http://localhost:11434/v1` (any non-empty key) |
+
+The model must support tool (function) calling. Prompt caching, effort and the server-side
+safety fallback are Anthropic features and apply to `anthropic` only. For `anthropic`, the
+older `ANTHROPIC_MODEL_FAST` / `_STANDARD` / `_ADVANCED` names are still read, below the
+`AI_MODEL*` settings. A provider that reports no token usage (some self-hosted servers)
+records zero cost, so spend limits do not apply to it; plan message allowances still do.
+
+## Knowledge embeddings
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
 | `VOYAGE_API_KEY` | — | Optional semantic knowledge search; without it, retrieval uses PostgreSQL full-text search. |
 | `VOYAGE_MODEL` | `voyage-4-lite` | Embedding model (1024 dimensions; must match the `vector(1024)` column). |
 

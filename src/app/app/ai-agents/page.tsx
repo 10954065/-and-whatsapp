@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { prisma } from "@/lib/db/prisma";
 import { requireTenant } from "@/lib/auth/tenant";
 import { getOrCreateAgent } from "@/modules/ai/agent.service";
-import { isAnthropicConfigured } from "@/modules/ai/client";
+import { isAiConfigured } from "@/modules/ai/llm";
 import { formatUsd } from "@/modules/ai/pricing";
 import { listTools } from "@/modules/ai/tools";
 import { ALWAYS_ALLOWED_TOOLS } from "@/modules/ai/tools/registry";
@@ -27,7 +27,7 @@ export default async function AiAgentsPage() {
     prisma.aiRun.count({ where: { businessId: context.businessId, trigger: "TEST_CONSOLE", status: "SUCCEEDED" } }),
   ]);
   const canManage = context.can("ai.manage");
-  const providerConfigured = isAnthropicConfigured();
+  const providerConfigured = isAiConfigured();
   const tools = listTools().map((tool) => ({
     name: tool.name,
     label: tool.label,
@@ -53,7 +53,7 @@ export default async function AiAgentsPage() {
       />
       {!providerConfigured ? (
         <p className="mb-6 flex items-center gap-2 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm">
-          <ShieldAlert className="size-4 text-warning" aria-hidden="true" /> The platform&apos;s Anthropic API key is not configured, so the AI cannot reply yet.
+          <ShieldAlert className="size-4 text-warning" aria-hidden="true" /> The platform&apos;s AI provider is not configured yet, so the assistant cannot reply.
         </p>
       ) : null}
       <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

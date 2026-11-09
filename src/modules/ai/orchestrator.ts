@@ -1,24 +1,17 @@
-import type {
-  BetaContentBlockParam,
-  BetaMessageParam,
-  BetaToolResultBlockParam,
-  BetaToolUseBlock,
-  MessageCreateParamsNonStreaming,
-} from "@anthropic-ai/sdk/resources/beta/messages/messages";
 import type { AiActionStatus, AiRunStatus, AiRunTrigger, Channel, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { logger } from "@/lib/monitoring/logger";
 import { reportError } from "@/lib/monitoring/report";
 import { getPlatformSetting, PLATFORM_FLAGS } from "@/modules/administration/platform-settings";
 import { getOrCreateAgent } from "@/modules/ai/agent.service";
-import { Anthropic, anthropicLlm, isAnthropicConfigured, type LlmClient } from "@/modules/ai/client";
 import { buildBusinessFacts, buildMessages, buildSystemPrompt, type ConversationTurn } from "@/modules/ai/context";
 import { escalateConversation } from "@/modules/ai/escalation";
 import { industryGuidanceFor } from "@/modules/ai/industry-guidance";
+import { getLlmClient, LlmProviderError, modelForTier, type LlmClient, type LlmMessage } from "@/modules/ai/llm";
 import { clampForChannel, postcheck, preflight, PREFLIGHT_LABELS, type PreflightBlock } from "@/modules/ai/policy";
 import { addUsage, emptyUsage, estimateCostMicros, type TokenUsage } from "@/modules/ai/pricing";
 import { getActivePrompt } from "@/modules/ai/prompts";
-import { modelForTier, routeTier, supportsServerFallback, TIER_EFFORT, type ModelTier } from "@/modules/ai/router";
+import { routeTier, TIER_EFFORT, type ModelTier } from "@/modules/ai/router";
 import { executeTool, permittedToolNames, toolDefinitions } from "@/modules/ai/tools";
 import type { ToolContext } from "@/modules/ai/tools/types";
 import { dayPeriod, getAiSpend, getPlanLimits, getUsage, incrementUsage, monthPeriod } from "@/modules/billing/usage";
@@ -63,15 +56,6 @@ export interface AgentRunOutput {
   policyFlags: string[];
 }
 
-function usageFrom(message: { usage: { input_tokens: number; output_tokens: number; cache_read_input_tokens: number | null; cache_creation_input_tokens: number | null } }): TokenUsage {
-  return {
-    inputTokens: message.usage.input_tokens,
-    outputTokens: message.usage.output_tokens,
-    cacheReadTokens: message.usage.cache_read_input_tokens ?? 0,
-    cacheWriteTokens: message.usage.cache_creation_input_tokens ?? 0,
-  };
-}
-
 function localTime(timezone: string, now: Date): string {
   return new Intl.DateTimeFormat("en-GB", { timeZone: timezone, dateStyle: "full", timeStyle: "short" }).format(now);
 }
@@ -82,7 +66,7 @@ function localTime(timezone: string, now: Date): string {
  * and full accounting (AiRun, AiAction, AiUsageRecord, usage counters).
  */
 export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; now?: Date } = {}): Promise<AgentRunOutput> {
-  const llm = deps.llm ?? anthropicLlm;
+  const llm = deps.llm ?? getLlmClient();
   const now = deps.now ?? new Date();
   const base: Omit<AgentRunOutput, "status"> = {
     runId: null,
@@ -112,7 +96,7 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
 
   const gate = preflight({
     trigger: input.trigger,
-    providerConfigured: llm !== anthropicLlm || isAnthropicConfigured(),
+    providerConfigured: llm !== null,
     platformEnabled,
     businessStatus: business.status,
     agent,
@@ -134,6 +118,7 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
       isAutoReply: Boolean(gate.autoReply),
     };
   }
+  if (!llm) throw new Error("Preflight passed without a configured AI provider.");
 
   const routing = routeTier({ text: input.inboundText, historyLength: input.history.length, override: agent.modelTierOverride });
   const model = modelForTier(routing.tier);
@@ -147,7 +132,7 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
     industryGuidance: industryGuidanceFor(business.industry),
   });
   const knowledge = await searchKnowledge(input.businessId, input.inboundText, 4);
-  const messages: BetaMessageParam[] = buildMessages({
+  const messages: LlmMessage[] = buildMessages({
     history: input.history.slice(-20),
     inboundText: input.inboundText,
     knowledge: knowledge.map((chunk) => ({ title: chunk.title, content: chunk.content })),
@@ -190,6 +175,7 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
   let replyText = "";
   let stopReason: string | null = null;
   let iterations = 0;
+  let modelReplies = 0;
   let status: AiRunStatus = "SUCCEEDED";
   let errorMessage: string | null = null;
   const started = Date.now();
@@ -197,44 +183,33 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
   try {
     while (iterations < MAX_ITERATIONS) {
       iterations += 1;
-      const params: MessageCreateParamsNonStreaming = {
+      const response = await llm.create({
         model,
-        max_tokens: MAX_OUTPUT_TOKENS,
         system,
-        messages,
+        messages: [...messages],
         tools,
-        tool_choice: { type: "auto" },
-        output_config: { effort: TIER_EFFORT[routing.tier] },
-        cache_control: { type: "ephemeral" },
-        metadata: { user_id: input.businessId },
-        ...(supportsServerFallback(model)
-          ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }
-          : {}),
-      };
-      const response = await llm.create(params);
-      usage = addUsage(usage, usageFrom(response));
-      stopReason = response.stop_reason;
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
+        effort: TIER_EFFORT[routing.tier],
+        endUserId: input.businessId,
+      });
+      modelReplies += 1;
+      usage = addUsage(usage, response.usage);
+      stopReason = response.stopReason;
 
-      if (response.stop_reason === "refusal") {
+      if (response.stopReason === "refusal") {
         escalated = true;
         status = "ESCALATED";
         replyText = "";
         break;
       }
 
-      const toolCalls = response.content.filter((block): block is BetaToolUseBlock => block.type === "tool_use");
-      if (response.stop_reason !== "tool_use" || toolCalls.length === 0) {
-        replyText = response.content
-          .filter((block) => block.type === "text")
-          .map((block) => (block as { text: string }).text)
-          .join("\n")
-          .trim();
+      if (response.stopReason !== "tool_use" || response.toolCalls.length === 0) {
+        replyText = response.text;
         break;
       }
 
-      messages.push({ role: "assistant", content: response.content as BetaContentBlockParam[] });
-      const results: BetaToolResultBlockParam[] = [];
-      for (const call of toolCalls) {
+      messages.push({ role: "assistant", content: response.text, toolCalls: response.toolCalls, providerTurn: response.providerTurn });
+      for (const call of response.toolCalls) {
         const execution = await executeTool(call.name, call.input, toolContext, {
           permitted,
           approvalRequired: agent.approvalRequiredTools,
@@ -253,17 +228,12 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
             output: { message: execution.outcome.message.slice(0, 4_000) },
             status: execution.status,
             approvalId: execution.approvalId ?? null,
-            idempotencyKey: `${run.id}:${call.id}`,
+            // Tool-call ids are only unique per response at some providers, so the iteration is part of the key.
+            idempotencyKey: `${run.id}:${iterations}:${call.id}`,
           },
         });
-        results.push({
-          type: "tool_result",
-          tool_use_id: call.id,
-          content: execution.outcome.message,
-          is_error: !execution.outcome.ok,
-        });
+        messages.push({ role: "tool", toolCallId: call.id, content: execution.outcome.message, isError: !execution.outcome.ok });
       }
-      messages.push({ role: "user", content: results });
     }
 
     if (status === "SUCCEEDED" && !replyText) {
@@ -273,7 +243,7 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
   } catch (error) {
     status = "FAILED";
     escalated = true;
-    errorMessage = error instanceof Anthropic.APIError ? `Provider error ${error.status ?? ""}: ${error.message}` : String(error);
+    errorMessage = error instanceof LlmProviderError ? error.message : String(error);
     await reportError(error, { source: "ai.orchestrator", businessId: input.businessId, aiRunId: run.id });
   }
 
@@ -312,7 +282,8 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
         error: errorMessage,
       },
     });
-    if (usage.inputTokens + usage.outputTokens > 0) {
+    // Counted whenever the model answered, even from providers that report no token usage.
+    if (modelReplies > 0) {
       await tx.aiUsageRecord.create({
         data: {
           businessId: input.businessId,

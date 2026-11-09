@@ -104,7 +104,7 @@ delimiter-forgery protection, prompt rendering; orchestrator runs that record Ai
 counters, execute permitted write tools under RLS, deny unpermitted tools, route
 approval-required tools to approvals, simulate writes in test mode, replace invented prices
 and escalate, escalate on refusal and provider failure, and spend nothing when preflight
-blocks. **Live model behaviour is not verified** (no `ANTHROPIC_API_KEY` in this environment).
+blocks. **Live model behaviour is not verified** (no AI provider key in this environment).
 
 ## Phase 2 run
 

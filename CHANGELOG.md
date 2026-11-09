@@ -1,5 +1,18 @@
 # Changelog
 
+## Any AI provider
+
+* The assistant is no longer tied to Anthropic. Set `AI_PROVIDER=openai-compatible` with an
+  `AI_API_KEY`, `AI_BASE_URL` and `AI_MODEL` to use OpenAI, Google Gemini, OpenRouter, Groq,
+  DeepSeek, Mistral, a self-hosted Ollama model or any other provider that speaks the OpenAI
+  Chat Completions format. Anthropic stays the default and keeps prompt caching, effort and
+  the server-side safety fallback.
+* `AI_MODEL_PRICES` gives non-Claude models real cost estimates, so spend limits stay accurate.
+* `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL_*` still work for Anthropic; `AI_API_KEY` and
+  `AI_MODEL_*` are the documented names and take precedence.
+* A reply now counts against the plan allowance whenever the model answered, even when a
+  provider reports no token usage.
+
 ## Design refresh
 
 * New visual identity: warm paper, deep ink and a single sun accent, with a matching dark

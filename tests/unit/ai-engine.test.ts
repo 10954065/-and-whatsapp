@@ -3,7 +3,8 @@ import { buildMessages } from "@/modules/ai/context";
 import { postcheck, preflight, SAFE_HOLDING_REPLY, type PreflightInput } from "@/modules/ai/policy";
 import { estimateCostMicros } from "@/modules/ai/pricing";
 import { renderTemplate } from "@/modules/ai/prompts";
-import { routeTier, supportsServerFallback } from "@/modules/ai/router";
+import { supportsServerFallback } from "@/modules/ai/llm/anthropic";
+import { routeTier } from "@/modules/ai/router";
 import { toOrTsQuery } from "@/modules/knowledge/retrieval";
 
 describe("routeTier", () => {

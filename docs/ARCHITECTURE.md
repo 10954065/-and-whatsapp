@@ -14,7 +14,7 @@ exported service functions, never through each other's tables or UI.
                   └───────────────┬───────────────────────────┬──────────────────────────────────────┘
                                   │ Prisma 7 + pg (pooled)     │ provider interfaces
                     ┌─────────────▼─────────────┐   ┌─────────▼────────────────────────────────────┐
-                    │ Neon PostgreSQL 17        │   │ Anthropic · Voyage · Meta Graph · Paystack    │
+                    │ Neon PostgreSQL 17        │   │ AI provider · Voyage · Meta Graph · Paystack  │
                     │ pgvector · btree_gist · RLS│   │ Resend · Cloudflare R2 (S3) · Upstash QStash  │
                     └─────────────▲─────────────┘   └──────────────────────────────────────────────┘
                                   │ same Job table
@@ -144,9 +144,11 @@ records outbound messages without calling Meta.
 
 `modules/ai`:
 
-* `client.ts` — single Anthropic SDK client (the only file importing the SDK).
+* `llm/` — provider-neutral `LlmClient` with two adapters, chosen by `AI_PROVIDER`: native
+  Anthropic (the only file importing the SDK) and OpenAI-compatible (OpenAI, Gemini,
+  OpenRouter, Groq, DeepSeek, Mistral, Ollama).
 * `router.ts` — classifies the request into `fast` / `standard` / `advanced` tiers;
-  model ids come from env (`ANTHROPIC_MODEL_*`) with database overrides per agent.
+  model ids come from env (`AI_MODEL`, `AI_MODEL_*`) with database overrides per agent.
 * `context.ts` — builds a cache-friendly prompt: stable system prompt (platform policy +
   business profile + industry template), then conversation history, then retrieved
   knowledge wrapped as *untrusted data*.

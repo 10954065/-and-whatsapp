@@ -1,7 +1,10 @@
+import { env } from "@/lib/env";
+
 /**
  * Anthropic first-party prices in USD per million tokens (verified 2026-10).
  * Cache writes use the 5-minute TTL rate (1.25× input). Haiku 5.5's cache-read rate is
  * not separately published in our reference, so 10% of input is used as an estimate.
+ * Other providers' models are priced from `AI_MODEL_PRICES`.
  * Costs are recorded as *estimates* in micro-USD and labelled as such in the UI.
  */
 export interface ModelPrice {
@@ -19,6 +22,20 @@ export const MODEL_PRICING: Record<string, ModelPrice> = {
 
 /** Unknown models are priced conservatively at the Opus rate so budgets never under-count. */
 const UNKNOWN_MODEL_PRICE = MODEL_PRICING["claude-opus-5-5"];
+
+/** Configured prices win; cache rates left out are charged at the input rate, never less. */
+export function priceFor(model: string): ModelPrice {
+  const configured = env().AI_MODEL_PRICES?.[model];
+  if (configured) {
+    return {
+      input: configured.input,
+      output: configured.output,
+      cacheRead: configured.cacheRead ?? configured.input,
+      cacheWrite: configured.cacheWrite ?? configured.input,
+    };
+  }
+  return MODEL_PRICING[model] ?? UNKNOWN_MODEL_PRICE;
+}
 
 export interface TokenUsage {
   inputTokens: number;
@@ -42,7 +59,7 @@ export function addUsage(total: TokenUsage, next: TokenUsage): TokenUsage {
 
 /** USD per MTok equals micro-USD per token, so cost = Σ tokens × price. */
 export function estimateCostMicros(model: string, usage: TokenUsage): number {
-  const price = MODEL_PRICING[model] ?? UNKNOWN_MODEL_PRICE;
+  const price = priceFor(model);
   return Math.ceil(
     usage.inputTokens * price.input +
       usage.outputTokens * price.output +
