@@ -6,9 +6,9 @@ import { defineTool } from "@/modules/ai/tools/types";
 import { createOrder, searchProducts } from "@/modules/commerce/commerce.service";
 
 const describeVariant = (product: { name: string; priceMinor: number; currency: string; trackInventory: boolean }, variant: { id: string; name: string; priceMinor: number | null; stockQuantity: number; isDefault: boolean }) =>
-  `${product.name}${variant.isDefault ? "" : ` (${variant.name})`} — ${formatMoney(variant.priceMinor ?? product.priceMinor, product.currency)} — ${
+  `${product.name}${variant.isDefault ? "" : ` (${variant.name})`} | ${formatMoney(variant.priceMinor ?? product.priceMinor, product.currency)} | ${
     product.trackInventory ? `${variant.stockQuantity} in stock` : "available"
-  } — variant_id ${variant.id}`;
+  } | variant_id ${variant.id}`;
 
 export const productInfoTool = defineTool({
   name: "get_product_info",

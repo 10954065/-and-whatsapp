@@ -15,7 +15,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 const PAYMENT_MESSAGES: Record<string, { tone: "success" | "warning" | "destructive"; text: string }> = {
   success: { tone: "success", text: "Payment confirmed with Paystack. Your plan is active." },
-  pending: { tone: "warning", text: "Paystack hasn't confirmed this payment yet. We'll activate your plan as soon as it does — no need to pay again." },
+  pending: { tone: "warning", text: "Paystack hasn't confirmed this payment yet. We'll activate your plan as soon as it does, so there's no need to pay again." },
   failed: { tone: "destructive", text: "The payment didn't go through. You have not been charged for this attempt." },
   unknown: { tone: "warning", text: "We couldn't match that payment to this workspace. If you were charged, contact support with your Paystack receipt." },
 };
@@ -90,7 +90,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
                 </p>
               ) : null}
               {subscription.status === "GRACE" && subscription.graceUntil ? (
-                <p className="text-warning">Your paid period ended. Everything keeps working until {formatDate(subscription.graceUntil, tz)} — renew to avoid interruption.</p>
+                <p className="text-warning">Your paid period ended. Everything keeps working until {formatDate(subscription.graceUntil, tz)}. Renew to avoid interruption.</p>
               ) : null}
               {lapsed ? <p className="text-destructive">AI replies and automations are paused. Your data is safe; choose a plan below to resume.</p> : null}
             </div>
@@ -116,12 +116,12 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
           Plans
         </h2>
         <p className="mb-4 text-sm text-muted-foreground">
-          Each payment covers one month or one year — nothing renews automatically. Paying early for your current plan extends it; switching plans starts the new one today and credits your unused time. If a period ends, you have {GRACE_DAYS} days of grace.
+          Each payment covers one month or one year, and nothing renews automatically. Paying early for your current plan extends it; switching plans starts the new one today and credits your unused time. If a period ends, you have {GRACE_DAYS} days of grace.
         </p>
         {!overview.paymentsConfigured ? (
           <p className="mb-4 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm">Online payments are not configured on this platform yet. Contact SUNLEON AI support to activate a plan.</p>
         ) : !context.user.emailVerifiedAt ? (
-          <p className="mb-4 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm">Confirm your email address before paying — Paystack sends your receipt there.</p>
+          <p className="mb-4 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm">Confirm your email address before paying. Paystack sends your receipt there.</p>
         ) : null}
         <div className="grid gap-4 md:grid-cols-3">
           {overview.plans.map((plan) => {
@@ -177,7 +177,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
                     <tr key={transaction.id} className="border-t">
                       <td className="py-2">{formatDate(transaction.paidAt ?? transaction.createdAt, tz)}</td>
                       <td className="py-2">
-                        {metadata.planCode ?? "—"} {metadata.interval ? <span className="text-muted-foreground">· {metadata.interval.toLowerCase()}</span> : null}
+                        {metadata.planCode ?? "Unknown"} {metadata.interval ? <span className="text-muted-foreground">· {metadata.interval.toLowerCase()}</span> : null}
                       </td>
                       <td className="py-2 text-right tabular-nums">{formatMoney(transaction.amountMinor, transaction.currency)}</td>
                       <td className="py-2">

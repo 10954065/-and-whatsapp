@@ -12,6 +12,6 @@ export async function contactAction(_previous: ActionResult | null, formData: Fo
       const { ipAddress } = await getRequestMeta();
       await createContactInquiry(input, ipAddress);
     },
-    { source: "contact.submit", successMessage: "Thank you — our team will get back to you within one business day." },
+    { source: "contact.submit", successMessage: "Thank you. Our team will get back to you within one business day." },
   );
 }

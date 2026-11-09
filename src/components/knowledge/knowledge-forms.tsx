@@ -69,7 +69,7 @@ function UploadForm() {
       <div className="grid gap-1.5">
         <Label htmlFor="knowledge-file">Document</Label>
         <Input id="knowledge-file" name="file" type="file" accept=".pdf,.docx,.txt,.md,.csv" />
-        <p className="text-xs text-muted-foreground">PDF, Word (.docx), TXT, Markdown or CSV — up to 10 MB. Price lists work well as CSV.</p>
+        <p className="text-xs text-muted-foreground">PDF, Word (.docx), TXT, Markdown or CSV, up to 10 MB. Price lists work well as CSV.</p>
       </div>
       <div>
         <SubmitButton isPending={isPending} pendingLabel="Uploading…">

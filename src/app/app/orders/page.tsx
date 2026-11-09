@@ -92,7 +92,7 @@ export default async function OrdersPage() {
               submitLabel="Create order"
               fields={[
                 { name: "customerId", label: "Customer", type: "select", options: customers.map((customer) => ({ value: customer.id, label: customer.displayName })) },
-                { name: "variantId", label: "Product", type: "select", options: variants.map((variant) => ({ value: variant.id, label: `${variant.product.name} — ${formatMoney(variant.priceMinor ?? variant.product.priceMinor, variant.product.currency)}` })) },
+                { name: "variantId", label: "Product", type: "select", options: variants.map((variant) => ({ value: variant.id, label: `${variant.product.name} · ${formatMoney(variant.priceMinor ?? variant.product.priceMinor, variant.product.currency)}` })) },
                 { name: "quantity", label: "Quantity", type: "number", defaultValue: "1" },
                 { name: "deliveryMethod", label: "Delivery", type: "select", options: [{ value: "pickup", label: "Pick-up" }, { value: "delivery", label: "Delivery" }] },
                 { name: "deliveryAddress", label: "Delivery address" },

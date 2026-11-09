@@ -70,7 +70,7 @@ export default async function AdminBusinessesPage({ searchParams }: { searchPara
                   <span className="block text-xs text-muted-foreground">{business.slug}</span>
                 </td>
                 <td className="px-4 py-2">{industryLabel(business.industry)}</td>
-                <td className="px-4 py-2">{business.subscription ? `${business.subscription.plan.name} · ${business.subscription.status.toLowerCase()}` : "—"}</td>
+                <td className="px-4 py-2">{business.subscription ? `${business.subscription.plan.name} · ${business.subscription.status.toLowerCase()}` : "No plan"}</td>
                 <td className="px-4 py-2 tabular-nums">{business._count.memberships}</td>
                 <td className="px-4 py-2">
                   <Badge variant={business.status === "ACTIVE" ? "secondary" : "destructive"}>{business.status.toLowerCase()}</Badge>

@@ -17,7 +17,7 @@ export const WORKFLOW_TEMPLATES = {
     name: "Tell the team about new leads",
     description: "Alerts your team as soon as a new lead is captured, so someone can follow up while the customer is interested.",
     trigger: "NEW_LEAD",
-    definition: { conditions: [], actions: [{ type: "notify_team", value: "New lead captured — reply while they're interested" }] },
+    definition: { conditions: [], actions: [{ type: "notify_team", value: "New lead captured. Reply while they're interested" }] },
   },
   follow_up_due: {
     name: "Follow up new leads within a day",

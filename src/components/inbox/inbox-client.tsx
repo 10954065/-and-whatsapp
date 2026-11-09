@@ -130,7 +130,7 @@ export function NoteForm({ conversationId }: { conversationId: string }) {
   return (
     <form ref={ref} onSubmit={onSubmit} className="grid gap-2">
       <input type="hidden" name="conversationId" value={conversationId} />
-      <Textarea name="body" rows={2} placeholder="Internal note — never sent to the customer" aria-label="Internal note" />
+      <Textarea name="body" rows={2} placeholder="Internal note, never sent to the customer" aria-label="Internal note" />
       <SubmitButton size="sm" variant="outline" isPending={isPending}>
         Add note
       </SubmitButton>

@@ -138,7 +138,7 @@ export function BusinessHoursForm({ hours, disabled }: { hours: Hours | null; di
   return (
     <form onSubmit={onSubmit} className="grid gap-4" noValidate>
       <FormAlert state={state} />
-      {!hours ? <p className="text-sm text-muted-foreground">Suggested hours are pre-filled — adjust and save.</p> : null}
+      {!hours ? <p className="text-sm text-muted-foreground">Suggested hours are filled in. Adjust them and save.</p> : null}
       <div className="rounded-xl border px-4">
         {Object.keys(DAY_LABELS).map((day) => (
           <DayRow key={day} day={day} initial={initial[day]?.[0]} disabled={disabled} />

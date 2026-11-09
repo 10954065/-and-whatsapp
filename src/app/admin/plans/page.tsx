@@ -19,7 +19,7 @@ export default async function AdminPlansPage() {
       <PageHeader
         eyebrow="Platform"
         title="Plans"
-        description="Prices are in cedis and apply to new payments; current periods keep what was paid. Plans are never deleted — deactivate one to stop selling it."
+        description="Prices are in cedis and apply to new payments; current periods keep what was paid. Plans are never deleted. Deactivate one to stop selling it."
       />
       {plans.length === 0 ? <p className="text-sm text-muted-foreground">No plans yet. Run the database seed to create the starting plans.</p> : null}
       <div className="grid gap-6">

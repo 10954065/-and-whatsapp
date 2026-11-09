@@ -100,7 +100,7 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
             <FlaskConical className="size-4 text-primary" aria-hidden="true" /> Test channel
           </h2>
           <p className="mt-1 mb-4 text-sm text-muted-foreground">
-            A private channel for trying the full flow — customer message, AI reply, takeover — without Meta. Messages never leave SUNLEON AI.
+            A private channel for trying the full flow (customer message, AI reply, takeover) without Meta. Messages never leave SUNLEON AI.
           </p>
           {canManage ? <SandboxConnectButton /> : null}
           <p className="mt-6 text-xs text-muted-foreground">

@@ -13,7 +13,7 @@ export async function startCheckoutAction(_previous: ActionResult<unknown> | nul
   return runAction(
     async () => {
       const context = await requireTenantAction("billing.manage");
-      if (!context.user.emailVerifiedAt) throw fail.precondition("Confirm your email address before paying — Paystack sends your receipt there.");
+      if (!context.user.emailVerifiedAt) throw fail.precondition("Confirm your email address before paying. Paystack sends your receipt there.");
       const actor = { ...toActor(context, (await getRequestMeta()).ipAddress), email: context.user.email };
       const checkoutUrl = await startSubscriptionCheckout(actor, parseInput(checkoutSchema, formData));
       redirect(checkoutUrl);

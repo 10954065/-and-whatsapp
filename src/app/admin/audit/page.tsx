@@ -68,7 +68,7 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: S
                     "platform"
                   )}
                 </td>
-                <td className="max-w-md px-4 py-2 font-mono text-[11px] break-all text-muted-foreground">{entry.metadata ? JSON.stringify(entry.metadata) : "—"}</td>
+                <td className="max-w-md px-4 py-2 font-mono text-[11px] break-all text-muted-foreground">{entry.metadata ? JSON.stringify(entry.metadata) : "None"}</td>
               </tr>
             ))}
           </tbody>

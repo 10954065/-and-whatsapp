@@ -33,7 +33,7 @@ export default async function PricingPage() {
   return (
     <>
       <PageHero eyebrow="Pricing" title="Simple plans in Ghana cedis.">
-        Every plan starts with a free trial. Upgrade, downgrade or cancel at any time — your data is never deleted when
+        Every plan starts with a free trial. Upgrade, downgrade or cancel at any time. Your data is never deleted when
         a subscription ends.
       </PageHero>
       <section className="mx-auto max-w-7xl px-6 py-20">

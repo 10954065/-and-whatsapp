@@ -1,34 +1,35 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { Geist_Mono, Instrument_Serif, Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-const display = Plus_Jakarta_Sans({
-  variable: "--font-display",
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"], axes: ["opsz"] });
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  weight: "400",
+  style: ["normal", "italic"],
 });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
   title: {
-    default: "SUNLEON AI — The AI employee for your business",
+    default: "SUNLEON AI · Every customer message, answered",
     template: "%s · SUNLEON AI",
   },
   description:
-    "SUNLEON AI answers your customers on WhatsApp and Instagram, captures leads, takes orders and bookings, and keeps you in control.",
+    "SUNLEON AI answers your customers on WhatsApp and Instagram with your real prices and stock, takes orders and bookings, and passes the tricky conversations to you.",
   applicationName: "SUNLEON AI",
   authors: [{ name: "Sunleon Router Enterprise", url: "https://sunleonrouterenterprise.com" }],
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fbfbfe" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1026" },
+    { media: "(prefers-color-scheme: light)", color: "#f8f6f0" },
+    { media: "(prefers-color-scheme: dark)", color: "#161412" },
   ],
 };
 
@@ -37,12 +38,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${display.variable} h-full antialiased`}
+      className={`${inter.variable} ${instrumentSerif.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
-          <Toaster richColors position="top-right" />
+          <Toaster position="top-center" />
         </ThemeProvider>
       </body>
     </html>

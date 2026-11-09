@@ -66,15 +66,15 @@ beforeEach(async () => {
 describe("runAgent", () => {
   it("replies, records the run, usage and counters", async () => {
     const { business, input } = await setup();
-    const llm = fakeLlm([{ text: "Hi Efua! Happy to help — which size are you looking for?" }]);
+    const llm = fakeLlm([{ text: "Hi Efua! Happy to help. Which size are you looking for?" }]);
     const result = await runAgent(input, { llm });
 
     expect(result.status).toBe("SUCCEEDED");
-    expect(result.reply).toContain("which size");
+    expect(result.reply).toContain("Which size");
     expect(llm.calls[0].tool_choice).toEqual({ type: "auto" });
     expect(llm.calls[0]).not.toHaveProperty("temperature");
     const run = await prisma.aiRun.findUniqueOrThrow({ where: { id: result.runId! } });
-    expect(run).toMatchObject({ status: "SUCCEEDED", inputTokens: 1_000, outputTokens: 100, promptVersion: 1 });
+    expect(run).toMatchObject({ status: "SUCCEEDED", inputTokens: 1_000, outputTokens: 100, promptVersion: 2 });
     expect(await prisma.aiUsageRecord.count({ where: { businessId: business.id } })).toBe(1);
     expect(await prisma.usageCounter.count({ where: { businessId: business.id, metric: "AI_MESSAGE" } })).toBe(2);
   });

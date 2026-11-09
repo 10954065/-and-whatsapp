@@ -206,7 +206,7 @@ export async function confirmPayment(reference: string, now: Date = new Date()):
     await notifyTeam({
       businessId: payment.businessId,
       kind: "billing",
-      title: `Payment received — ${applied.planName} plan active`,
+      title: `Payment received: ${applied.planName} plan active`,
       body: `Your plan is paid until ${formatDate(applied.periodEnd, business.timezone)}.`,
       link: "/app/billing",
     });
@@ -236,10 +236,10 @@ export async function runBillingLifecycle(now: Date = new Date()) {
     await notifyTeam({ businessId, kind: "billing", title: "Your free trial has ended", body: "Choose a plan in Billing to turn your AI employee and automations back on. Your data is safe.", link: "/app/billing" });
   }
   for (const { businessId } of grace) {
-    await notifyTeam({ businessId, kind: "billing", title: `Your plan has ended — renew within ${GRACE_DAYS} days`, body: "Everything keeps working during the grace period. Pay for the next period in Billing to avoid interruption.", link: "/app/billing" });
+    await notifyTeam({ businessId, kind: "billing", title: `Your plan has ended. Renew within ${GRACE_DAYS} days`, body: "Everything keeps working during the grace period. Pay for the next period in Billing to avoid interruption.", link: "/app/billing" });
   }
   for (const { businessId } of expired) {
-    await notifyTeam({ businessId, kind: "billing", title: "Your plan has expired", body: "AI replies and automations are paused. Your data is safe — renew in Billing to resume.", link: "/app/billing" });
+    await notifyTeam({ businessId, kind: "billing", title: "Your plan has expired", body: "AI replies and automations are paused. Your data is safe. Renew in Billing to resume.", link: "/app/billing" });
   }
 
   const reminderHorizon = new Date(now.getTime() + RENEWAL_REMINDER_DAYS * 86_400_000);

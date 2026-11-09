@@ -22,7 +22,7 @@ const TRIGGER_LABEL: Record<string, string> = {
 };
 
 const CONDITIONS = [
-  { value: "", label: "— no condition —" },
+  { value: "", label: "No condition" },
   { value: "channel", label: "Channel is (whatsapp / instagram)" },
   { value: "customer_tag", label: "Customer has tag" },
   { value: "message_contains", label: "Message contains" },
@@ -32,7 +32,7 @@ const CONDITIONS = [
 ];
 
 const ACTIONS = [
-  { value: "", label: "— none —" },
+  { value: "", label: "None" },
   { value: "send_message", label: "Send message (text)" },
   { value: "add_customer_tag", label: "Add customer tag (tag)" },
   { value: "notify_team", label: "Notify team (title)" },

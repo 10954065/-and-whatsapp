@@ -290,7 +290,7 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
     finalReply = clampForChannel(finalReply, input.channel);
   }
   if (escalated && !finalReply && input.mode === "live") {
-    finalReply = "Thanks for your message — a member of our team will get back to you shortly.";
+    finalReply = "Thanks for your message. A member of our team will get back to you shortly.";
   }
 
   const costMicros = estimateCostMicros(model, usage);

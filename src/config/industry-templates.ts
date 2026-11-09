@@ -57,7 +57,7 @@ export const INDUSTRY_TEMPLATES: Record<Industry, IndustryTemplate> = {
   FASHION: {
     knowledgeFields: [
       { key: "collections", label: "Collections", placeholder: "Kente prints, ready-to-wear, bespoke tailoring…" },
-      { key: "sizing", label: "Size guide", placeholder: "S: 34–36 chest, M: 38–40…" },
+      { key: "sizing", label: "Size guide", placeholder: "S: 34 to 36 chest, M: 38 to 40…" },
       { key: "custom_orders", label: "Custom orders", placeholder: "Bespoke takes 10 working days…" },
     ],
     defaultTone: "PLAYFUL",
@@ -127,7 +127,7 @@ export const INDUSTRY_TEMPLATES: Record<Industry, IndustryTemplate> = {
     defaultTone: "PROFESSIONAL",
     roleDescription: "Answers guest questions and captures booking enquiries.",
     aiGuidance:
-      "Answer questions about rooms, amenities and policies from knowledge. Room availability and rates must come from tools or staff — capture the dates and guest count as a lead and escalate if you cannot confirm.",
+      "Answer questions about rooms, amenities and policies from knowledge. Room availability and rates must come from tools or staff. Capture the dates and guest count as a lead and escalate if you cannot confirm.",
     commonQuestions: ["Do you have a room for two nights next weekend?", "Is breakfast included?", "Do you offer airport pick-up?"],
     escalationRules: ["group bookings or events", "complaints during a stay"],
     suggestedTools: [...BASE_TOOLS, ...BOOKING_TOOLS],

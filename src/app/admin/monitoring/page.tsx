@@ -39,7 +39,7 @@ export default async function AdminMonitoringPage() {
                   <td className="py-2 pr-3">
                     <Badge variant="outline">{job.status.toLowerCase()}</Badge> {job.attempts}/{job.maxAttempts}
                   </td>
-                  <td className="py-2 pr-3 text-xs text-muted-foreground">{job.lastError ?? "—"}</td>
+                  <td className="py-2 pr-3 text-xs text-muted-foreground">{job.lastError ?? "None"}</td>
                   <td className="py-2 pr-3 text-xs whitespace-nowrap">{formatDateTime(job.updatedAt, TZ)}</td>
                   <td className="py-2 text-right">
                     <ActionButton action={retryJobAction} values={{ jobId: job.id }} label="Retry" />
@@ -56,11 +56,11 @@ export default async function AdminMonitoringPage() {
               {snapshot.webhooks.map((event) => (
                 <tr key={event.id} className="border-t first:border-0">
                   <td className="py-2 pr-3">{event.provider.toLowerCase()}</td>
-                  <td className="py-2 pr-3 font-mono text-xs">{event.eventType ?? "—"}</td>
+                  <td className="py-2 pr-3 font-mono text-xs">{event.eventType ?? "Unknown"}</td>
                   <td className="py-2 pr-3">
                     <Badge variant="outline">{event.status.toLowerCase()}</Badge>
                   </td>
-                  <td className="py-2 pr-3 text-xs text-muted-foreground">{event.error ?? "—"}</td>
+                  <td className="py-2 pr-3 text-xs text-muted-foreground">{event.error ?? "None"}</td>
                   <td className="py-2 text-xs whitespace-nowrap">{formatDateTime(event.receivedAt, TZ)}</td>
                 </tr>
               ))}
@@ -92,7 +92,7 @@ export default async function AdminMonitoringPage() {
                 <tr key={email.id} className="border-t first:border-0">
                   <td className="py-2 pr-3">{email.template}</td>
                   <td className="py-2 pr-3 text-xs">{email.to}</td>
-                  <td className="py-2 pr-3 text-xs text-muted-foreground">{email.error ?? "—"}</td>
+                  <td className="py-2 pr-3 text-xs text-muted-foreground">{email.error ?? "None"}</td>
                   <td className="py-2 text-xs whitespace-nowrap">{formatDateTime(email.createdAt, TZ)}</td>
                 </tr>
               ))}

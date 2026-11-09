@@ -23,7 +23,7 @@ const GROUPS = [
   {
     icon: Users,
     title: "CRM & leads",
-    items: ["Customer profiles with channel identities", "Lead pipeline from new to won", "Follow-up reminders", "Conservative identity matching — no surprise merges"],
+    items: ["Customer profiles with channel identities", "Lead pipeline from new to won", "Follow-up reminders", "Careful identity matching, so no surprise merges"],
   },
   {
     icon: ShoppingBag,
@@ -60,7 +60,7 @@ const GROUPS = [
 export default function FeaturesPage() {
   return (
     <>
-      <PageHero eyebrow="Features" title={<>Built to run real conversations — and real operations.</>}>
+      <PageHero eyebrow="Features" title={<>Built to run real conversations and real operations.</>}>
         Every feature works from your own persisted data. Nothing is simulated, and nothing is guessed.
       </PageHero>
       <section className="mx-auto grid max-w-7xl gap-5 px-6 py-20 md:grid-cols-2 lg:grid-cols-3">

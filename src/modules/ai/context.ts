@@ -50,7 +50,7 @@ export function formatHours(hours: BusinessHours | null): string {
   if (!hours) return "Opening hours have not been provided.";
   return WEEKDAYS.map((day) => {
     const intervals = hours[day] ?? [];
-    return `${DAY_NAMES[day]}: ${intervals.length ? intervals.map((interval) => `${interval.start}–${interval.end}`).join(", ") : "closed"}`;
+    return `${DAY_NAMES[day]}: ${intervals.length ? intervals.map((interval) => `${interval.start} to ${interval.end}`).join(", ") : "closed"}`;
   }).join("; ");
 }
 

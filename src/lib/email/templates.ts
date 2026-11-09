@@ -58,7 +58,7 @@ export function passwordResetEmail(input: { to: string; name: string; url: strin
     heading: "Reset your password",
     paragraphs: [`Hi ${input.name}, we received a request to reset your password. The link expires in 1 hour and can be used once.`],
     action: { label: "Choose a new password", url: input.url },
-    footnote: "If you did not request this, no action is needed — your password stays the same.",
+    footnote: "If you did not request this, no action is needed. Your password stays the same.",
   });
   return { to: input.to, subject: "Reset your SUNLEON AI password", template: "password_reset", ...content };
 }

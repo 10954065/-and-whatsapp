@@ -30,7 +30,7 @@ export function IndustryTemplateForm(props: IndustryTemplateFormProps) {
       <FormAlert state={state} />
       <div className="rounded-xl bg-muted/50 p-4 text-sm">
         <p>
-          <span className="font-semibold">{props.industryLabel}</span> — {props.roleDescription}
+          <span className="font-semibold">{props.industryLabel}</span>: {props.roleDescription}
         </p>
         <p className="mt-1 text-muted-foreground">
           {props.appliedLabel ? `Applied ${props.appliedLabel}. Saving again updates your answers.` : "Not applied yet."} Change your industry in the business profile above.

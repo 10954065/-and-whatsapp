@@ -59,7 +59,7 @@ export default async function ServicesPage() {
                 <p className="font-medium">{member.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {member.services.map((entry) => entry.service.name).join(", ") || "No services"} ·{" "}
-                  {member.workingHours.map((hours) => `${DAYS[hours.dayOfWeek]} ${minutes(hours.startMinute)}–${minutes(hours.endMinute)}`).join(", ") || "No hours"}
+                  {member.workingHours.map((hours) => `${DAYS[hours.dayOfWeek]} ${minutes(hours.startMinute)} to ${minutes(hours.endMinute)}`).join(", ") || "No hours"}
                 </p>
               </li>
             ))}

@@ -23,7 +23,7 @@ export default function IndustriesPage() {
     <>
       <PageHero eyebrow="Industries" title="One AI engine. Eleven ways to work.">
         Each template gives your AI employee the right knowledge fields, tone, workflows and escalation rules for your
-        industry — and you can adjust everything.
+        industry, and you can adjust everything.
       </PageHero>
       <section className="mx-auto grid max-w-7xl gap-5 px-6 py-20 sm:grid-cols-2 lg:grid-cols-3">
         {INDUSTRY_OPTIONS.map((industry) => (

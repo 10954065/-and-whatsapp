@@ -15,12 +15,12 @@ export const checkAvailabilityTool = defineTool({
   async execute(context, input) {
     if (!input.service_id) {
       const services = await prisma.service.findMany({ where: { businessId: context.businessId, isActive: true }, take: 20 });
-      const lines = services.map((service) => `${service.name} — ${service.durationMinutes} min — service_id ${service.id}`);
+      const lines = services.map((service) => `${service.name} | ${service.durationMinutes} min | service_id ${service.id}`);
       return { ok: true, message: lines.join("\n") || "No bookable services are set up.", verifiedFacts: lines };
     }
     const slots = await findAvailability(context.businessId, input.service_id, input.date);
     if (slots.length === 0) return { ok: true, message: `No open times on ${input.date}.`, verifiedFacts: [] };
-    const lines = slots.slice(0, 12).map((slot) => `${formatDateTime(slot.startsAt, context.timezone)} with ${slot.staffName} — start ${slot.startsAt.toISOString()} — staff_id ${slot.staffId}`);
+    const lines = slots.slice(0, 12).map((slot) => `${formatDateTime(slot.startsAt, context.timezone)} with ${slot.staffName} | start ${slot.startsAt.toISOString()} | staff_id ${slot.staffId}`);
     return { ok: true, message: lines.join("\n"), verifiedFacts: lines };
   },
 });

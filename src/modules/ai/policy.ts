@@ -76,7 +76,7 @@ export function preflight(input: PreflightInput): PreflightResult {
 }
 
 export const SAFE_HOLDING_REPLY =
-  "Thanks for your patience — let me confirm that with the team and get right back to you.";
+  "Thanks for your patience. Let me confirm that with the team and get right back to you.";
 
 const MONEY_PATTERN =
   /(?:GH₵|GHS|GHC|GH¢|₵|¢|\$|USD|NGN|₦|KES|£|€)\s?(\d[\d,]*(?:\.\d{1,2})?)|(\d[\d,]*(?:\.\d{1,2})?)\s?(?:cedis?|ghana cedis|GHS|pesewas)\b/gi;

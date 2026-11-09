@@ -71,7 +71,7 @@ export async function executeTool(
   const parsed = tool.schema.safeParse(rawInput);
   if (!parsed.success) {
     const issues = parsed.error.issues.map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`).join("; ");
-    return { status: "FAILED", outcome: { ok: false, message: `Invalid input — ${issues}` } };
+    return { status: "FAILED", outcome: { ok: false, message: `Invalid input: ${issues}` } };
   }
 
   if (tool.isWrite && context.mode === "live" && policy.approvalRequired.includes(name)) {

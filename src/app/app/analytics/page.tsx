@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Analytics" };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-const percent = (value: number | null) => (value === null ? "—" : new Intl.NumberFormat("en-GH", { style: "percent", maximumFractionDigits: 0 }).format(value));
+const percent = (value: number | null) => (value === null ? "n/a" : new Intl.NumberFormat("en-GH", { style: "percent", maximumFractionDigits: 0 }).format(value));
 /** AI cost is stored in micro-USD. */
 const usd = (micros: number) => formatMoney(Math.round(micros / 10_000), "USD");
 
@@ -91,7 +91,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Se
           <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
             <Figure label="Order value" value={money(data.sales.revenueMinor)} />
             <Figure label="Recorded as paid" value={money(data.sales.paidMinor)} />
-            <Figure label="Average order" value={data.sales.averageOrderMinor === null ? "—" : money(data.sales.averageOrderMinor)} />
+            <Figure label="Average order" value={data.sales.averageOrderMinor === null ? "n/a" : money(data.sales.averageOrderMinor)} />
             <Figure label="Orders taken by AI" value={formatNumber(data.sales.aiOrders)} />
           </dl>
           <h3 className="mt-5 text-sm font-semibold">Top products</h3>
@@ -126,7 +126,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Se
             <Figure label="Held back by your rules" value={formatNumber(data.ai.blocked)} />
             <Figure label="Failed" value={formatNumber(data.ai.failed)} />
             <Figure label="Automation messages" value={formatNumber(data.conversations.automationMessages)} />
-            <Figure label="Cost per AI run" value={data.ai.runs ? usd(data.ai.costMicros / data.ai.runs) : "—"} />
+            <Figure label="Cost per AI run" value={data.ai.runs ? usd(data.ai.costMicros / data.ai.runs) : "n/a"} />
           </dl>
           <p className="mt-4 text-xs text-muted-foreground">AI cost is estimated from model token usage at list prices and shown in US dollars.</p>
         </div>

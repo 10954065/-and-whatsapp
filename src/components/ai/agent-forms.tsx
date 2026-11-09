@@ -166,7 +166,7 @@ export function AgentConfigForm({ values, tools, disabled }: { values: AgentForm
             name="modelTierOverride"
             defaultValue={values.modelTierOverride ?? "auto"}
             options={[
-              { value: "auto", label: "Automatic — cheapest suitable model (recommended)" },
+              { value: "auto", label: "Automatic: cheapest suitable model (recommended)" },
               { value: "fast", label: "Always fast (lowest cost)" },
               { value: "standard", label: "Always standard" },
               { value: "advanced", label: "Always advanced (highest cost)" },
@@ -262,7 +262,7 @@ export function TestConsole({ isProviderConfigured }: { isProviderConfigured: bo
         {turns.length === 0 ? (
           <p className="mx-auto max-w-xs pt-16 text-center text-sm text-muted-foreground">
             {isProviderConfigured
-              ? "Write a message as if you were a customer. Write actions are simulated — nothing is saved or sent."
+              ? "Write a message as if you were a customer. Write actions are simulated, so nothing is saved or sent."
               : "The AI provider (Anthropic API key) is not configured on this platform yet, so test replies are unavailable."}
           </p>
         ) : null}
