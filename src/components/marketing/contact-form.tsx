@@ -19,7 +19,7 @@ export function ContactForm() {
         <Field label="Phone (optional)" name="phone" type="tel" autoComplete="tel" errors={fieldErrors(state, "phone")} />
       </div>
       <Field label="How can we help?" name="message" multiline rows={6} required errors={fieldErrors(state, "message")} />
-      {/* Honeypot field for bots — hidden from people and assistive technology. */}
+      {/* Honeypot field for bots, hidden from people and assistive technology. */}
       <div aria-hidden="true" className="hidden">
         <label htmlFor="website">Website</label>
         <input id="website" name="website" tabIndex={-1} autoComplete="off" />

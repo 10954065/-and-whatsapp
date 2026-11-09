@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import { Bot, Boxes, CalendarClock, Inbox, LineChart, Lock, ShoppingBag, Users, Workflow } from "lucide-react";
 import { CtaBand, PageHero } from "@/components/marketing/marketing-blocks";
 
 export const metadata: Metadata = { title: "Features" };
 
 const GROUPS = [
   {
-    icon: Bot,
-    title: "AI employee",
+    title: "The assistant",
     items: [
       "Natural conversations in your brand's tone",
       "Answers only from your verified business knowledge",
@@ -16,42 +14,34 @@ const GROUPS = [
     ],
   },
   {
-    icon: Inbox,
     title: "Unified inbox",
     items: ["WhatsApp and Instagram in one timeline", "Human takeover and hand-back", "Assignment, tags, notes and status", "Customer history beside every chat"],
   },
   {
-    icon: Users,
     title: "CRM & leads",
     items: ["Customer profiles with channel identities", "Lead pipeline from new to won", "Follow-up reminders", "Careful identity matching, so no surprise merges"],
   },
   {
-    icon: ShoppingBag,
     title: "Orders & payments",
     items: ["Authorised orders created from chat", "Paystack payments verified server-side", "Payment and fulfilment tracked separately", "Discount limits you control"],
   },
   {
-    icon: Boxes,
     title: "Products & inventory",
     items: ["Catalogue with variants and SKUs", "Transactional stock updates", "Stock movement history", "Low-stock alerts"],
   },
   {
-    icon: CalendarClock,
     title: "Appointments",
     items: ["Services, staff and working hours", "Real availability checks", "Database-level double-booking protection", "Cancellations, rescheduling and reminders"],
   },
   {
-    icon: Workflow,
     title: "Automation studio",
     items: ["Triggers for messages, leads, orders, payments and bookings", "Conditions on channel, tags, value and business hours", "Versioned workflows with run history", "Retries and loop prevention"],
   },
   {
-    icon: LineChart,
     title: "Analytics",
     items: ["Response times and AI-handled share", "Lead conversion and verified revenue", "Channel performance", "AI token usage and estimated cost"],
   },
   {
-    icon: Lock,
     title: "Security & privacy",
     items: ["Strict workspace isolation, enforced in the database", "Encrypted integration credentials", "Two-factor authentication and audit logs", "Designed around Ghana's Data Protection Act"],
   },
@@ -60,21 +50,21 @@ const GROUPS = [
 export default function FeaturesPage() {
   return (
     <>
-      <PageHero eyebrow="Features" title={<>Built to run real conversations and real operations.</>}>
-        Every feature works from your own persisted data. Nothing is simulated, and nothing is guessed.
+      <PageHero eyebrow="Features" title={<>Built to run real conversations <span className="italic">and real operations.</span></>}>
+        Every feature works from your own saved records. Nothing is simulated, and nothing is guessed.
       </PageHero>
-      <section className="mx-auto grid max-w-7xl gap-5 px-6 py-20 md:grid-cols-2 lg:grid-cols-3">
-        {GROUPS.map(({ icon: Icon, title, items }) => (
-          <article key={title} className="rounded-3xl border bg-card p-7 transition-shadow hover:shadow-[0_24px_48px_-28px_color-mix(in_oklch,var(--violet)_60%,transparent)]">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Icon className="size-5" aria-hidden="true" />
-            </span>
-            <h2 className="mt-5 text-xl font-bold">{title}</h2>
-            <ul className="mt-4 grid gap-2.5 text-sm text-muted-foreground">
+      <section className="mx-auto max-w-7xl px-6 py-20 lg:py-28">
+        {GROUPS.map(({ title, items }, index) => (
+          <article key={title} className="grid gap-6 border-t py-10 first:border-t-0 first:pt-0 md:grid-cols-[minmax(0,22rem)_1fr] md:gap-12">
+            <div className="flex items-baseline gap-4">
+              <span className="font-mono text-sm text-muted-foreground">{String(index + 1).padStart(2, "0")}</span>
+              <h2 className="font-display text-4xl font-normal tracking-[-0.01em]">{title}</h2>
+            </div>
+            <ul className="grid gap-x-10 gap-y-3 sm:grid-cols-2">
               {items.map((item) => (
-                <li key={item} className="flex gap-2">
-                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary/60" />
-                  {item}
+                <li key={item} className="flex gap-3 text-[15px] leading-relaxed text-muted-foreground">
+                  <span className="mt-[0.6em] size-1.5 shrink-0 rounded-full bg-sun" aria-hidden="true" />
+                  <span className="text-foreground/85">{item}</span>
                 </li>
               ))}
             </ul>

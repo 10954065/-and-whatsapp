@@ -6,7 +6,7 @@ test("visitor registers, creates a workspace, signs out and signs back in", asyn
   const email = `e2e-${Date.now()}@example.test`;
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("AI employee");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("never closes");
   await page.getByRole("link", { name: "Start your free trial" }).click();
 
   await expect(page).toHaveURL(/\/register$/);

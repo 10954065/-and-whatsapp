@@ -1,188 +1,180 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  BookOpenCheck,
-  Bot,
-  CalendarClock,
-  Hand,
-  Inbox,
-  LineChart,
-  ShieldCheck,
-  ShoppingBag,
-  Target,
-  Workflow,
-} from "lucide-react";
-import { ConversationPreview, CtaBand } from "@/components/marketing/marketing-blocks";
+import { ArrowRight, ArrowUpRight, Lock } from "lucide-react";
+import { HANDOVER_SCRIPT } from "@/components/marketing/chat-scripts";
+import { ChatShowcase, LoopingChat } from "@/components/marketing/chat-showcase";
+import { HandDrawnUnderline } from "@/components/marketing/hand-drawn-underline";
+import { CtaBand } from "@/components/marketing/marketing-blocks";
+import { ReceiptStory } from "@/components/marketing/receipt-story";
 import { Button } from "@/components/ui/button";
 import { INDUSTRY_OPTIONS } from "@/config/industries";
 
-const STEPS = [
-  {
-    title: "Teach it your business",
-    body: "Add your products, prices, opening hours, policies and FAQs — or upload documents. Pick an industry template to start fast.",
-  },
-  {
-    title: "Connect WhatsApp & Instagram",
-    body: "Link your accounts through the official Meta platforms. Test every reply in a private sandbox before going live.",
-  },
-  {
-    title: "Let it work — you stay in charge",
-    body: "Your AI employee answers, sells and books. You set the rules, approve big decisions and take over any chat in one click.",
-  },
+const CAPABILITIES = [
+  { title: "One inbox for both apps", body: "WhatsApp and Instagram in one list, with each customer's orders, bookings and notes beside the chat. Take over any conversation with one tap." },
+  { title: "Orders and stock", body: "Live stock checks, real order numbers and payment links. An order is marked paid only after Paystack verifies it." },
+  { title: "Bookings", body: "Checks real staff hours and existing appointments, so two customers never get the same slot. Reminders go out on their own." },
+  { title: "Leads and follow-ups", body: "Notices when someone is ready to buy, tags them, and reminds your team to follow up before they go cold." },
+  { title: "Automations", body: "Simple rules for new leads, payments and bookings, with versions you can roll back and loop protection built in." },
+  { title: "Numbers you can trust", body: "Response times, conversations handled, conversions and verified revenue, all counted from your own records." },
 ];
 
-const GUARDRAILS = [
-  "Never invents prices, stock, availability or payment confirmations",
-  "Approval required for refunds and exceptional discounts",
-  "Daily and monthly AI spending limits per business",
-  "Business-hours rules and escalation keywords",
-  "Emergency stop and instant human takeover",
-  "Full audit trail of every AI action",
+const RULES: Array<{ label: string; value: "on" | "off" | "locked" | string }> = [
+  { label: "Never quote a price that isn't in my list", value: "locked" },
+  { label: "Ask me before any refund or big discount", value: "on" },
+  { label: "Hand over when a customer is upset", value: "on" },
+  { label: "Reply only during opening hours", value: "off" },
+  { label: "Daily spending limit", value: "GH₵ 20" },
 ];
+
+function RuleValue({ value }: { value: string }) {
+  if (value === "locked") {
+    return (
+      <span className="flex items-center gap-1.5 text-[13px] text-white/45">
+        <Lock className="size-3.5" aria-hidden="true" /> Always on
+      </span>
+    );
+  }
+  if (value === "on" || value === "off") {
+    const isOn = value === "on";
+    return (
+      <span className={`flex h-6 w-[42px] shrink-0 items-center rounded-full p-0.5 ${isOn ? "bg-[#34c759]" : "bg-white/15"}`}>
+        <span className={`size-5 rounded-full bg-white shadow-sm ${isOn ? "translate-x-[18px]" : ""}`} />
+        <span className="sr-only">{isOn ? "On" : "Off"}</span>
+      </span>
+    );
+  }
+  return <span className="text-[13px] text-white/55 tabular-nums">{value}</span>;
+}
 
 export default function HomePage() {
   return (
     <>
-      <section className="relative overflow-hidden">
-        <div className="bg-grid pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_at_top_left,black,transparent_60%)]" />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-16 px-6 pt-16 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:pt-24 lg:pb-28">
-          <div>
-            <p className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-xs font-semibold text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-violet" /> AI employee for WhatsApp & Instagram
+      <section className="grain relative overflow-hidden">
+        <div aria-hidden="true" className="pointer-events-none absolute top-24 right-[-14rem] hidden size-[46rem] rounded-full bg-sun-soft lg:block" />
+        <div aria-hidden="true" className="pointer-events-none absolute right-0 bottom-28 left-1/2 hidden h-px bg-foreground/10 lg:block" />
+        <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-6 pt-14 pb-20 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-10 lg:pt-20 lg:pb-28">
+          <div className="max-w-2xl">
+            <p className="flex items-center gap-2.5 text-sm text-muted-foreground">
+              <span className="size-2 rounded-full bg-sun" aria-hidden="true" />
+              For shops, salons, clinics and agents across Ghana
             </p>
-            <h1 className="mt-6 text-[2.75rem] leading-[1.03] font-extrabold sm:text-6xl lg:text-[4.25rem]">
-              Hire an AI employee that <span className="text-gradient">never misses</span> a customer.
+            <h1 className="mt-7 font-display text-[3.6rem] leading-[0.92] font-normal tracking-[-0.02em] sm:text-[5rem] lg:text-[6rem]">
+              The front desk that{" "}
+              <span className="relative inline-block italic text-sun-ink">
+                never closes.
+                <HandDrawnUnderline className="absolute -bottom-2 left-0 w-full text-sun" />
+              </span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
-              SUNLEON AI answers enquiries, qualifies leads, takes authorised orders and bookings, and follows up —
-              using only what your business has taught it.
+            <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
+              Sunleon replies to your customers on WhatsApp and Instagram within seconds, using your real prices, stock
+              and opening hours. It takes orders and bookings, and passes anything tricky to you.
             </p>
-            <div className="mt-9 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="h-12 px-6 text-[15px] shadow-[0_14px_32px_-12px_var(--violet)]">
+            <div className="mt-10 flex flex-wrap items-center gap-3">
+              <Button asChild size="lg" className="h-12 px-6">
                 <Link href="/register">
                   Start your free trial <ArrowRight />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="h-12 px-6 text-[15px]">
-                <Link href="#how-it-works">See how it works</Link>
+              <Button asChild size="lg" variant="ghost" className="h-12 px-5">
+                <Link href="#how-it-works">See how a sale happens</Link>
               </Button>
             </div>
-            <p className="mt-6 text-sm text-muted-foreground">14-day free trial · No card required · Priced in Ghana cedis</p>
+            <p className="mt-6 text-sm text-muted-foreground">14 days free · No card needed · Priced in cedis</p>
           </div>
-          <ConversationPreview className="mx-auto w-full max-w-md lg:max-w-none" />
+          <ChatShowcase className="lg:pl-64 xl:pl-72" />
         </div>
       </section>
 
-      <section id="how-it-works" className="scroll-mt-20 border-y bg-muted/30">
-        <div className="mx-auto max-w-7xl px-6 py-20">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">How it works</p>
-            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Live in an afternoon. Trusted for years.</h2>
-          </div>
-          <ol className="mt-12 grid gap-6 md:grid-cols-3">
-            {STEPS.map((step, index) => (
-              <li key={step.title} className="relative rounded-2xl border bg-card p-6">
-                <span className="font-heading text-5xl font-extrabold text-primary/15">0{index + 1}</span>
-                <h3 className="mt-2 text-lg font-semibold">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.body}</p>
-              </li>
-            ))}
-          </ol>
+      <section aria-label="Where it works" className="border-y bg-card/60">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-10 gap-y-3 px-6 py-6 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">Works where your customers already are</span>
+          <span className="flex items-center gap-2"><span className="size-2 rounded-full bg-[#25d366]" aria-hidden="true" />WhatsApp Business</span>
+          <span className="flex items-center gap-2"><span className="size-2 rounded-full bg-[#e1306c]" aria-hidden="true" />Instagram messages</span>
+          <span className="flex items-center gap-2"><span className="size-2 rounded-full bg-[#0ba4db]" aria-hidden="true" />Paystack: MoMo and card</span>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-24">
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">One platform</p>
-            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Everything your front desk, sales team and shop assistant do.</h2>
+      <section id="how-it-works" className="scroll-mt-16">
+        <div className="mx-auto max-w-7xl px-6 pt-24 lg:pt-32">
+          <h2 className="max-w-3xl font-display text-5xl leading-[0.98] font-normal tracking-[-0.015em] sm:text-6xl">
+            How a message <span className="italic">becomes a sale.</span>
+          </h2>
+          <p className="mt-5 max-w-xl text-lg text-muted-foreground">Follow one order from the first hello to the delivery run.</p>
+          <div className="mt-6 lg:-mt-10">
+            <ReceiptStory />
           </div>
-          <Button asChild variant="link" className="px-0">
-            <Link href="/features">
-              Explore all features <ArrowRight />
-            </Link>
-          </Button>
-        </div>
-        <div className="mt-12 grid auto-rows-[minmax(11rem,auto)] gap-4 md:grid-cols-6">
-          <article className="relative overflow-hidden rounded-3xl border bg-linear-to-br from-violet/10 via-card to-card p-7 md:col-span-4 md:row-span-2">
-            <Inbox className="size-6 text-primary" aria-hidden="true" />
-            <h3 className="mt-4 text-2xl font-bold">One inbox for every conversation</h3>
-            <p className="mt-2 max-w-md text-muted-foreground">
-              WhatsApp and Instagram messages land in one place, with the customer&apos;s orders, bookings and notes beside
-              each chat. See what the AI did, assign chats, and take over instantly.
-            </p>
-            <div className="mt-8 grid max-w-md gap-2">
-              {["Efua A. · WhatsApp · Order #1042 created", "Kojo M. · Instagram · Viewing booked Sat 10:00", "Ama K. · WhatsApp · Escalated to you"].map(
-                (row) => (
-                  <div key={row} className="rounded-xl border bg-background/80 px-4 py-2.5 text-sm">
-                    {row}
-                  </div>
-                ),
-              )}
-            </div>
-          </article>
-          {[
-            { icon: BookOpenCheck, title: "Grounded answers", body: "Replies come from your knowledge base, products and policies — with sources checked." },
-            { icon: ShoppingBag, title: "Orders & stock", body: "Real-time stock checks and transactional orders. Payment is only marked paid after Paystack verifies it." },
-            { icon: CalendarClock, title: "Bookings", body: "Checks real staff availability, prevents double bookings and sends reminders." },
-            { icon: Target, title: "Leads & follow-ups", body: "Captures buying intent, tags leads and schedules follow-ups automatically." },
-            { icon: Workflow, title: "Automation studio", body: "Visual workflows for new leads, payments, bookings and follow-ups — with loop protection." },
-            { icon: LineChart, title: "Real analytics", body: "Response times, AI-handled chats, conversions and verified revenue from your actual data." },
-          ].map(({ icon: Icon, title, body }, index) => (
-            <article key={title} className={`rounded-3xl border bg-card p-6 ${index < 2 ? "md:col-span-2" : "md:col-span-2"}`}>
-              <Icon className="size-5 text-primary" aria-hidden="true" />
-              <h3 className="mt-3 font-semibold">{title}</h3>
-              <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{body}</p>
-            </article>
-          ))}
         </div>
       </section>
 
-      <section className="px-6">
-        <div className="mx-auto grid max-w-7xl gap-10 rounded-[2rem] border bg-card p-8 sm:p-12 lg:grid-cols-2">
-          <div>
-            <ShieldCheck className="size-7 text-primary" aria-hidden="true" />
-            <h2 className="mt-4 text-3xl font-bold">Autonomous where it&apos;s safe. Accountable everywhere.</h2>
-            <p className="mt-3 text-muted-foreground">
-              You decide what your AI employee may do on its own. High-impact actions wait for a human, and every
-              action is recorded.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3 text-sm">
-              <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5">
-                <Bot className="size-4 text-primary" /> AI handles routine work
+      <section className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
+        <div className="flex flex-col justify-between gap-6 border-b pb-10 md:flex-row md:items-end">
+          <h2 className="max-w-2xl font-display text-5xl leading-[0.98] font-normal tracking-[-0.015em] sm:text-6xl">
+            Everything your front desk does, <span className="italic">done properly.</span>
+          </h2>
+          <Link href="/features" className="link-underline inline-flex items-center gap-1.5 text-sm font-medium">
+            All features <ArrowUpRight className="size-4" aria-hidden="true" />
+          </Link>
+        </div>
+        <ol>
+          {CAPABILITIES.map((capability, index) => (
+            <li key={capability.title} className="group grid gap-3 border-b py-8 md:grid-cols-[5rem_minmax(0,22rem)_1fr] md:items-baseline md:gap-8">
+              <span className="font-mono text-sm text-muted-foreground transition-colors group-hover:text-sun-ink">
+                {String(index + 1).padStart(2, "0")}
               </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5">
-                <Hand className="size-4 text-primary" /> You approve the big calls
-              </span>
+              <h3 className="font-display text-3xl font-normal tracking-[-0.01em] transition-transform duration-300 ease-out-strong group-hover:translate-x-1.5 sm:text-4xl">
+                {capability.title}
+              </h3>
+              <p className="max-w-xl text-[15px] leading-relaxed text-muted-foreground">{capability.body}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section id="in-charge" className="scroll-mt-16 px-3 sm:px-6">
+        <div className="grain relative mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] bg-[#1d1a16] px-6 py-20 text-[#f3efe7] sm:px-12 lg:px-16 lg:py-24">
+          <div className="grid items-center gap-16 lg:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="max-w-xl">
+              <h2 className="font-display text-5xl leading-[0.98] font-normal tracking-[-0.015em] sm:text-6xl">
+                Busy is fine. <span className="italic text-[#f6b383]">You stay in charge.</span>
+              </h2>
+              <p className="mt-6 text-lg leading-relaxed text-white/65">
+                You decide what Sunleon may do on its own. Refunds, complaints and anything unusual come straight to a
+                person, and every action is written down so you can see exactly what happened.
+              </p>
+              <figure aria-label="Example rules a business can set" className="mt-10 overflow-hidden rounded-2xl bg-white/[0.06] ring-1 ring-white/10">
+                <ul className="divide-y divide-white/10">
+                  {RULES.map((rule) => (
+                    <li key={rule.label} className="flex items-center justify-between gap-4 px-5 py-3.5 text-[15px]">
+                      {rule.label}
+                      <RuleValue value={rule.value} />
+                    </li>
+                  ))}
+                </ul>
+              </figure>
             </div>
+            <LoopingChat
+              script={HANDOVER_SCRIPT}
+              className="mx-auto lg:mr-64 xl:mr-72"
+              activityClassName="lg:absolute lg:top-28 lg:left-full lg:ml-8 [&_li]:bg-white/90 [&_li]:text-[#1d1a16] [&_p]:text-[#1d1a16] [&_p:last-child]:text-[#1d1a16]/60"
+            />
           </div>
-          <ul className="grid content-center gap-3">
-            {GUARDRAILS.map((item) => (
-              <li key={item} className="flex items-start gap-3 rounded-xl border bg-background px-4 py-3 text-sm">
-                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" />
-                {item}
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-24">
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">Industries</p>
-          <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Templates for how your business really works.</h2>
-        </div>
-        <div className="mt-10 flex flex-wrap gap-3">
-          {INDUSTRY_OPTIONS.map((industry) => (
-            <Link
-              key={industry.value}
-              href="/industries"
-              className="rounded-full border bg-card px-4 py-2 text-sm font-medium transition-colors hover:border-primary/40 hover:text-primary"
-            >
-              {industry.label}
-            </Link>
+      <section className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
+        <h2 className="text-sm font-medium text-muted-foreground">Ready-made setups for</h2>
+        <ul className="mt-6 flex flex-wrap items-baseline gap-x-5 gap-y-2">
+          {INDUSTRY_OPTIONS.filter((industry) => industry.value !== "GENERAL").map((industry, index, list) => (
+            <li key={industry.value} className="flex items-baseline gap-5">
+              <Link
+                href="/industries"
+                className="font-display text-4xl leading-tight tracking-[-0.01em] transition-colors duration-200 hover:text-sun-ink hover:italic sm:text-5xl lg:text-6xl"
+              >
+                {industry.label}
+              </Link>
+              {index < list.length - 1 ? <span className="size-2 translate-y-[-0.5rem] rounded-full bg-sun" aria-hidden="true" /> : null}
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
 
       <CtaBand />

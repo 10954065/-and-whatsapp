@@ -244,7 +244,6 @@
   .material {
     background-color: color-mix(in oklch, var(--background) 72%, transparent);
     backdrop-filter: blur(20px) saturate(170%);
-    -webkit-backdrop-filter: blur(20px) saturate(170%);
   }
   /* Press feedback for anything tappable. */
   .pressable {
@@ -284,6 +283,25 @@
   }
 }
 
+@keyframes typing-dot {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pressable:active {
     transform: none;
@@ -301,6 +319,5 @@
   .material {
     background-color: var(--background);
     backdrop-filter: none;
-    -webkit-backdrop-filter: none;
   }
 }
