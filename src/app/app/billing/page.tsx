@@ -74,7 +74,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="surface rounded-[1.25rem] p-6">
           <h2 className="font-semibold">Current plan</h2>
           {subscription ? (
             <div className="mt-3 grid gap-1 text-sm">
@@ -99,7 +99,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
           )}
         </section>
 
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="surface rounded-[1.25rem] p-6">
           <h2 className="mb-4 font-semibold">Usage this month</h2>
           <div className="grid gap-4">
             <Meter label="AI replies" used={usage.aiMessages} limit={limits.aiMessagesPerMonth} />
@@ -127,7 +127,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
           {overview.plans.map((plan) => {
             const isCurrent = subscription?.planId === plan.id && subscription.status === "ACTIVE";
             return (
-              <article key={plan.id} className={cn("flex flex-col rounded-2xl border bg-card p-6", isCurrent && "border-primary")}>
+              <article key={plan.id} className={cn("flex flex-col surface rounded-[1.25rem] p-6", isCurrent && "border-primary")}>
                 <h3 className="flex items-center gap-2 text-lg font-semibold">
                   {plan.name} {isCurrent ? <Badge>Current</Badge> : null}
                 </h3>
@@ -154,7 +154,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
         </div>
       </section>
 
-      <section className="mt-6 rounded-2xl border bg-card p-6">
+      <section className="mt-6 surface rounded-[1.25rem] p-6">
         <h2 className="mb-3 font-semibold">Payment history</h2>
         {overview.payments.length === 0 ? (
           <p className="text-sm text-muted-foreground">No payments yet.</p>

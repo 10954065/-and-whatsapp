@@ -13,7 +13,7 @@ const TZ = "Africa/Accra";
 
 function Panel({ title, empty, children, count }: { title: string; empty: string; count: number; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border bg-card p-6">
+    <section className="surface rounded-[1.25rem] p-6">
       <h2 className="mb-3 flex items-center gap-2 font-semibold">
         {title} <Badge variant={count ? "destructive" : "secondary"}>{count}</Badge>
       </h2>

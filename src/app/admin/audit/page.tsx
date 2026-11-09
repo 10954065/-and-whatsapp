@@ -32,7 +32,7 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: S
           Filter
         </Button>
       </form>
-      <div className="overflow-x-auto rounded-2xl border bg-card">
+      <div className="overflow-x-auto surface rounded-[1.25rem]">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-xs text-muted-foreground">
@@ -61,7 +61,7 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: S
                 </td>
                 <td className="px-4 py-2 text-xs">
                   {entry.businessId ? (
-                    <Link href={`/admin/businesses/${entry.businessId}`} className="text-primary hover:underline">
+                    <Link href={`/admin/businesses/${entry.businessId}`} className="link-underline text-foreground">
                       {entry.business?.name ?? entry.businessId}
                     </Link>
                   ) : (

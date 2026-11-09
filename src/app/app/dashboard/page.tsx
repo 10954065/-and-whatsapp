@@ -149,8 +149,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
       ) : null}
 
       <section aria-label="Key numbers" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
-        <StatCard label="Open conversations" value={openConversations} icon={MessagesSquare} tone="violet" href={context.can("inbox.read") ? "/app/inbox" : undefined} />
-        <StatCard label="Customers" value={customers} icon={Users} tone="azure" href={context.can("customers.read") ? "/app/customers" : undefined} />
+        <StatCard label="Open conversations" value={openConversations} icon={MessagesSquare} tone="sun" href={context.can("inbox.read") ? "/app/inbox" : undefined} />
+        <StatCard label="Customers" value={customers} icon={Users} tone="info" href={context.can("customers.read") ? "/app/customers" : undefined} />
         <StatCard label="New leads" value={newLeads} icon={Target} tone="success" href={context.can("leads.read") ? "/app/leads" : undefined} />
         <StatCard label="Orders this month" value={ordersThisMonth} icon={ShoppingBag} href={context.can("orders.read") ? "/app/orders" : undefined} />
         <StatCard label="Upcoming bookings" value={upcomingBookings} icon={CalendarClock} tone="warning" href={context.can("bookings.read") ? "/app/bookings" : undefined} />

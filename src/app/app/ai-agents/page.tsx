@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bot, CircleDollarSign, Gauge, ShieldAlert } from "lucide-react";
+import { CircleDollarSign, Gauge, Headset, ShieldAlert } from "lucide-react";
 import { AgentConfigForm, AgentStatusControls, TestConsole } from "@/components/ai/agent-forms";
 import { AccessDenied, PageHeader, StatCard } from "@/components/app/page-primitives";
 import { Badge } from "@/components/ui/badge";
@@ -57,8 +57,8 @@ export default async function AiAgentsPage() {
         </p>
       ) : null}
       <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Status" value={statusBadge} icon={Bot} tone="violet" hint={`${recentRuns} successful test${recentRuns === 1 ? "" : "s"}`} />
-        <StatCard label="AI replies today" value={`${messagesToday} / ${agent.dailyMessageLimit}`} icon={Gauge} tone="azure" />
+        <StatCard label="Status" value={statusBadge} icon={Headset} tone="sun" hint={`${recentRuns} successful test${recentRuns === 1 ? "" : "s"}`} />
+        <StatCard label="AI replies today" value={`${messagesToday} / ${agent.dailyMessageLimit}`} icon={Gauge} tone="info" />
         <StatCard label="AI replies this month" value={`${messagesMonth} / ${limits.aiMessagesPerMonth}`} icon={Gauge} hint="Plan allowance" />
         <StatCard
           label="Estimated AI cost this month"
@@ -69,7 +69,7 @@ export default async function AiAgentsPage() {
         />
       </section>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <section className="rounded-2xl border bg-card p-6 sm:p-8">
+        <section className="surface rounded-[1.25rem] p-6 sm:p-8">
           <h2 className="mb-6 text-lg font-semibold">Behaviour and limits</h2>
           <AgentConfigForm
             disabled={!canManage}

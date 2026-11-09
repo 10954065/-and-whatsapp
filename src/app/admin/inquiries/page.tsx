@@ -22,7 +22,7 @@ export default async function AdminInquiriesPage() {
       ) : (
         <ul className="grid gap-3">
           {inquiries.map((inquiry) => (
-            <li key={inquiry.id} className="rounded-2xl border bg-card p-5">
+            <li key={inquiry.id} className="surface rounded-[1.25rem] p-5">
               <div className="flex flex-wrap items-start gap-3">
                 <div className="flex-1">
                   <p className="font-medium">

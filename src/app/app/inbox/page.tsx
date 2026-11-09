@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bot, Inbox, UserRound } from "lucide-react";
+import { Inbox } from "lucide-react";
 import { AccessDenied, EmptyState } from "@/components/app/page-primitives";
 import {
   ControlToggle,
   ConversationSettings,
   InboxAutoRefresh,
+  MessageThread,
   NoteForm,
   ReplyComposer,
   SimulateMessageForm,
@@ -23,6 +24,11 @@ export const metadata: Metadata = { title: "Inbox" };
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 const CHANNEL_LABEL: Record<string, string> = { WHATSAPP: "WhatsApp", INSTAGRAM: "Instagram", SANDBOX: "Test" };
+const CHANNEL_DOT: Record<string, string> = { WHATSAPP: "bg-[#25d366]", INSTAGRAM: "bg-[#e1306c]", SANDBOX: "bg-foreground/30" };
+
+function initialsOf(name: string): string {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "?";
+}
 const FILTERS = [
   { key: "", label: "All open" },
   { key: "unread", label: "Unread" },
@@ -57,80 +63,112 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
   const query = (extra: Record<string, string>) => new URLSearchParams({ ...(filter ? { filter } : {}), ...(search ? { q: search } : {}), ...extra }).toString();
 
   return (
-    <div className="-mx-4 -my-8 grid h-[calc(100svh-3.5rem)] grid-cols-1 lg:-mx-8 lg:grid-cols-[20rem_minmax(0,1fr)_18rem]">
+    <div data-fullbleed className="grid h-[calc(100svh-3.5rem)] grid-cols-1 lg:grid-cols-[21rem_minmax(0,1fr)_18rem]">
       <InboxAutoRefresh />
-      <aside className="flex min-h-0 flex-col border-r bg-card">
-        <form className="border-b p-3" action="/app/inbox">
-          {filter ? <input type="hidden" name="filter" value={filter} /> : null}
-          <input name="q" defaultValue={search} placeholder="Search customers or messages" aria-label="Search conversations" className="h-9 w-full rounded-lg border bg-background px-3 text-sm" />
-        </form>
-        <nav aria-label="Inbox filters" className="flex flex-wrap gap-1 border-b p-2">
+      <aside className="flex min-h-0 flex-col border-r bg-sidebar">
+        <div className="px-4 pt-5 pb-3">
+          <h1 className="text-[1.75rem] leading-none font-semibold tracking-[-0.03em]">Inbox</h1>
+          <form className="mt-4" action="/app/inbox">
+            {filter ? <input type="hidden" name="filter" value={filter} /> : null}
+            <input
+              name="q"
+              defaultValue={search}
+              placeholder="Search customers or messages"
+              aria-label="Search conversations"
+              className="h-9 w-full rounded-full border-0 bg-foreground/[0.06] px-4 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/25"
+            />
+          </form>
+        </div>
+        <nav aria-label="Inbox filters" className="flex flex-wrap gap-1 px-3 pb-3">
           {FILTERS.map((option) => (
             <Link
               key={option.key}
               href={`/app/inbox?${new URLSearchParams({ ...(option.key ? { filter: option.key } : {}), ...(search ? { q: search } : {}) }).toString()}`}
-              className={cn("rounded-full px-2.5 py-1 text-xs font-medium", filter === option.key ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-accent")}
+              className={cn(
+                "pressable shrink-0 rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-colors",
+                filter === option.key ? "bg-foreground text-background" : "text-foreground/70 hover:bg-foreground/[0.06]",
+              )}
             >
               {option.label}
             </Link>
           ))}
         </nav>
-        <ul className="min-h-0 flex-1 overflow-y-auto">
+        <ul className="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
           {conversations.length === 0 ? <li className="p-6 text-center text-sm text-muted-foreground">No conversations here yet.</li> : null}
-          {conversations.map((conversation) => (
-            <li key={conversation.id}>
-              <Link
-                href={`/app/inbox?${query({ conversation: conversation.id })}`}
-                className={cn("block border-b px-4 py-3 hover:bg-muted/60", conversation.id === selectedId && "bg-accent")}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="flex-1 truncate font-medium">{conversation.customer.displayName}</span>
-                  <span className="text-[11px] text-muted-foreground">{formatRelative(conversation.lastMessageAt)}</span>
-                </div>
-                <p className="truncate text-sm text-muted-foreground">{conversation.lastMessagePreview}</p>
-                <div className="mt-1.5 flex items-center gap-1.5">
-                  <Badge variant="outline" className="text-[10px]">{CHANNEL_LABEL[conversation.channel]}</Badge>
-                  {conversation.control === "HUMAN" ? <Badge variant="secondary" className="text-[10px]">Human</Badge> : <Badge className="bg-primary/12 text-[10px] text-primary">AI</Badge>}
-                  {conversation.unreadCount > 0 ? <Badge className="ml-auto text-[10px]">{conversation.unreadCount}</Badge> : null}
-                </div>
-              </Link>
-            </li>
-          ))}
+          {conversations.map((conversation) => {
+            const isSelected = conversation.id === selectedId;
+            return (
+              <li key={conversation.id}>
+                <Link
+                  href={`/app/inbox?${query({ conversation: conversation.id })}`}
+                  aria-current={isSelected ? "true" : undefined}
+                  className={cn(
+                    "flex gap-3 rounded-[14px] px-2.5 py-2.5 transition-colors",
+                    isSelected ? "bg-card shadow-[var(--shadow-hairline),0_1px_3px_rgb(0_0_0/0.05)]" : "hover:bg-foreground/[0.04]",
+                  )}
+                >
+                  <span className="relative mt-0.5 self-start">
+                    <span className="flex size-10 items-center justify-center rounded-full bg-foreground/[0.07] text-[13px] font-semibold text-foreground/75">
+                      {initialsOf(conversation.customer.displayName)}
+                    </span>
+                    <span className={cn("absolute -right-0.5 -bottom-0.5 size-3.5 rounded-full ring-2 ring-sidebar", CHANNEL_DOT[conversation.channel])} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline gap-2">
+                      <span className={cn("flex-1 truncate text-[14px]", conversation.unreadCount > 0 ? "font-semibold" : "font-medium")}>
+                        {conversation.customer.displayName}
+                      </span>
+                      <span className="shrink-0 text-[11.5px] text-muted-foreground">{formatRelative(conversation.lastMessageAt)}</span>
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span className="line-clamp-2 flex-1 text-[13px] leading-snug text-muted-foreground">{conversation.lastMessagePreview}</span>
+                      {conversation.unreadCount > 0 ? (
+                        <span className="flex min-w-5 shrink-0 items-center justify-center rounded-full bg-sun px-1.5 text-[11px] leading-5 font-semibold text-[#1d1a16]">
+                          {conversation.unreadCount}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      {CHANNEL_LABEL[conversation.channel]}
+                      <span aria-hidden="true">·</span>
+                      {conversation.control === "HUMAN" ? <span className="font-medium text-warning">You&apos;re replying</span> : "Assistant"}
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </aside>
 
       <section className="flex min-h-0 flex-col bg-background">
         {detail ? (
           <>
-            <header className="flex items-center gap-3 border-b bg-card px-4 py-3">
-              <div className="flex-1">
-                <p className="font-semibold">{detail.conversation.customer.displayName}</p>
-                <p className="text-xs text-muted-foreground">
-                  {CHANNEL_LABEL[detail.conversation.channel]} · {detail.conversation.control === "AI" ? "AI is handling this conversation" : "A person is handling this conversation"}
+            <header className="material flex items-center gap-3 border-b px-4 py-3 sm:px-8">
+              <span className="flex size-10 items-center justify-center rounded-full bg-foreground/[0.07] text-[13px] font-semibold text-foreground/75">
+                {initialsOf(detail.conversation.customer.displayName)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold">{detail.conversation.customer.displayName}</p>
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className={cn("size-2 rounded-full", CHANNEL_DOT[detail.conversation.channel])} aria-hidden="true" />
+                  {CHANNEL_LABEL[detail.conversation.channel]} · {detail.conversation.control === "AI" ? "The assistant is replying" : "A person is replying"}
                 </p>
               </div>
               {canReply ? <ControlToggle conversationId={detail.conversation.id} control={detail.conversation.control} /> : null}
             </header>
-            <ol className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4" aria-label="Messages">
-              {detail.messages.map((message) => {
-                const outbound = message.direction === "OUTBOUND";
-                return (
-                  <li key={message.id} className={cn("flex", outbound ? "justify-end" : "justify-start")}>
-                    <div className="max-w-[75%]">
-                      <div className={cn("rounded-2xl px-3.5 py-2 text-sm whitespace-pre-wrap", outbound ? "rounded-br-md bg-primary text-primary-foreground" : "rounded-bl-md bg-card shadow-sm")}>
-                        {message.text ?? `[${message.type.toLowerCase()}]`}
-                      </div>
-                      <p className={cn("mt-1 flex items-center gap-1 px-1 text-[11px] text-muted-foreground", outbound && "justify-end")}>
-                        {message.sender === "AI" ? <Bot className="size-3" aria-label="Sent by AI" /> : message.sender === "STAFF" ? <UserRound className="size-3" aria-label="Sent by staff" /> : null}
-                        {formatDateTime(message.createdAt, context.business.timezone)}
-                        {outbound ? ` · ${message.deliveryStatus.toLowerCase()}` : ""}
-                        {message.errorMessage ? ` · ${message.errorMessage}` : ""}
-                      </p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
+            <MessageThread
+              key={detail.conversation.id}
+              messages={detail.messages.map((message) => ({
+                id: message.id,
+                isOutbound: message.direction === "OUTBOUND",
+                sender: message.sender,
+                text: message.text ?? `[${message.type.toLowerCase()}]`,
+                time: formatDateTime(message.createdAt, context.business.timezone),
+                status: message.deliveryStatus,
+                error: message.errorMessage,
+              }))}
+            />
             {canReply ? (
               <ReplyComposer
                 conversationId={detail.conversation.id}
@@ -153,7 +191,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
         )}
       </section>
 
-      <aside className="hidden min-h-0 space-y-6 overflow-y-auto border-l bg-card p-4 lg:block">
+      <aside className="hidden min-h-0 space-y-6 overflow-y-auto border-l bg-sidebar p-5 lg:block">
         {detail ? (
           <>
             <section>
@@ -200,7 +238,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
             ) : null}
             {detail.aiRuns.length ? (
               <section>
-                <h2 className="text-sm font-semibold">AI activity</h2>
+                <h2 className="text-sm font-semibold">Assistant activity</h2>
                 <ul className="mt-1 space-y-1.5 text-xs text-muted-foreground">
                   {detail.aiRuns.map((run) => (
                     <li key={run.id}>
@@ -226,7 +264,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
           </>
         ) : null}
         {sandbox && canReply ? (
-          <section className="rounded-xl border border-dashed p-3">
+          <section className="rounded-2xl border border-dashed border-foreground/15 p-4">
             <h2 className="mb-2 text-sm font-semibold">Simulate a customer (test channel)</h2>
             <SimulateMessageForm />
           </section>

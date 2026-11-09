@@ -29,7 +29,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Se
         <input name="q" defaultValue={search} placeholder="Search by name, phone or email" aria-label="Search customers" className="h-9 w-full max-w-sm rounded-lg border bg-card px-3 text-sm" />
       </form>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <section className="overflow-hidden rounded-2xl border bg-card">
+        <section className="overflow-hidden surface rounded-[1.25rem]">
           {customers.length === 0 ? (
             <EmptyState className="m-6" icon={Users} title="No customers found" description="Customers appear automatically when they message you." />
           ) : (
@@ -70,7 +70,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Se
         </section>
         {canWrite ? (
           <aside className="grid content-start gap-6">
-            <section className="rounded-2xl border bg-card p-6">
+            <section className="surface rounded-[1.25rem] p-6">
               <h2 className="mb-4 font-semibold">Add a customer</h2>
               <QuickForm
                 action={createCustomerAction}
@@ -85,12 +85,12 @@ export default async function CustomersPage({ searchParams }: { searchParams: Se
             </section>
             {options.length ? (
               <>
-                <section className="rounded-2xl border bg-card p-6">
+                <section className="surface rounded-[1.25rem] p-6">
                   <h2 className="mb-4 font-semibold">Add a note</h2>
                   <QuickForm action={addCustomerNoteAction} submitLabel="Save note" fields={[{ name: "customerId", label: "Customer", type: "select", options }, { name: "body", label: "Note", type: "textarea" }]} />
                 </section>
                 {context.can("leads.write") ? (
-                  <section className="rounded-2xl border bg-card p-6">
+                  <section className="surface rounded-[1.25rem] p-6">
                     <h2 className="mb-4 font-semibold">Convert to lead</h2>
                     <QuickForm
                       action={createLeadAction}

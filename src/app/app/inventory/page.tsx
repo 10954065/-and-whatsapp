@@ -20,7 +20,7 @@ export default async function InventoryPage() {
     <>
       <PageHeader title="Inventory" description="Stock levels and every stock movement. Orders reduce stock automatically; cancellations return it." />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <section className="overflow-hidden rounded-2xl border bg-card">
+        <section className="overflow-hidden surface rounded-[1.25rem]">
           <Table>
             <TableHeader>
               <TableRow>
@@ -51,7 +51,7 @@ export default async function InventoryPage() {
           </Table>
         </section>
         {context.can("inventory.write") && variants.length ? (
-          <section className="rounded-2xl border bg-card p-6">
+          <section className="surface rounded-[1.25rem] p-6">
             <h2 className="mb-4 font-semibold">Adjust stock</h2>
             <QuickForm
               action={adjustStockAction}

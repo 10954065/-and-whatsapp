@@ -3,11 +3,12 @@ import Link from "next/link";
 import { CheckCircle2, Circle, SkipForward } from "lucide-react";
 import { PageHeader } from "@/components/app/page-primitives";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { requireTenant } from "@/lib/auth/tenant";
 import { cn } from "@/lib/utils";
 import { skipSetupStepAction } from "@/modules/onboarding/setup.actions";
 import { getSetupProgress, markOnboardingCompleteIfReady } from "@/modules/onboarding/setup.service";
+
+const RING = 2 * Math.PI * 27;
 
 export const metadata: Metadata = { title: "Setup guide" };
 
@@ -25,45 +26,58 @@ export default async function SetupPage() {
         title={progress.isComplete ? "You're all set up" : "Let's get your assistant ready"}
         description="Your progress is saved automatically. Come back any time."
       />
-      <div className="mb-6 rounded-2xl border bg-card p-6">
-        <div className="flex items-center justify-between text-sm">
-          <span className="font-medium">
+      <div className="surface mb-8 flex items-center gap-5 rounded-[1.5rem] p-5 sm:p-6">
+        <svg viewBox="0 0 64 64" className="size-16 shrink-0 -rotate-90" aria-hidden="true">
+          <circle cx="32" cy="32" r="27" fill="none" strokeWidth="6" className="stroke-foreground/[0.08]" />
+          <circle
+            cx="32"
+            cy="32"
+            r="27"
+            fill="none"
+            strokeWidth="6"
+            strokeLinecap="round"
+            className="stroke-sun"
+            strokeDasharray={RING}
+            strokeDashoffset={RING * (1 - percent / 100)}
+          />
+        </svg>
+        <div className="flex-1">
+          <p className="text-[15px] font-semibold">
             {progress.finished} of {progress.total} steps complete
-          </span>
-          <span className="text-muted-foreground">{percent}%</span>
+          </p>
+          <p className="text-sm text-muted-foreground">{progress.isComplete ? "Everything is in place." : "Most businesses finish in under an hour."}</p>
         </div>
-        <Progress value={percent} className="mt-3" aria-label="Setup progress" />
+        <span className="text-[1.75rem] font-semibold tracking-[-0.03em] tabular-nums" aria-label={`${percent} percent`}>
+          {percent}%
+        </span>
       </div>
-      <ol className="grid gap-3">
-        <li className="flex items-start gap-4 rounded-2xl border bg-card p-5">
+      <ol className="surface divide-y overflow-hidden rounded-[1.5rem]">
+        <li className="flex items-start gap-4 px-5 py-4">
           <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" aria-hidden="true" />
           <div>
-            <p className="font-semibold">Create your workspace</p>
+            <p className="font-medium">Create your workspace</p>
             <p className="text-sm text-muted-foreground">{context.business.name} is ready.</p>
           </div>
         </li>
         {progress.steps.map((step) => (
-          <li
-            key={step.id}
-            className={cn("flex flex-col gap-4 rounded-2xl border bg-card p-5 sm:flex-row sm:items-center", step.status === "todo" && "border-primary/25")}
-          >
+          <li key={step.id} className={cn("flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center", step.status === "todo" && "bg-sun-soft/35")}>
             <div className="flex flex-1 items-start gap-4">
               {step.status === "done" ? (
                 <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" aria-hidden="true" />
               ) : step.status === "skipped" ? (
                 <SkipForward className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
               ) : (
-                <Circle className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+                <Circle className="mt-0.5 size-5 shrink-0 text-sun-ink" aria-hidden="true" />
               )}
               <div>
-                <p className="font-semibold">
+                <p className={cn("font-medium", step.status !== "todo" && "text-foreground/70")}>
                   {step.title} {step.isOptional ? <span className="text-xs font-normal text-muted-foreground">· optional</span> : null}
                 </p>
                 <p className="text-sm text-muted-foreground">{step.description}</p>
               </div>
             </div>
             {step.status !== "done" ? (
-              <div className="flex gap-2 sm:shrink-0">
+              <div className="flex gap-2 pl-9 sm:shrink-0 sm:pl-0">
                 {step.isOptional && step.status === "todo" && canEdit ? (
                   <form action={skipSetupStepAction}>
                     <input type="hidden" name="stepId" value={step.id} />

@@ -21,7 +21,7 @@ export interface FieldSpec {
   step?: string;
 }
 
-const selectClass = "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm";
+const selectClass = "h-10 w-full rounded-xl border border-input px-3 text-sm";
 
 function SpecField({ spec, errors }: { spec: FieldSpec; errors?: string[] }) {
   const id = `quick-${spec.name}`;
@@ -85,6 +85,7 @@ export function QuickForm({
   hidden = {},
   columns = 1,
   resetOnSuccess = true,
+  variant = "default",
 }: {
   action: FormAction;
   fields: FieldSpec[];
@@ -92,6 +93,8 @@ export function QuickForm({
   hidden?: Record<string, string>;
   columns?: 1 | 2 | 3;
   resetOnSuccess?: boolean;
+  /** Use "destructive" for actions that remove or block things. */
+  variant?: "default" | "destructive";
 }) {
   const { state, onSubmit, isPending } = useActionForm(action);
   const ref = useRef<HTMLFormElement>(null);
@@ -110,7 +113,7 @@ export function QuickForm({
         ))}
       </div>
       <div>
-        <SubmitButton isPending={isPending} pendingLabel="Saving…">
+        <SubmitButton variant={variant} isPending={isPending} pendingLabel="Saving…">
           {submitLabel}
         </SubmitButton>
       </div>

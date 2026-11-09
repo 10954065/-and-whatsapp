@@ -29,7 +29,7 @@ export default async function AdminBusinessesPage({ searchParams }: { searchPara
       <PageHeader eyebrow="Platform" title="Businesses" description={`${formatNumber(result.total)} workspaces`} />
       <form className="mb-4 flex flex-wrap gap-2" role="search">
         <Input name="q" defaultValue={query} placeholder="Name, slug or email" aria-label="Search businesses" className="max-w-xs" />
-        <select name="status" defaultValue={status ?? ""} aria-label="Status" className="h-8 rounded-lg border bg-transparent px-2.5 text-sm">
+        <select name="status" defaultValue={status ?? ""} aria-label="Status" className="h-9 rounded-xl border pl-3 text-sm">
           <option value="">All statuses</option>
           {STATUSES.map((value) => (
             <option key={value} value={value}>
@@ -41,7 +41,7 @@ export default async function AdminBusinessesPage({ searchParams }: { searchPara
           Search
         </Button>
       </form>
-      <div className="overflow-x-auto rounded-2xl border bg-card">
+      <div className="overflow-x-auto surface rounded-[1.25rem]">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-xs text-muted-foreground">

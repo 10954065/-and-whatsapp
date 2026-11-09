@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bot, CalendarClock, MessagesSquare, ShoppingBag, Target, Wallet } from "lucide-react";
+import { CalendarClock, Headset, MessagesSquare, ShoppingBag, Target, Wallet } from "lucide-react";
 import { DailyColumnChart } from "@/components/analytics/daily-column-chart";
 import { AccessDenied, PageHeader, StatCard } from "@/components/app/page-primitives";
 import { formatMoney, formatNumber } from "@/lib/format";
@@ -50,13 +50,13 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Se
       </nav>
 
       <section aria-label="Key numbers" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label="New conversations" value={formatNumber(data.conversations.started)} hint={`${formatNumber(data.conversations.inbound)} customer messages`} icon={MessagesSquare} tone="violet" />
+        <StatCard label="New conversations" value={formatNumber(data.conversations.started)} hint={`${formatNumber(data.conversations.inbound)} customer messages`} icon={MessagesSquare} tone="sun" />
         <StatCard
           label="AI replies"
           value={formatNumber(data.conversations.aiReplies)}
           hint={`${formatNumber(data.conversations.staffReplies)} by your team · ${percent(data.ai.escalationRate)} of AI runs escalated`}
-          icon={Bot}
-          tone="azure"
+          icon={Headset}
+          tone="info"
         />
         <StatCard label="AI cost (estimate)" value={usd(data.ai.costMicros)} hint={`${formatNumber(data.ai.runs)} AI runs, excluding the test console`} icon={Wallet} />
         <StatCard label="Orders" value={formatNumber(data.sales.orders)} hint={`${money(data.sales.revenueMinor)} total · ${formatNumber(data.sales.aiOrders)} taken by AI`} icon={ShoppingBag} tone="success" />
@@ -86,7 +86,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Se
       </section>
 
       <section className="mt-6 grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border bg-card p-5">
+        <div className="surface rounded-[1.25rem] p-5">
           <h2 className="font-semibold">Sales</h2>
           <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
             <Figure label="Order value" value={money(data.sales.revenueMinor)} />
@@ -118,7 +118,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Se
             </table>
           )}
         </div>
-        <div className="rounded-2xl border bg-card p-5">
+        <div className="surface rounded-[1.25rem] p-5">
           <h2 className="font-semibold">Assistant</h2>
           <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
             <Figure label="Answered" value={formatNumber(data.ai.succeeded)} />

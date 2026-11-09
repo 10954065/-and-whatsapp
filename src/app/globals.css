@@ -53,10 +53,6 @@
   --color-sun-ink: var(--sun-ink);
   --color-sun-soft: var(--sun-soft);
   --color-leaf: var(--leaf);
-  /* Transitional aliases for screens not yet moved to the new palette. */
-  --color-navy: var(--ink);
-  --color-violet: var(--sun);
-  --color-azure: var(--info);
   --radius-sm: calc(var(--radius) * 0.5);
   --radius-md: calc(var(--radius) * 0.75);
   --radius-lg: var(--radius);
@@ -224,6 +220,10 @@
   }
   .dark select:not([data-slot]) {
     background-color: color-mix(in oklch, var(--input) 30%, transparent);
+  }
+  input[type="checkbox"]:not([data-slot]),
+  input[type="radio"]:not([data-slot]) {
+    accent-color: var(--foreground);
   }
   .tabular {
     font-variant-numeric: tabular-nums;

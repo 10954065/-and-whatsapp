@@ -121,9 +121,9 @@ function DayRow({ day, initial, disabled }: { day: string; initial: { start: str
       <Switch id={`${day}_open`} name={`${day}_open`} checked={isOpen} onCheckedChange={setIsOpen} disabled={disabled} value="on" />
       {isOpen ? (
         <div className="flex items-center gap-2 text-sm">
-          <input type="time" name={`${day}_start`} defaultValue={initial?.start ?? "08:00"} aria-label={`${DAY_LABELS[day]} opening time`} disabled={disabled} className="h-8 rounded-md border bg-background px-2" />
+          <input type="time" name={`${day}_start`} defaultValue={initial?.start ?? "08:00"} aria-label={`${DAY_LABELS[day]} opening time`} disabled={disabled} className="h-9 rounded-xl border border-input bg-card px-3 text-sm tabular-nums" />
           <span className="text-muted-foreground">to</span>
-          <input type="time" name={`${day}_end`} defaultValue={initial?.end ?? "17:00"} aria-label={`${DAY_LABELS[day]} closing time`} disabled={disabled} className="h-8 rounded-md border bg-background px-2" />
+          <input type="time" name={`${day}_end`} defaultValue={initial?.end ?? "17:00"} aria-label={`${DAY_LABELS[day]} closing time`} disabled={disabled} className="h-9 rounded-xl border border-input bg-card px-3 text-sm tabular-nums" />
         </div>
       ) : (
         <span className="text-sm text-muted-foreground">Closed</span>

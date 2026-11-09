@@ -107,8 +107,8 @@ export default async function AppLayout({ children }: Readonly<{ children: React
             </div>
           </main>
         ) : (
-          <main className="flex-1 px-4 pt-8 pb-16 sm:px-6 lg:px-10 lg:pt-10">
-            <div className="mx-auto w-full max-w-6xl">{children}</div>
+          <main className="flex-1 px-4 pt-8 pb-16 has-[[data-fullbleed]]:p-0! sm:px-6 lg:px-10 lg:pt-10">
+            <div className="mx-auto w-full max-w-6xl has-[[data-fullbleed]]:max-w-none">{children}</div>
           </main>
         )}
       </div>

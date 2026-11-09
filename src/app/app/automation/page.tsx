@@ -64,7 +64,7 @@ export default async function AutomationPage() {
       <PageHeader title="Automation studio" description="When something happens, check conditions, then act. Messages respect consent and the 24-hour window; chained workflows stop after 3 levels." />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <div className="grid content-start gap-6">
-          <section className="rounded-2xl border bg-card p-6">
+          <section className="surface rounded-[1.25rem] p-6">
             <h2 className="mb-3 font-semibold">Workflows</h2>
             {workflows.length === 0 ? (
               <EmptyState icon={Blocks} title="No workflows yet" description="Start with “New customer → send a welcome message” or “Order at least GH₵500 → notify team”." />
@@ -91,7 +91,7 @@ export default async function AutomationPage() {
               </ul>
             )}
           </section>
-          <section className="rounded-2xl border bg-card p-6">
+          <section className="surface rounded-[1.25rem] p-6">
             <h2 className="mb-3 font-semibold">Recent runs</h2>
             <ul className="divide-y text-sm">
               {runs.length === 0 ? <li className="py-2 text-muted-foreground">No runs yet.</li> : null}
@@ -105,7 +105,7 @@ export default async function AutomationPage() {
           </section>
         </div>
         {canManage ? (
-          <section className="rounded-2xl border bg-card p-6">
+          <section className="surface rounded-[1.25rem] p-6">
             <h2 className="mb-4 font-semibold">New workflow</h2>
             <QuickForm action={createWorkflowAction} submitLabel="Save workflow" fields={builder} columns={2} />
           </section>

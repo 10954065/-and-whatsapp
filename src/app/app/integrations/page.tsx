@@ -48,7 +48,7 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
       {integrations.length ? (
         <section className="mb-8 grid gap-3">
           {integrations.map((integration) => (
-            <div key={integration.id} className="flex flex-col gap-3 rounded-2xl border bg-card p-5 sm:flex-row sm:items-center">
+            <div key={integration.id} className="flex flex-col gap-3 surface rounded-[1.25rem] p-5 sm:flex-row sm:items-center">
               <div className="flex-1">
                 <p className="font-semibold">
                   {integration.channel === "SANDBOX" ? "Test channel" : integration.channel === "WHATSAPP" ? "WhatsApp" : "Instagram"} · {integration.displayHandle ?? integration.externalAccountName}
@@ -67,7 +67,7 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="surface rounded-[1.25rem] p-6">
           <h2 className="flex items-center gap-2 text-base font-semibold">
             <MessageCircle className="size-4 text-[#128C7E]" aria-hidden="true" /> WhatsApp Business Platform
           </h2>
@@ -82,7 +82,7 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
             <p className="text-sm text-muted-foreground">An owner or admin with a verified email can connect WhatsApp.</p>
           )}
         </section>
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="surface rounded-[1.25rem] p-6">
           <h2 className="flex items-center gap-2 text-base font-semibold">
             <Camera className="size-4 text-[#E1306C]" aria-hidden="true" /> Instagram messaging
           </h2>
@@ -95,7 +95,7 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
             <p className="text-sm text-warning">Instagram Login is not configured on this platform yet.</p>
           )}
         </section>
-        <section className="rounded-2xl border bg-card p-6 lg:col-span-2">
+        <section className="surface rounded-[1.25rem] p-6 lg:col-span-2">
           <h2 className="flex items-center gap-2 text-base font-semibold">
             <FlaskConical className="size-4 text-primary" aria-hidden="true" /> Test channel
           </h2>

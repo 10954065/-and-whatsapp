@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { Bot, OctagonX, Power, Send, User } from "lucide-react";
+import { motion } from "motion/react";
+import { Headset, OctagonX, Power, Send, User } from "lucide-react";
+import { TypingDots } from "@/components/marketing/phone-chat";
 import { toast } from "sonner";
 import { Field, FormAlert, SubmitButton, fieldErrors } from "@/components/forms/form-controls";
 import { SelectField } from "@/components/onboarding/create-business-form";
@@ -257,8 +259,12 @@ export function TestConsole({ isProviderConfigured }: { isProviderConfigured: bo
   };
 
   return (
-    <div className="flex h-128 flex-col rounded-2xl border bg-muted/30">
-      <div className="flex-1 space-y-3 overflow-y-auto p-4" aria-live="polite">
+    <div className="surface flex h-128 flex-col overflow-hidden rounded-[1.25rem]">
+      <div
+        className="flex-1 space-y-3 overflow-y-auto p-4"
+        aria-live="polite"
+        style={{ backgroundImage: "radial-gradient(color-mix(in oklch, var(--foreground) 7%, transparent) 1px, transparent 1.2px)", backgroundSize: "16px 16px" }}
+      >
         {turns.length === 0 ? (
           <p className="mx-auto max-w-xs pt-16 text-center text-sm text-muted-foreground">
             {isProviderConfigured
@@ -267,13 +273,20 @@ export function TestConsole({ isProviderConfigured }: { isProviderConfigured: bo
           </p>
         ) : null}
         {turns.map((turn, index) => (
-          <div key={index} className={cn("flex gap-2", turn.role === "customer" ? "justify-end" : "justify-start")}>
-            {turn.role === "assistant" ? <Bot className="mt-1 size-4 shrink-0 text-primary" aria-hidden="true" /> : null}
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 10, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: "spring", bounce: 0.25, duration: 0.45 }}
+            style={{ originX: turn.role === "customer" ? 1 : 0, originY: 1 }}
+            className={cn("flex gap-2", turn.role === "customer" ? "justify-end" : "justify-start")}
+          >
+            {turn.role === "assistant" ? <Headset className="mt-1 size-4 shrink-0 text-sun-ink" aria-hidden="true" /> : null}
             <div className="max-w-[80%]">
               <div
                 className={cn(
-                  "rounded-2xl px-3.5 py-2 text-sm whitespace-pre-wrap",
-                  turn.role === "customer" ? "rounded-br-md bg-primary text-primary-foreground" : "rounded-bl-md bg-card",
+                  "rounded-[18px] px-3.5 py-2 text-sm whitespace-pre-wrap",
+                  turn.role === "customer" ? "rounded-br-[6px] bg-[#d9fdd3] text-[#111b21]" : "rounded-bl-[6px] bg-card shadow-[var(--shadow-hairline)]",
                   turn.meta === "error" && "border border-destructive/30 bg-destructive/10",
                 )}
               >
@@ -282,13 +295,20 @@ export function TestConsole({ isProviderConfigured }: { isProviderConfigured: bo
               {turn.meta && turn.meta !== "error" ? <p className="mt-1 px-1 text-[11px] text-muted-foreground">{turn.meta}</p> : null}
             </div>
             {turn.role === "customer" ? <User className="mt-1 size-4 shrink-0 text-muted-foreground" aria-hidden="true" /> : null}
-          </div>
+          </motion.div>
         ))}
-        {isPending ? <p className="text-xs text-muted-foreground">Thinking…</p> : null}
+        {isPending ? (
+          <div className="flex items-center gap-2" role="status" aria-label="The assistant is replying">
+            <Headset className="size-4 shrink-0 text-sun-ink" aria-hidden="true" />
+            <span className="rounded-[18px] rounded-bl-[6px] bg-card px-3.5 py-3 text-muted-foreground shadow-[var(--shadow-hairline)]">
+              <TypingDots />
+            </span>
+          </div>
+        ) : null}
         <div ref={bottom} />
       </div>
       <form
-        className="flex items-end gap-2 border-t bg-card p-3"
+        className="material flex items-end gap-2 border-t p-3"
         onSubmit={(event) => {
           event.preventDefault();
           send();

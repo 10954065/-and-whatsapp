@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { AdminNav } from "@/components/admin/admin-nav";
 import { Logo } from "@/components/brand/logo";
+import { Button } from "@/components/ui/button";
 import { requireSuperAdmin } from "@/lib/auth/current";
 
 export const metadata: Metadata = { title: { default: "Admin", template: "%s · SUNLEON AI admin" }, robots: { index: false, follow: false } };
@@ -24,35 +26,35 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
 
   return (
     <div className="min-h-svh bg-background">
-      <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 lg:px-8">
-          <Logo href="/admin" />
-          <span className="rounded-md bg-navy px-2 py-0.5 text-xs font-semibold text-white">Admin</span>
-          {hasMfa ? (
-            <nav aria-label="Admin" className="flex flex-wrap gap-1 text-sm">
-              {NAV.map((item) => (
-                <Link key={item.href} href={item.href} className="rounded-md px-2.5 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          ) : null}
-          <Link href="/app/dashboard" className="ml-auto text-sm text-muted-foreground hover:text-foreground">
-            Back to app
+      <header className="grain sticky top-0 z-30 bg-[#1d1a16] text-[#f3efe7]">
+        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 pt-4 pb-3 lg:px-8">
+          <Logo href="/admin" inverted />
+          <span className="rounded-full bg-sun px-2.5 py-0.5 text-[11px] font-semibold text-[#1d1a16]">Admin console</span>
+          <Link href="/app/dashboard" className="ml-auto flex items-center gap-1 text-sm text-white/60 transition-colors hover:text-white">
+            <ArrowLeft className="size-4" aria-hidden="true" /> Back to app
           </Link>
         </div>
+        {hasMfa ? (
+          <div className="mx-auto max-w-7xl px-3 pb-3 lg:px-7">
+            <AdminNav items={NAV} />
+          </div>
+        ) : null}
       </header>
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 lg:px-8">
+      <main className="mx-auto w-full max-w-7xl px-4 pt-10 pb-16 lg:px-8">
         {hasMfa ? (
           children
         ) : (
-          <div className="mx-auto max-w-md rounded-2xl border bg-card p-8 text-center">
-            <ShieldCheck className="mx-auto size-10 text-primary" aria-hidden="true" />
-            <h1 className="mt-4 text-xl font-bold">Two-factor authentication required</h1>
-            <p className="mt-2 text-sm text-muted-foreground">The admin console can change every workspace. Turn on two-factor authentication for your account, then sign in again.</p>
-            <Link href="/app/account" className="mt-4 inline-block font-medium text-foreground link-underline">
-              Set up two-factor authentication
-            </Link>
+          <div className="surface mx-auto max-w-md rounded-[1.5rem] p-8 text-center">
+            <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-sun-soft text-sun-ink">
+              <ShieldCheck className="size-6" aria-hidden="true" />
+            </span>
+            <h1 className="mt-5 text-xl font-semibold tracking-[-0.02em]">Two-factor authentication required</h1>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              The admin console can change every workspace. Turn on two-factor authentication for your account, then sign in again.
+            </p>
+            <Button asChild className="mt-6">
+              <Link href="/app/account">Set up two-factor authentication</Link>
+            </Button>
           </div>
         )}
       </main>

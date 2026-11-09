@@ -29,7 +29,7 @@ export default async function OrdersPage() {
     <>
       <PageHeader title="Orders" description="Fulfilment and payment are tracked separately. An order is only marked paid after Paystack verifies the payment." />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <section className="overflow-hidden rounded-2xl border bg-card">
+        <section className="overflow-hidden surface rounded-[1.25rem]">
           {orders.length === 0 ? (
             <EmptyState className="m-6" icon={ShoppingBag} title="No orders yet" description="Orders created by you or your assistant appear here." />
           ) : (
@@ -85,7 +85,7 @@ export default async function OrdersPage() {
           )}
         </section>
         {canWrite && customers.length && variants.length ? (
-          <section className="rounded-2xl border bg-card p-6">
+          <section className="surface rounded-[1.25rem] p-6">
             <h2 className="mb-4 font-semibold">New order</h2>
             <QuickForm
               action={createOrderAction}

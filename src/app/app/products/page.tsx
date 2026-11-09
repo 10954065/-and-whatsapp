@@ -24,7 +24,7 @@ export default async function ProductsPage() {
     <>
       <PageHeader title="Products" description="Your catalogue. The AI quotes prices and stock only from here." />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <section className="overflow-hidden rounded-2xl border bg-card">
+        <section className="overflow-hidden surface rounded-[1.25rem]">
           {products.length === 0 ? (
             <EmptyState className="m-6" icon={Package} title="No products yet" description="Add the items you sell with their prices and stock." />
           ) : (
@@ -61,7 +61,7 @@ export default async function ProductsPage() {
           )}
         </section>
         {context.can("products.write") ? (
-          <section className="rounded-2xl border bg-card p-6">
+          <section className="surface rounded-[1.25rem] p-6">
             <h2 className="mb-4 font-semibold">Add a product</h2>
             <QuickForm
               action={createProductAction}

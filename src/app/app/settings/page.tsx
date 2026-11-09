@@ -20,7 +20,7 @@ export const metadata: Metadata = { title: "Settings" };
 
 function Section({ id, title, description, children }: { id: string; title: string; description: string; children: ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-20 rounded-2xl border bg-card p-6 sm:p-8">
+    <section id={id} className="scroll-mt-20 surface rounded-[1.25rem] p-6 sm:p-8">
       <h2 className="text-lg font-semibold">{title}</h2>
       <p className="mt-1 mb-6 text-sm text-muted-foreground">{description}</p>
       {children}
@@ -117,6 +117,7 @@ export default async function SettingsPage() {
                   </p>
                   <QuickForm
                     action={requestWorkspaceDeletionAction}
+                    variant="destructive"
                     submitLabel="Delete this workspace"
                     fields={[{ name: "confirmName", label: `Type “${business.name}” to confirm`, placeholder: business.name }]}
                   />

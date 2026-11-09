@@ -23,7 +23,7 @@ export default async function ServicesPage() {
     <>
       <PageHeader title="Services & staff" description="What customers can book, who performs it and when they work. Availability is calculated from this." />
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="surface rounded-[1.25rem] p-6">
           <h2 className="font-semibold">Services</h2>
           <ul className="mt-3 divide-y text-sm">
             {services.map((service) => (
@@ -51,7 +51,7 @@ export default async function ServicesPage() {
             </div>
           ) : null}
         </section>
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="surface rounded-[1.25rem] p-6">
           <h2 className="font-semibold">Staff</h2>
           <ul className="mt-3 divide-y text-sm">
             {staff.map((member) => (

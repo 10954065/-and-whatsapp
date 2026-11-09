@@ -26,7 +26,7 @@ export default async function LeadsPage() {
         {STATUSES.map((status) => {
           const column = leads.filter((lead) => lead.status === status);
           return (
-            <section key={status} className="min-w-52 rounded-2xl border bg-card p-3">
+            <section key={status} className="min-w-52 surface rounded-[1.25rem] p-3">
               <h2 className="mb-3 flex items-center justify-between text-sm font-semibold">
                 {status.charAt(0) + status.slice(1).toLowerCase()} <Badge variant="secondary">{column.length}</Badge>
               </h2>
@@ -50,7 +50,7 @@ export default async function LeadsPage() {
           );
         })}
       </div>
-      <section className="mt-6 rounded-2xl border bg-card p-6">
+      <section className="mt-6 surface rounded-[1.25rem] p-6">
         <h2 className="mb-3 font-semibold">Follow-ups due</h2>
         {tasks.length === 0 ? <p className="text-sm text-muted-foreground">Nothing due. Follow-ups created by your assistant appear here.</p> : null}
         <ul className="divide-y text-sm">

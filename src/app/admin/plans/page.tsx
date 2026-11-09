@@ -24,7 +24,7 @@ export default async function AdminPlansPage() {
       {plans.length === 0 ? <p className="text-sm text-muted-foreground">No plans yet. Run the database seed to create the starting plans.</p> : null}
       <div className="grid gap-6">
         {plans.map((plan) => (
-          <section key={plan.id} className="rounded-2xl border bg-card p-6">
+          <section key={plan.id} className="surface rounded-[1.25rem] p-6">
             <h2 className="mb-4 flex flex-wrap items-center gap-2 font-semibold">
               {plan.name} <span className="font-mono text-xs text-muted-foreground">{plan.code}</span>
               <Badge variant="outline">{plan._count.subscriptions} subscriptions</Badge>

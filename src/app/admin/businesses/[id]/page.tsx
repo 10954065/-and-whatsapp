@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "Business" };
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border bg-card p-6">
+    <section className="surface rounded-[1.25rem] p-6">
       <h2 className="mb-3 font-semibold">{title}</h2>
       {children}
     </section>
@@ -71,6 +71,7 @@ export default async function AdminBusinessPage({ params }: { params: Promise<{ 
           <p className="mb-3 text-sm text-muted-foreground">Suspending keeps all data, blocks the workspace and stops AI replies. Restoring re-enables everything.</p>
           <QuickForm
             action={setBusinessStatusAction}
+            variant={business.status === "ACTIVE" ? "destructive" : "default"}
             submitLabel={business.status === "ACTIVE" ? "Suspend workspace" : "Restore workspace"}
             hidden={{ businessId: business.id, status: business.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE" }}
             fields={[{ name: "reason", label: "Reason", placeholder: business.status === "ACTIVE" ? "Policy violation reported on 8 Nov" : "Issue resolved with owner" }]}
@@ -136,7 +137,7 @@ export default async function AdminBusinessPage({ params }: { params: Promise<{ 
         </Card>
       </div>
 
-      <section className="mt-6 rounded-2xl border bg-card p-6">
+      <section className="mt-6 surface rounded-[1.25rem] p-6">
         <h2 className="mb-3 font-semibold">Recent activity</h2>
         <ul className="divide-y text-sm">
           {audit.map((entry) => (

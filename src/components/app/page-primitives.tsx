@@ -60,8 +60,8 @@ export function EmptyState({
 
 const TONES = {
   default: "bg-foreground/[0.06] text-foreground/70",
-  violet: "bg-sun-soft text-sun-ink",
-  azure: "bg-info/12 text-info",
+  sun: "bg-sun-soft text-sun-ink",
+  info: "bg-info/12 text-info",
   success: "bg-success/12 text-success",
   warning: "bg-warning/15 text-warning",
 } as const;

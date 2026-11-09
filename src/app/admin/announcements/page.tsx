@@ -20,7 +20,7 @@ export default async function AdminAnnouncementsPage() {
     <>
       <PageHeader eyebrow="Platform" title="Announcements" description="Shown as a banner to every workspace while active (up to three at a time)." />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="surface rounded-[1.25rem] p-6">
           <h2 className="mb-4 font-semibold">New announcement</h2>
           <QuickForm
             action={createAnnouncementAction}
@@ -42,7 +42,7 @@ export default async function AdminAnnouncementsPage() {
             ]}
           />
         </section>
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="surface rounded-[1.25rem] p-6">
           <h2 className="mb-3 font-semibold">All announcements</h2>
           {announcements.length === 0 ? <p className="text-sm text-muted-foreground">None yet.</p> : null}
           <ul className="divide-y">

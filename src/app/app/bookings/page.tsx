@@ -42,7 +42,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Sea
     <>
       <PageHeader title="Bookings" description={`Times shown in ${context.business.timezone}. Double bookings are blocked by the database.`} />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="surface rounded-[1.25rem] p-6">
           <h2 className="mb-3 font-semibold">Upcoming</h2>
           {upcoming.length === 0 ? (
             <EmptyState icon={CalendarClock} title="No upcoming bookings" description="Bookings made by your team or assistant appear here." />
@@ -64,10 +64,10 @@ export default async function BookingsPage({ searchParams }: { searchParams: Sea
             </ul>
           )}
         </section>
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="surface rounded-[1.25rem] p-6">
           <h2 className="mb-3 font-semibold">Find a time</h2>
           <form className="flex flex-wrap items-end gap-2" action="/app/bookings">
-            <select name="service" defaultValue={serviceId} className="h-8 rounded-lg border bg-background px-2 text-sm" aria-label="Service">
+            <select name="service" defaultValue={serviceId} className="h-9 rounded-xl border pl-3 text-sm" aria-label="Service">
               <option value="">Choose a service</option>
               {services.map((service) => (
                 <option key={service.id} value={service.id}>
@@ -75,7 +75,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Sea
                 </option>
               ))}
             </select>
-            <input type="date" name="date" defaultValue={date} min={today} className="h-8 rounded-lg border bg-background px-2 text-sm" aria-label="Date" />
+            <input type="date" name="date" defaultValue={date} min={today} className="h-9 rounded-xl border border-input bg-card px-3 text-sm" aria-label="Date" />
             <Button type="submit" size="sm" variant="outline">
               Show times
             </Button>

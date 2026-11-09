@@ -41,7 +41,7 @@ export default async function KnowledgePage() {
         description="Everything your assistant is allowed to say comes from here and your business profile. It never shares this with other businesses."
       />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        <section className="overflow-hidden rounded-2xl border bg-card">
+        <section className="overflow-hidden surface rounded-[1.25rem]">
           {sources.length === 0 ? (
             <EmptyState
               className="m-6"
@@ -83,12 +83,12 @@ export default async function KnowledgePage() {
         </section>
         <aside className="grid content-start gap-6">
           {canManage ? (
-            <section className="rounded-2xl border bg-card p-6">
+            <section className="surface rounded-[1.25rem] p-6">
               <h2 className="mb-4 text-base font-semibold">Add knowledge</h2>
               <AddKnowledgeTabs />
             </section>
           ) : null}
-          <section className="rounded-2xl border bg-card p-6 text-sm">
+          <section className="surface rounded-[1.25rem] p-6 text-sm">
             <div className="flex justify-between">
               <span className="font-medium">Storage</span>
               <span className="text-muted-foreground">

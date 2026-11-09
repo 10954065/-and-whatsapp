@@ -23,7 +23,7 @@ export default async function TeamPage() {
     <>
       <PageHeader title="Team" description="Everyone with access to this workspace and what they can do." />
       {canManage ? (
-        <section className="mb-6 rounded-2xl border bg-card p-6">
+        <section className="mb-6 surface rounded-[1.25rem] p-6">
           <h2 className="mb-1 flex items-center gap-2 text-base font-semibold">
             <MailPlus className="size-4 text-primary" aria-hidden="true" /> Invite a teammate
           </h2>
@@ -36,7 +36,7 @@ export default async function TeamPage() {
         </section>
       ) : null}
 
-      <section className="overflow-hidden rounded-2xl border bg-card">
+      <section className="overflow-hidden surface rounded-[1.25rem]">
         <Table>
           <TableHeader>
             <TableRow>

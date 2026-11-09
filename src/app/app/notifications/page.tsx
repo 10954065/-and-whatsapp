@@ -33,7 +33,7 @@ export default async function NotificationsPage() {
         description="Alerts for your whole team. Choose which events notify you, and add an email address, in Settings → Notifications."
         actions={unread > 0 ? <ActionButton action={markNotificationsReadAction} values={{ notificationId: "all" }} label="Mark all as read" /> : null}
       />
-      <section className="rounded-2xl border bg-card">
+      <section className="surface rounded-[1.25rem]">
         {notifications.length === 0 ? (
           <div className="p-6">
             <EmptyState icon={Bell} title="You're all caught up" description="Escalations, new orders, bookings, low stock and automation alerts will appear here." />

@@ -27,7 +27,7 @@ export default async function AccountPage() {
   return (
     <>
       <PageHeader title="Account & security" description="Your personal sign-in details. These apply to every workspace you belong to." />
-      <div className="rounded-2xl border bg-card p-6 sm:p-8">
+      <div className="surface rounded-[1.25rem] p-6 sm:p-8">
         <Section title="Profile" description="Your name and sign-in email.">
           <dl className="grid gap-3 text-sm">
             <div>
@@ -78,7 +78,7 @@ export default async function AccountPage() {
           title="Delete account"
           description="Removes your sign-in and personal details from every workspace. If you own a workspace, delete it or hand it over first."
         >
-          <QuickForm action={deleteAccountAction} submitLabel="Delete my account" fields={[{ name: "password", label: "Your password", type: "password" }]} />
+          <QuickForm action={deleteAccountAction} variant="destructive" submitLabel="Delete my account" fields={[{ name: "password", label: "Your password", type: "password" }]} />
         </Section>
       </div>
     </>

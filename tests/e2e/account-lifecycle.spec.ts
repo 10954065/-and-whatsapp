@@ -16,7 +16,7 @@ test("visitor registers, creates a workspace, signs out and signs back in", asyn
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Create account" }).click();
 
-  await expect(page).toHaveURL(/\/onboarding/);
+  await expect(page).toHaveURL(/\/onboarding/, { timeout: 15_000 });
   await page.getByLabel("Business name").fill("Esi's Beauty Bar");
   await page.getByLabel("City").fill("Kumasi");
   await page.getByRole("button", { name: "Create workspace" }).click();

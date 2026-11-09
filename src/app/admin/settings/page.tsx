@@ -29,7 +29,7 @@ export default async function AdminSettingsPage() {
     <>
       <PageHeader eyebrow="Platform" title="Settings" />
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="surface rounded-[1.25rem] p-6">
           <h2 className="flex items-center gap-2 font-semibold">
             AI kill switch <Badge variant={aiEnabled ? "secondary" : "destructive"}>{aiEnabled ? "AI on" : "AI off for everyone"}</Badge>
           </h2>
@@ -43,7 +43,7 @@ export default async function AdminSettingsPage() {
             fields={[{ name: "reason", label: "Reason", placeholder: aiEnabled ? "Provider outage reported at 14:05" : "Provider recovered" }]}
           />
         </section>
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="surface rounded-[1.25rem] p-6">
           <h2 className="mb-1 font-semibold">Provider configuration</h2>
           <p className="mb-4 text-sm text-muted-foreground">Whether each provider&apos;s credentials are present in this deployment. Values are never shown.</p>
           <ul className="grid gap-2 text-sm">
