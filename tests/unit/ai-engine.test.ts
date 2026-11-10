@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildMessages } from "@/modules/ai/context";
-import { formatForChannel, postcheck, preflight, removeDashes, SAFE_HOLDING_REPLY, type PreflightInput } from "@/modules/ai/policy";
+import type { AiTone } from "@/generated/prisma/enums";
+import { buildMessages, buildSystemPrompt } from "@/modules/ai/context";
+import { clampForChannel, formatForChannel, postcheck, preflight, removeDashes, SAFE_HOLDING_REPLY, type PreflightInput } from "@/modules/ai/policy";
 import { estimateCostMicros } from "@/modules/ai/pricing";
-import { renderTemplate } from "@/modules/ai/prompts";
+import { BUILTIN_TEMPLATE, renderTemplate } from "@/modules/ai/prompts";
 import { supportsServerFallback } from "@/modules/ai/llm/anthropic";
 import { routeTier } from "@/modules/ai/router";
 import { toOrTsQuery } from "@/modules/knowledge/retrieval";
@@ -127,6 +128,7 @@ describe("removeDashes", () => {
     ["We build e‑commerce sites ‑ fast.", "We build e-commerce sites, fast."],
     ["Open Monday to Friday 9 – 19 h, Sunday 12 – 17 h.", "Open Monday to Friday 9 to 19 h, Sunday 12 to 17 h."],
     ["Thanks — see you soon.", "Thanks, see you soon."],
+    ["Great choice 😊 — it's in stock 🛍️", "Great choice 😊, it's in stock 🛍️"],
   ])("rewrites %j", (input, expected) => {
     expect(removeDashes(input)).toBe(expected);
   });
@@ -147,6 +149,69 @@ describe("formatForChannel", () => {
   it("removes Markdown markers on channels that show them as plain text", () => {
     expect(formatForChannel(reply, "INSTAGRAM")).toBe("Your order\n• Item: Kente midi dress\n• Total: GH₵ 450\nKeep *this* as written.");
     expect(formatForChannel(reply, "SANDBOX")).toBe(formatForChannel(reply, "INSTAGRAM"));
+  });
+});
+
+describe("buildSystemPrompt emoji style", () => {
+  const promptFor = (tone: AiTone) =>
+    buildSystemPrompt({
+      template: BUILTIN_TEMPLATE,
+      agent: { name: "Ama", tone, language: "en", customInstructions: null, escalationInstructions: null, escalationKeywords: [] },
+      business: {
+        name: "Ama's Fashion House",
+        description: null,
+        industry: "FASHION",
+        city: "Accra",
+        address: null,
+        country: "GH",
+        phone: null,
+        email: null,
+        website: null,
+        timezone: "Africa/Accra",
+        currency: "GHS",
+        businessHours: null,
+      },
+      channel: "WHATSAPP",
+      industryGuidance: "",
+    });
+
+  it.each<AiTone>(["FRIENDLY", "WARM", "PLAYFUL"])("asks %s assistants to add sweet emoji without waiting for the customer", (tone) => {
+    const prompt = promptFor(tone);
+    expect(prompt).toContain("😊");
+    expect(prompt).not.toMatch(/only if the customer uses them/i);
+  });
+
+  it("keeps concise assistants to one emoji and professional ones to none", () => {
+    expect(promptFor("CONCISE")).toMatch(/one friendly emoji at most/i);
+    expect(promptFor("PROFESSIONAL")).toMatch(/avoid emoji/i);
+    expect(promptFor("PROFESSIONAL")).not.toContain("😊");
+  });
+
+  it("keeps emoji out of order details and serious or upset conversations for every tone", () => {
+    const prompt = promptFor("FRIENDLY");
+    expect(prompt).toMatch(/never more than two/i);
+    expect(prompt).toMatch(/never inside prices, addresses, order or payment details/i);
+    expect(prompt).toMatch(/no emoji at all when the customer is upset/i);
+  });
+});
+
+describe("clampForChannel", () => {
+  const hasLoneSurrogate = (text: string) => /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/.test(text);
+
+  it("leaves replies within the limit untouched", () => {
+    expect(clampForChannel("Lovely, see you on Saturday 😊", "INSTAGRAM")).toBe("Lovely, see you on Saturday 😊");
+  });
+
+  it("never cuts an emoji in half when trimming", () => {
+    const clamped = clampForChannel(`${"a".repeat(3_998)}😊😊😊`, "WHATSAPP");
+    expect(hasLoneSurrogate(clamped)).toBe(false);
+    expect(clamped.endsWith("…")).toBe(true);
+  });
+
+  it("keeps Instagram replies under the 1000-byte limit even when emoji take four bytes each", () => {
+    const clamped = clampForChannel("😊".repeat(600), "INSTAGRAM");
+    expect(new TextEncoder().encode(clamped).length).toBeLessThan(1_000);
+    expect(hasLoneSurrogate(clamped)).toBe(false);
   });
 });
 

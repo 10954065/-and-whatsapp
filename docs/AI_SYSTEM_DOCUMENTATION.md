@@ -34,9 +34,12 @@ use keeps whatever state the provider needs. Configuration: `ENVIRONMENT_VARIABL
    requests include the server-side safety fallback (`betas: ["server-side-fallback-2026-07-01"]`,
    `fallbacks: "default"`). Effort is sent to Anthropic only.
 4. **Prompt (`prompts.ts`, `context.ts`)** — versioned system prompt (`PromptVersion` key
-   `customer-agent`, built-in v1 as fallback) rendered with tone, business facts (including
+   `customer-agent`, built-in v3 as fallback) rendered with tone, business facts (including
    the industry-template answers in `Business.knowledgeProfile`, neutralised), industry
-   guidance and owner instructions. It contains nothing volatile, so top-level
+   guidance and owner instructions. The tone sets emoji use: Friendly, Warm and Playful add a
+   sweet emoji where it fits (😊 🙏 ✨ 💛 🎉), Concise uses one at most and Professional none.
+   For every tone the prompt keeps emoji to two per reply, out of prices, addresses and order
+   or payment details, and out of replies to upset customers or serious subjects. It contains nothing volatile, so top-level
    `cache_control: ephemeral` caches it on Anthropic; cached tokens that OpenAI-compatible providers report are recorded too. The final user turn carries local time, open/closed
    state, retrieved knowledge inside `<business_knowledge>` (declared untrusted) and the
    customer's text inside `<customer_message>`; `<`/`>` in untrusted text are neutralised so

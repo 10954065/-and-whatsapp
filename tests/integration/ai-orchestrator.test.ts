@@ -68,7 +68,7 @@ describe("runAgent", () => {
     expect(llm.calls[0]).toMatchObject({ model: "claude-haiku-5-5", effort: "low", maxOutputTokens: 1_024, endUserId: business.id });
     expect(llm.calls[0].tools.map((tool) => tool.name)).toContain("capture_lead");
     const run = await prisma.aiRun.findUniqueOrThrow({ where: { id: result.runId! } });
-    expect(run).toMatchObject({ status: "SUCCEEDED", inputTokens: 1_000, outputTokens: 100, promptVersion: 2 });
+    expect(run).toMatchObject({ status: "SUCCEEDED", inputTokens: 1_000, outputTokens: 100, promptVersion: 3 });
     expect(await prisma.aiUsageRecord.count({ where: { businessId: business.id } })).toBe(1);
     expect(await prisma.usageCounter.count({ where: { businessId: business.id, metric: "AI_MESSAGE" } })).toBe(2);
   });

@@ -171,9 +171,29 @@ export function formatForChannel(text: string, channel: "WHATSAPP" | "INSTAGRAM"
     .replace(/^#{1,6}[ \t]+/gm, "");
 }
 
-/** Channel message limits (WhatsApp text 4096 chars; Instagram text 1000 bytes). */
+/** Channel message limits, with headroom: WhatsApp text 4096 characters; Instagram text 1000 bytes of UTF-8. */
+const WHATSAPP_MAX_CHARS = 4_000;
+const INSTAGRAM_MAX_BYTES = 950;
+const ELLIPSIS = "…";
+const utf8 = new TextEncoder();
+const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+
+/**
+ * Trims a reply to the channel's limit. Instagram counts bytes, where one emoji costs four, and
+ * trimming stops between whole characters, so an emoji is never cut in half.
+ */
 export function clampForChannel(text: string, channel: "WHATSAPP" | "INSTAGRAM" | "SANDBOX"): string {
-  const limit = channel === "INSTAGRAM" ? 950 : 4_000;
-  if (text.length <= limit) return text;
-  return `${text.slice(0, limit - 1).trimEnd()}…`;
+  const size = channel === "INSTAGRAM" ? (value: string) => utf8.encode(value).length : (value: string) => value.length;
+  const limit = channel === "INSTAGRAM" ? INSTAGRAM_MAX_BYTES : WHATSAPP_MAX_CHARS;
+  if (size(text) <= limit) return text;
+  const budget = limit - size(ELLIPSIS);
+  let kept = "";
+  let used = 0;
+  for (const { segment } of graphemes.segment(text)) {
+    const cost = size(segment);
+    if (used + cost > budget) break;
+    kept += segment;
+    used += cost;
+  }
+  return `${kept.trimEnd()}${ELLIPSIS}`;
 }

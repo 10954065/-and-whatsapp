@@ -1,5 +1,17 @@
 # Changelog
 
+## Friendlier replies
+
+* The assistant now adds a sweet, friendly emoji (😊 🙏 ✨ 💛 🎉) on its own in greetings, thanks
+  and good news, instead of waiting for the customer to use one first. The tone decides how
+  much: Friendly, Warm and Playful use them, Concise at most one, Professional none.
+* Emoji stay out of prices, addresses and order or payment details, never pass two in a reply,
+  and are left out entirely when a customer is upset or the subject is serious.
+* Customer agent prompt version 3. Runs record the version, so replies before and after the
+  change can be told apart.
+* Instagram replies are now trimmed by bytes, where an emoji counts four, so long replies stay
+  under Meta's 1000-byte limit; trimming never cuts an emoji in half on any channel.
+
 ## Dashboard redesign
 
 * One colour system across the workspace: ink for text and actions, the sun accent only for
