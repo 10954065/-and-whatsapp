@@ -50,22 +50,20 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Se
       </nav>
 
       <section aria-label="Key numbers" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label="New conversations" value={formatNumber(data.conversations.started)} hint={`${formatNumber(data.conversations.inbound)} customer messages`} icon={MessagesSquare} tone="sun" />
+        <StatCard label="New conversations" value={formatNumber(data.conversations.started)} hint={`${formatNumber(data.conversations.inbound)} customer messages`} icon={MessagesSquare} />
         <StatCard
           label="AI replies"
           value={formatNumber(data.conversations.aiReplies)}
           hint={`${formatNumber(data.conversations.staffReplies)} by your team · ${percent(data.ai.escalationRate)} of AI runs escalated`}
           icon={Headset}
-          tone="info"
         />
         <StatCard label="AI cost (estimate)" value={usd(data.ai.costMicros)} hint={`${formatNumber(data.ai.runs)} AI runs, excluding the test console`} icon={Wallet} />
-        <StatCard label="Orders" value={formatNumber(data.sales.orders)} hint={`${money(data.sales.revenueMinor)} total · ${formatNumber(data.sales.aiOrders)} taken by AI`} icon={ShoppingBag} tone="success" />
+        <StatCard label="Orders" value={formatNumber(data.sales.orders)} hint={`${money(data.sales.revenueMinor)} total · ${formatNumber(data.sales.aiOrders)} taken by AI`} icon={ShoppingBag} />
         <StatCard
           label="Bookings made"
           value={formatNumber(data.bookings.created)}
           hint={`${formatNumber(data.bookings.upcoming)} in the next 7 days · ${formatNumber(data.bookings.cancelled)} cancelled or no-show`}
           icon={CalendarClock}
-          tone="warning"
         />
         <StatCard label="New leads" value={formatNumber(data.leads.created)} hint={`${formatNumber(data.leads.won)} won · ${formatNumber(data.leads.open)} open · win rate ${percent(data.leads.winRate)}`} icon={Target} />
       </section>
@@ -81,7 +79,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Se
           title="Order value per day"
           valueLabel="in orders"
           emptyMessage="No orders in this period."
-          data={data.daily.map((point) => ({ date: point.date, value: point.revenueMinor, display: money(point.revenueMinor) }))}
+          data={data.daily.map((point) => ({ date: point.date, value: point.revenueMinor / 100, display: money(point.revenueMinor) }))}
         />
       </section>
 

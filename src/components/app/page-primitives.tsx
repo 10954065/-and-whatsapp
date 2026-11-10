@@ -58,11 +58,9 @@ export function EmptyState({
   );
 }
 
+/** Icons are neutral; a tone is a state (something needs attention), never decoration. */
 const TONES = {
   default: "bg-foreground/[0.06] text-foreground/70",
-  sun: "bg-sun-soft text-sun-ink",
-  info: "bg-info/12 text-info",
-  success: "bg-success/12 text-success",
   warning: "bg-warning/15 text-warning",
 } as const;
 
@@ -90,7 +88,7 @@ export function StatCard({
         </span>
         {href ? <ChevronRight className="size-4 text-foreground/30 transition-transform group-hover:translate-x-0.5" aria-hidden="true" /> : null}
       </div>
-      <p className="mt-5 text-[2.1rem] leading-none font-semibold tracking-[-0.035em] tabular-nums">{value}</p>
+      <p className="mt-5 text-[2.1rem] leading-none font-semibold tracking-[-0.035em]">{value}</p>
       <p className="mt-1.5 text-[13px] font-medium text-muted-foreground">{label}</p>
       {hint ? <div className="mt-1 text-xs text-muted-foreground">{hint}</div> : null}
     </>
@@ -98,6 +96,53 @@ export function StatCard({
   const className = "surface group block rounded-[1.25rem] p-4 sm:p-5";
   return href ? (
     <Link href={href} className={cn(className, "pressable transition-shadow hover:shadow-[var(--shadow-hairline),var(--shadow-lifted)]")}>
+      {body}
+    </Link>
+  ) : (
+    <div className={className}>{body}</div>
+  );
+}
+
+/**
+ * Key numbers as one card split by hairlines: the container shows through 1px gaps.
+ * Two columns on phones (the odd last cell spans both), one row from lg up.
+ */
+export function MetricStrip({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <section
+      aria-label={label}
+      className="grid grid-cols-2 gap-px overflow-hidden rounded-[1.25rem] bg-border shadow-[var(--shadow-hairline),var(--shadow-soft)] lg:auto-cols-fr lg:grid-flow-col lg:grid-cols-none [&>*:last-child:nth-child(odd)]:col-span-2 lg:[&>*:last-child:nth-child(odd)]:col-span-1"
+    >
+      {children}
+    </section>
+  );
+}
+
+export function Metric({ label, value, icon: Icon, href }: { label: string; value: ReactNode; icon: LucideIcon; href?: string }) {
+  const body = (
+    <>
+      <span className="flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
+        <Icon className="hidden size-4 shrink-0 text-foreground/40 sm:block" aria-hidden="true" />
+        <span className="min-w-0 flex-1 truncate">{label}</span>
+        {href ? (
+          <ChevronRight
+            className="hidden size-4 shrink-0 text-foreground/25 transition-[color,transform] duration-150 group-hover:translate-x-0.5 group-hover:text-foreground/60 sm:block"
+            aria-hidden="true"
+          />
+        ) : null}
+      </span>
+      <span className="mt-3 block text-[2rem] leading-none font-semibold tracking-[-0.035em]">{value}</span>
+    </>
+  );
+  const className = "group block bg-card px-4 pt-4 pb-5 sm:px-5";
+  return href ? (
+    <Link
+      href={href}
+      className={cn(
+        className,
+        "transition-colors duration-150 outline-none hover:bg-[color-mix(in_oklch,var(--card),var(--foreground)_3%)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+      )}
+    >
       {body}
     </Link>
   ) : (

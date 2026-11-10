@@ -1,5 +1,20 @@
 # Changelog
 
+## Dashboard redesign
+
+* One colour system across the workspace: ink for text and actions, the sun accent only for
+  progress, data and unread counts, and status colours only beside a label (Paid, Unpaid,
+  You're replying). Stat card icons are neutral on the dashboard, Analytics, Assistant and
+  Admin; the only coloured card left is Admin's failed-jobs warning.
+* The dashboard's key numbers are one card split by hairlines, the setup reminder is a regular
+  card with a progress ring and an ink button (it no longer disappears in dark mode), and the
+  panels sit in rows of equal height with matching empty states.
+* The conversations chart names every day of the week, marks today, shows the weekly total and
+  fills its card. In dark mode the chart uses a darker step of the sun so bars stay clear of
+  the background.
+* WhatsApp and Instagram dots come from shared colour tokens instead of copied hex values.
+* Fixed: the Analytics "Order value per day" axis counted pesewas, so GH₵450 read as 50K.
+
 ## Any AI provider
 
 * The assistant is no longer tied to Anthropic. Set `AI_PROVIDER=openai-compatible` with an

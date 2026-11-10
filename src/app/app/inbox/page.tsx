@@ -24,7 +24,7 @@ export const metadata: Metadata = { title: "Inbox" };
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 const CHANNEL_LABEL: Record<string, string> = { WHATSAPP: "WhatsApp", INSTAGRAM: "Instagram", SANDBOX: "Test" };
-const CHANNEL_DOT: Record<string, string> = { WHATSAPP: "bg-[#25d366]", INSTAGRAM: "bg-[#e1306c]", SANDBOX: "bg-foreground/30" };
+const CHANNEL_DOT: Record<string, string> = { WHATSAPP: "bg-whatsapp", INSTAGRAM: "bg-instagram", SANDBOX: "bg-foreground/30" };
 
 function initialsOf(name: string): string {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "?";
@@ -123,7 +123,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
                     <span className="flex items-center gap-2">
                       <span className="line-clamp-2 flex-1 text-[13px] leading-snug text-muted-foreground">{conversation.lastMessagePreview}</span>
                       {conversation.unreadCount > 0 ? (
-                        <span className="flex min-w-5 shrink-0 items-center justify-center rounded-full bg-sun px-1.5 text-[11px] leading-5 font-semibold text-[#1d1a16]">
+                        <span className="flex min-w-5 shrink-0 items-center justify-center rounded-full bg-sun px-1.5 text-[11px] leading-5 font-semibold text-sun-foreground">
                           {conversation.unreadCount}
                         </span>
                       ) : null}

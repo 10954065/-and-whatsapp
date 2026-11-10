@@ -57,14 +57,13 @@ export default async function AiAgentsPage() {
         </p>
       ) : null}
       <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Status" value={statusBadge} icon={Headset} tone="sun" hint={`${recentRuns} successful test${recentRuns === 1 ? "" : "s"}`} />
-        <StatCard label="AI replies today" value={`${messagesToday} / ${agent.dailyMessageLimit}`} icon={Gauge} tone="info" />
+        <StatCard label="Status" value={statusBadge} icon={Headset} hint={`${recentRuns} successful test${recentRuns === 1 ? "" : "s"}`} />
+        <StatCard label="AI replies today" value={`${messagesToday} / ${agent.dailyMessageLimit}`} icon={Gauge} />
         <StatCard label="AI replies this month" value={`${messagesMonth} / ${limits.aiMessagesPerMonth}`} icon={Gauge} hint="Plan allowance" />
         <StatCard
           label="Estimated AI cost this month"
           value={formatUsd(spend.monthMicros)}
           icon={CircleDollarSign}
-          tone="success"
           hint={`Today ${formatUsd(spend.todayMicros)} of ${formatUsd(agent.dailySpendLimitMicros)}`}
         />
       </section>

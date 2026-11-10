@@ -23,16 +23,15 @@ export default async function AdminOverviewPage() {
         </p>
       ) : null}
       <section aria-label="Key numbers" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label="Active businesses" value={formatNumber(overview.businesses.active)} hint={`${formatNumber(overview.businesses.suspended)} suspended · ${formatNumber(overview.businesses.total)} total`} icon={Building2} tone="sun" />
+        <StatCard label="Active businesses" value={formatNumber(overview.businesses.active)} hint={`${formatNumber(overview.businesses.suspended)} suspended · ${formatNumber(overview.businesses.total)} total`} icon={Building2} />
         <StatCard
           label="Paying subscriptions"
           value={formatNumber(subscriptions.ACTIVE ?? 0)}
           hint={`${formatNumber(subscriptions.TRIALING ?? 0)} trialing · ${formatNumber(subscriptions.GRACE ?? 0)} in grace · ${formatNumber(subscriptions.EXPIRED ?? 0)} expired`}
           icon={CreditCard}
-          tone="success"
         />
         <StatCard label="Revenue (30 days)" value={formatMoney(overview.revenue30d.amountMinor, "GHS")} hint={`${formatNumber(overview.revenue30d.payments)} payments`} icon={Wallet} />
-        <StatCard label="AI cost (30 days, estimate)" value={formatMoney(Math.round(overview.aiCost30dMicros / 10_000), "USD")} hint="Token usage at list prices" icon={Wallet} tone="info" />
+        <StatCard label="AI cost (30 days, estimate)" value={formatMoney(Math.round(overview.aiCost30dMicros / 10_000), "USD")} hint="Token usage at list prices" icon={Wallet} />
         <StatCard label="Failed jobs & webhooks" value={formatNumber(overview.failedJobs + overview.failedWebhooks)} hint={`${formatNumber(overview.errors24h)} errors in the last 24 hours`} icon={overview.failedJobs + overview.failedWebhooks ? AlertTriangle : Webhook} tone={overview.failedJobs + overview.failedWebhooks ? "warning" : "default"} />
         <StatCard label="New inquiries" value={formatNumber(overview.newInquiries)} hint={<Link href="/admin/inquiries" className="link-underline text-foreground">Open inquiries</Link>} icon={Inbox} />
       </section>

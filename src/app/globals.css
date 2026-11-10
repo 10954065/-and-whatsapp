@@ -52,7 +52,10 @@
   --color-sun: var(--sun);
   --color-sun-ink: var(--sun-ink);
   --color-sun-soft: var(--sun-soft);
+  --color-sun-foreground: var(--sun-foreground);
   --color-leaf: var(--leaf);
+  --color-whatsapp: var(--whatsapp);
+  --color-instagram: var(--instagram);
   --radius-sm: calc(var(--radius) * 0.5);
   --radius-md: calc(var(--radius) * 0.75);
   --radius-lg: var(--radius);
@@ -71,7 +74,12 @@
   --sun: oklch(0.68 0.185 46);
   --sun-ink: oklch(0.53 0.165 42);
   --sun-soft: oklch(0.945 0.04 72);
+  /* Text and icons placed on a sun fill: always dark, in both themes. */
+  --sun-foreground: oklch(0.205 0.012 62);
   --leaf: oklch(0.52 0.12 155);
+  /* Channel identity: only as small dots beside a label, never as fills or text. */
+  --whatsapp: oklch(0.76 0.19 150);
+  --instagram: oklch(0.6 0.22 0);
 
   --background: var(--paper);
   --foreground: var(--ink);
@@ -147,7 +155,8 @@
   --border: oklch(1 0 0 / 9%);
   --input: oklch(1 0 0 / 14%);
   --ring: var(--sun);
-  --chart-1: var(--sun);
+  /* The dark sun (L 0.74) is too light for chart marks; this step of the same hue sits in the dark band (L 0.48-0.67). */
+  --chart-1: oklch(0.66 0.16 48);
   --chart-2: oklch(0.72 0.08 215);
   --chart-3: oklch(0.74 0.12 155);
   --chart-4: oklch(0.7 0.12 340);
