@@ -7,6 +7,7 @@ import type { ActionResult } from "@/lib/monitoring/errors";
 import { parseInput, runAction } from "@/lib/http/action";
 import { getRequestMeta } from "@/lib/auth/request";
 import { requireTenantAction, toActor } from "@/lib/auth/tenant";
+import { enforceRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";
 import type { Permission } from "@/config/permissions";
 import {
   addConversationNote,
@@ -24,9 +25,11 @@ import {
   checkIntegrationHealth,
   connectSandbox,
   connectWhatsApp,
+  connectWhatsAppEmbedded,
   disconnectIntegration,
   startInstagramConnect,
   whatsappConnectSchema,
+  whatsappEmbeddedConnectSchema,
 } from "@/modules/integrations/integration.service";
 
 async function actorWith(permission: Permission) {
@@ -81,11 +84,25 @@ export async function simulateMessageAction(_previous: ActionResult | null, form
   );
 }
 
+/** Each attempt calls Meta several times, so attempts are limited per workspace. */
+async function whatsappConnector() {
+  const actor = await actorWith("integrations.manage");
+  await enforceRateLimit(RATE_LIMITS.whatsappConnect, actor.businessId);
+  return actor;
+}
+
 export async function connectWhatsAppAction(_previous: ActionResult | null, formData: FormData): Promise<ActionResult> {
-  return runAction(async () => void (await connectWhatsApp(await actorWith("integrations.manage"), parseInput(whatsappConnectSchema, formData)), revalidatePath("/app/integrations")), {
+  return runAction(async () => void (await connectWhatsApp(await whatsappConnector(), parseInput(whatsappConnectSchema, formData)), revalidatePath("/app/integrations")), {
     source: "integrations.whatsapp",
     successMessage: "WhatsApp number connected.",
   });
+}
+
+export async function connectWhatsAppEmbeddedAction(_previous: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  return runAction(
+    async () => void (await connectWhatsAppEmbedded(await whatsappConnector(), parseInput(whatsappEmbeddedConnectSchema, formData)), revalidatePath("/app/integrations")),
+    { source: "integrations.whatsapp_embedded", successMessage: "WhatsApp number connected." },
+  );
 }
 
 export async function connectSandboxAction(): Promise<ActionResult> {

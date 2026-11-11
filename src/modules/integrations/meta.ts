@@ -20,11 +20,11 @@ export interface GraphError {
   message: string;
 }
 
-async function graphRequest<T>(url: string, init: RequestInit & { accessToken: string }): Promise<T> {
+async function graphRequest<T>(url: string, init: RequestInit & { accessToken: string | null }): Promise<T> {
   const { accessToken, ...rest } = init;
   const response = await fetch(url, {
     ...rest,
-    headers: { authorization: `Bearer ${accessToken}`, "content-type": "application/json", ...(rest.headers ?? {}) },
+    headers: { ...(accessToken ? { authorization: `Bearer ${accessToken}` } : {}), "content-type": "application/json", ...(rest.headers ?? {}) },
     signal: AbortSignal.timeout(15_000),
   });
   const body = (await response.json().catch(() => ({}))) as { error?: { message?: string; code?: number } } & T;
@@ -61,10 +61,41 @@ export async function subscribeWhatsAppWebhooks(wabaId: string, credentials: Wha
 }
 
 export async function getWhatsAppPhoneNumber(phoneNumberId: string, credentials: WhatsAppCredentials) {
-  return graphRequest<{ id: string; display_phone_number: string; verified_name: string; quality_rating?: string }>(
-    `${graphBase()}/${encodeURIComponent(phoneNumberId)}?fields=display_phone_number,verified_name,quality_rating`,
+  return graphRequest<{ id: string; display_phone_number: string; verified_name: string; quality_rating?: string; platform_type?: string }>(
+    `${graphBase()}/${encodeURIComponent(phoneNumberId)}?fields=display_phone_number,verified_name,quality_rating,platform_type`,
     { method: "GET", accessToken: credentials.accessToken },
   );
+}
+
+/**
+ * Embedded Signup returns a one-time code that lives for 30 seconds. Swapping it with the
+ * platform's app secret gives the business token for the assets the owner just shared.
+ */
+export async function exchangeEmbeddedSignupCode(code: string): Promise<string> {
+  const { META_APP_ID: appId, META_APP_SECRET: appSecret } = env();
+  if (!appId || !appSecret) throw fail.precondition("Meta is not configured on this platform yet.");
+  const params = new URLSearchParams({ client_id: appId, client_secret: appSecret, code });
+  const body = await graphRequest<{ access_token?: string }>(`${graphBase()}/oauth/access_token?${params.toString()}`, { method: "GET", accessToken: null });
+  if (!body.access_token) throw new Error("Meta returned no access token.");
+  return body.access_token;
+}
+
+/** Ids of the phone numbers in a WhatsApp Business Account. */
+export async function listWhatsAppAccountNumberIds(wabaId: string, credentials: WhatsAppCredentials): Promise<string[]> {
+  const body = await graphRequest<{ data?: { id: string }[] }>(`${graphBase()}/${encodeURIComponent(wabaId)}/phone_numbers?fields=id&limit=100`, {
+    method: "GET",
+    accessToken: credentials.accessToken,
+  });
+  return (body.data ?? []).map((number) => number.id);
+}
+
+/** Switches a number on for the Cloud API. The PIN becomes the number's two-step verification PIN. */
+export async function registerWhatsAppNumber(phoneNumberId: string, pin: string, credentials: WhatsAppCredentials): Promise<void> {
+  await graphRequest(`${graphBase()}/${encodeURIComponent(phoneNumberId)}/register`, {
+    method: "POST",
+    accessToken: credentials.accessToken,
+    body: JSON.stringify({ messaging_product: "whatsapp", pin }),
+  });
 }
 
 export async function sendWhatsAppText(phoneNumberId: string, to: string, text: string, credentials: WhatsAppCredentials) {

@@ -180,7 +180,8 @@ export function providerStatus() {
     ai: aiProviderSettings().missing.length === 0,
     voyage: Boolean(current.VOYAGE_API_KEY),
     meta: Boolean(current.META_APP_ID && current.META_APP_SECRET && current.META_WEBHOOK_VERIFY_TOKEN),
-    whatsappEmbeddedSignup: Boolean(current.META_APP_ID && current.META_WHATSAPP_CONFIG_ID),
+    // The secret swaps the popup's one-time code for the business's token.
+    whatsappEmbeddedSignup: Boolean(current.META_APP_ID && current.META_APP_SECRET && current.META_WHATSAPP_CONFIG_ID),
     instagram: Boolean(current.INSTAGRAM_APP_ID && current.INSTAGRAM_APP_SECRET),
     // Checkout is server-initialised, so only the secret key is needed.
     paystack: Boolean(current.PAYSTACK_SECRET_KEY),

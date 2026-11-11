@@ -3,6 +3,7 @@ import { Camera, FlaskConical, MessageCircle } from "lucide-react";
 import { AccessDenied, PageHeader } from "@/components/app/page-primitives";
 import { InstagramConnectButton, IntegrationActions, SandboxConnectButton, WhatsAppConnectForm } from "@/components/integrations/integration-forms";
 import { MetaFeeNotice } from "@/components/integrations/meta-fees";
+import { WhatsAppEmbeddedSignup } from "@/components/integrations/whatsapp-embedded-signup";
 import { Badge } from "@/components/ui/badge";
 import { env, outboundMessagingMode, providerStatus } from "@/lib/env";
 import { formatRelative } from "@/lib/format";
@@ -29,7 +30,12 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
   const providers = providerStatus();
   const canManage = context.can("integrations.manage");
   const mode = outboundMessagingMode();
-  const webhookUrl = `${env().APP_URL}/api/webhooks/meta`;
+  const config = env();
+  const webhookUrl = `${config.APP_URL}/api/webhooks/meta`;
+  const embeddedSignup =
+    providers.whatsappEmbeddedSignup && config.META_APP_ID && config.META_WHATSAPP_CONFIG_ID
+      ? { appId: config.META_APP_ID, configId: config.META_WHATSAPP_CONFIG_ID, graphVersion: config.META_GRAPH_API_VERSION }
+      : null;
   const instagramNotice = typeof params.instagram === "string" ? params.instagram : null;
 
   return (
@@ -73,7 +79,9 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
             <MessageCircle className="size-4 text-[#128C7E]" aria-hidden="true" /> WhatsApp Business Platform
           </h2>
           <p className="mt-1 mb-4 text-sm text-muted-foreground">
-            Uses the WhatsApp Cloud API. You need a Meta Business account, a WhatsApp Business Account and a registered phone number.
+            {embeddedSignup
+              ? "Uses the WhatsApp Cloud API. Connect with your Facebook login, and Meta walks you through choosing your business and adding your number."
+              : "Uses the WhatsApp Cloud API. You need a Meta Business account, a WhatsApp Business Account and a registered phone number."}
           </p>
           <div className="mb-5 rounded-xl border bg-muted/40 p-4">
             <h3 className="text-sm font-semibold">Meta&apos;s WhatsApp fees</h3>
@@ -82,7 +90,19 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
           {!providers.meta ? (
             <p className="text-sm text-warning">The platform&apos;s Meta app credentials are not configured yet, so incoming messages cannot be received.</p>
           ) : canManage && context.user.emailVerifiedAt ? (
-            <WhatsAppConnectForm />
+            embeddedSignup ? (
+              <div className="grid gap-5">
+                <WhatsAppEmbeddedSignup {...embeddedSignup} />
+                <details className="rounded-xl border p-4">
+                  <summary className="cursor-pointer text-sm font-medium">Connect with IDs and a token instead</summary>
+                  <div className="mt-4">
+                    <WhatsAppConnectForm />
+                  </div>
+                </details>
+              </div>
+            ) : (
+              <WhatsAppConnectForm />
+            )
           ) : (
             <p className="text-sm text-muted-foreground">An owner or admin with a verified email can connect WhatsApp.</p>
           )}

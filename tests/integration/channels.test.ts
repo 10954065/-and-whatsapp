@@ -6,11 +6,13 @@ import {
   checkIntegrationHealth,
   completeInstagramConnect,
   connectWhatsApp,
+  connectWhatsAppEmbedded,
   credentialsFor,
   disconnectIntegration,
   listIntegrations,
   startInstagramConnect,
   whatsappConnectSchema,
+  whatsappEmbeddedConnectSchema,
 } from "@/modules/integrations/integration.service";
 import { createBusinessFor, createUser } from "./helpers";
 
@@ -134,6 +136,164 @@ describe("WhatsApp connection", () => {
     await expect(connectWhatsApp(actor, { phoneNumberId: digits(), wabaId: digits(), accessToken: "EAAG".padEnd(40, "r"), metaFeesAcknowledged: "on" })).rejects.toThrow(
       /would not send this number's messages to SUNLEON AI: \(#200\) Permissions error/,
     );
+    expect(await prisma.integration.count({ where: { businessId: business.id, channel: "WHATSAPP" } })).toBe(0);
+  });
+});
+
+/** Fake Graph API for Embedded Signup: code exchange, the account's numbers, linking and activation. */
+function stubEmbeddedGraph({
+  accountNumbers,
+  platformType = "NOT_APPLICABLE",
+  exchange = "ok",
+  register = "ok",
+}: {
+  accountNumbers: string[];
+  platformType?: string;
+  exchange?: "ok" | "expired";
+  register?: "ok" | "refused";
+}) {
+  const calls: { url: string; method: string; body: string | null }[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      calls.push({ url, method: init?.method ?? "GET", body: typeof init?.body === "string" ? init.body : null });
+      if (url.includes("/oauth/access_token")) {
+        return exchange === "ok"
+          ? Response.json({ access_token: "EAAB_business_token", token_type: "bearer" })
+          : Response.json({ error: { message: "This authorization code has expired.", code: 100 } }, { status: 400 });
+      }
+      if (url.includes("/phone_numbers")) return Response.json({ data: accountNumbers.map((id) => ({ id })) });
+      if (url.endsWith("/subscribed_apps")) return Response.json({ success: true });
+      if (url.endsWith("/register")) {
+        return register === "ok"
+          ? Response.json({ success: true })
+          : Response.json({ error: { message: "Two-step verification PIN mismatch.", code: 133005 } }, { status: 400 });
+      }
+      return Response.json({ id: "1", display_phone_number: "+233 20 000 0333", verified_name: "Signup Shop", platform_type: platformType });
+    }),
+  );
+  return calls;
+}
+
+describe("WhatsApp Embedded Signup", () => {
+  const code = "AQB_one_time_code_from_meta";
+
+  it("cannot be submitted without the code, numeric ids and the fees confirmation", () => {
+    const details = { code, wabaId: digits(), phoneNumberId: digits() };
+    expect(whatsappEmbeddedConnectSchema.safeParse(details).success).toBe(false);
+    expect(whatsappEmbeddedConnectSchema.safeParse({ ...details, metaFeesAcknowledged: "on" }).success).toBe(true);
+    expect(whatsappEmbeddedConnectSchema.safeParse({ ...details, wabaId: "12/../3", metaFeesAcknowledged: "on" }).success).toBe(false);
+    expect(whatsappEmbeddedConnectSchema.safeParse({ ...details, code: "", metaFeesAcknowledged: "on" }).success).toBe(false);
+  });
+
+  it("is refused until the platform's Meta app is configured", async () => {
+    const { actor } = await setup();
+    const calls = stubEmbeddedGraph({ accountNumbers: [] });
+    await expect(connectWhatsAppEmbedded(actor, { code, wabaId: digits(), phoneNumberId: digits(), metaFeesAcknowledged: "on" })).rejects.toThrow(/not set up on this platform/);
+    expect(calls).toHaveLength(0);
+  });
+
+  it("swaps the code for the business's token, activates the number, links it and stores the secrets encrypted", async () => {
+    const { actor } = await setup();
+    useMetaApp();
+    const wabaId = digits();
+    const phoneNumberId = digits();
+    const calls = stubEmbeddedGraph({ accountNumbers: [digits(), phoneNumberId] });
+
+    await expect(connectWhatsAppEmbedded({ ...actor, emailVerified: false }, { code, wabaId, phoneNumberId, metaFeesAcknowledged: "on" })).rejects.toThrow(/Confirm your email/);
+    const integration = await connectWhatsAppEmbedded(actor, { code, wabaId, phoneNumberId, metaFeesAcknowledged: "on" });
+
+    expect(integration).toMatchObject({ channel: "WHATSAPP", status: "CONNECTED", externalAccountId: phoneNumberId, wabaId, displayHandle: "+233 20 000 0333" });
+    const exchange = calls.find((call) => call.url.includes("/oauth/access_token"));
+    expect(exchange?.url).toContain(`code=${code}`);
+    expect(exchange?.url).toContain("client_id=sunleon_app");
+    expect(calls).toContainEqual(expect.objectContaining({ url: expect.stringContaining(`/${wabaId}/subscribed_apps`), method: "POST" }));
+    const registration = calls.find((call) => call.url.endsWith(`/${phoneNumberId}/register`));
+    const sent = JSON.parse(registration?.body ?? "{}") as { messaging_product?: string; pin?: string };
+    expect(sent.messaging_product).toBe("whatsapp");
+    expect(sent.pin).toMatch(/^\d{6}$/);
+
+    expect(integration.credentialsEnc).not.toContain("EAAB");
+    expect(credentialsFor(integration)).toEqual({ accessToken: "EAAB_business_token", registrationPin: sent.pin });
+    const audit = await prisma.auditLog.findFirstOrThrow({ where: { action: "integration.connected", entityId: integration.id } });
+    expect(audit.metadata).toMatchObject({ channel: "WHATSAPP", method: "embedded_signup", metaFeesAcknowledged: true });
+  });
+
+  it("does not register a number Meta already has on the Cloud API", async () => {
+    const { actor } = await setup();
+    useMetaApp();
+    const phoneNumberId = digits();
+    const calls = stubEmbeddedGraph({ accountNumbers: [phoneNumberId], platformType: "CLOUD_API" });
+    const integration = await connectWhatsAppEmbedded(actor, { code, wabaId: digits(), phoneNumberId, metaFeesAcknowledged: "on" });
+    expect(calls.some((call) => call.url.endsWith("/register"))).toBe(false);
+    expect(credentialsFor(integration)).toEqual({ accessToken: "EAAB_business_token" });
+  });
+
+  it("refuses a number that is not in the WhatsApp account the owner picked, and links nothing", async () => {
+    const { actor, business } = await setup();
+    useMetaApp();
+    const calls = stubEmbeddedGraph({ accountNumbers: [digits()] });
+    await expect(connectWhatsAppEmbedded(actor, { code, wabaId: digits(), phoneNumberId: digits(), metaFeesAcknowledged: "on" })).rejects.toThrow(/not part of the WhatsApp account/);
+    expect(calls.some((call) => call.url.endsWith("/subscribed_apps") || call.url.endsWith("/register"))).toBe(false);
+    expect(await prisma.integration.count({ where: { businessId: business.id, channel: "WHATSAPP" } })).toBe(0);
+  });
+
+  it("asks the owner to try again when the code has expired", async () => {
+    const { actor, business } = await setup();
+    useMetaApp();
+    stubEmbeddedGraph({ accountNumbers: [], exchange: "expired" });
+    await expect(connectWhatsAppEmbedded(actor, { code, wabaId: digits(), phoneNumberId: digits(), metaFeesAcknowledged: "on" })).rejects.toThrow(
+      /Meta did not accept the sign-in \(This authorization code has expired\.\)\. Click Connect WhatsApp and try again\./,
+    );
+    expect(await prisma.integration.count({ where: { businessId: business.id, channel: "WHATSAPP" } })).toBe(0);
+  });
+
+  it("refuses a number another workspace has connected before asking Meta for anything", async () => {
+    const first = await setup();
+    const second = await setup();
+    useMetaApp();
+    const phoneNumberId = digits();
+    stubEmbeddedGraph({ accountNumbers: [phoneNumberId] });
+    await connectWhatsAppEmbedded(first.actor, { code, wabaId: digits(), phoneNumberId, metaFeesAcknowledged: "on" });
+
+    const calls = stubEmbeddedGraph({ accountNumbers: [phoneNumberId] });
+    await expect(connectWhatsAppEmbedded(second.actor, { code, wabaId: digits(), phoneNumberId, metaFeesAcknowledged: "on" })).rejects.toThrow(
+      /already connected to another SUNLEON AI workspace/,
+    );
+    expect(calls).toHaveLength(0);
+  });
+
+  it("reconnects the same number within the plan's allowance and keeps its PIN", async () => {
+    const { actor } = await setup();
+    useMetaApp();
+    const phoneNumberId = digits();
+    const wabaId = digits();
+    stubEmbeddedGraph({ accountNumbers: [phoneNumberId] });
+    const first = await connectWhatsAppEmbedded(actor, { code, wabaId, phoneNumberId, metaFeesAcknowledged: "on" });
+    const pin = credentialsFor(first).registrationPin;
+    expect(pin).toMatch(/^\d{6}$/);
+
+    stubEmbeddedGraph({ accountNumbers: [phoneNumberId], platformType: "CLOUD_API" });
+    const again = await connectWhatsAppEmbedded(actor, { code, wabaId, phoneNumberId, metaFeesAcknowledged: "on" });
+    expect(again.id).toBe(first.id);
+    expect(credentialsFor(again)).toEqual({ accessToken: "EAAB_business_token", registrationPin: pin });
+
+    // A fresh token pasted into the manual form also replaces the old one without losing the PIN.
+    stubGraph();
+    const manual = await connectWhatsApp(actor, { phoneNumberId, wabaId, accessToken: "EAAG".padEnd(40, "n"), metaFeesAcknowledged: "on" });
+    expect(credentialsFor(manual)).toEqual({ accessToken: "EAAG".padEnd(40, "n"), registrationPin: pin });
+  });
+
+  it("explains a refused activation and links nothing", async () => {
+    const { actor, business } = await setup();
+    useMetaApp();
+    const phoneNumberId = digits();
+    const calls = stubEmbeddedGraph({ accountNumbers: [phoneNumberId], register: "refused" });
+    await expect(connectWhatsAppEmbedded(actor, { code, wabaId: digits(), phoneNumberId, metaFeesAcknowledged: "on" })).rejects.toThrow(
+      /WhatsApp would not switch this number on: Two-step verification PIN mismatch\./,
+    );
+    expect(calls.some((call) => call.url.endsWith("/subscribed_apps"))).toBe(false);
     expect(await prisma.integration.count({ where: { businessId: business.id, channel: "WHATSAPP" } })).toBe(0);
   });
 });

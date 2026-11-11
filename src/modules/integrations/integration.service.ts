@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { META_FREE_REPLIES_PER_MONTH } from "@/config/whatsapp-fees";
 import type { Channel, Integration } from "@/generated/prisma/client";
@@ -10,24 +11,40 @@ import { decryptJson, encryptJson, hashToken, randomToken } from "@/lib/security
 import { recordAudit } from "@/modules/administration/audit.service";
 import { getPlanLimits } from "@/modules/billing/usage";
 import {
+  exchangeEmbeddedSignupCode,
   exchangeInstagramCode,
   getInstagramProfile,
   getTokenAppId,
   getWhatsAppPhoneNumber,
   instagramAuthorizeUrl,
+  listWhatsAppAccountNumberIds,
+  registerWhatsAppNumber,
   subscribeInstagramWebhooks,
   subscribeWhatsAppWebhooks,
 } from "@/modules/integrations/meta";
 
 export interface ChannelCredentials {
   accessToken: string;
+  /** Two-step verification PIN set when SUNLEON AI registered the number with the Cloud API. */
+  registrationPin?: string;
 }
 
+const phoneNumberIdField = z.string().trim().regex(/^\d{6,30}$/, "The phone number ID is a long number from WhatsApp Manager.");
+const wabaIdField = z.string().trim().regex(/^\d{6,30}$/, "The WhatsApp Business Account ID is a long number.");
+const metaFeesAcknowledgedField = z.literal("on", { error: "Confirm that you understand Meta's WhatsApp fees." });
+
 export const whatsappConnectSchema = z.object({
-  phoneNumberId: z.string().trim().regex(/^\d{6,30}$/, "The phone number ID is a long number from WhatsApp Manager."),
-  wabaId: z.string().trim().regex(/^\d{6,30}$/, "The WhatsApp Business Account ID is a long number."),
+  phoneNumberId: phoneNumberIdField,
+  wabaId: wabaIdField,
   accessToken: z.string().trim().min(20, "Paste the permanent system-user access token.").max(1_000),
-  metaFeesAcknowledged: z.literal("on", { error: "Confirm that you understand Meta's WhatsApp fees." }),
+  metaFeesAcknowledged: metaFeesAcknowledgedField,
+});
+
+export const whatsappEmbeddedConnectSchema = z.object({
+  code: z.string().trim().min(1, "Meta did not return a sign-in code. Click Connect WhatsApp and try again.").max(2_000),
+  phoneNumberId: phoneNumberIdField,
+  wabaId: wabaIdField,
+  metaFeesAcknowledged: metaFeesAcknowledgedField,
 });
 
 export function credentialsFor(integration: Pick<Integration, "credentialsEnc">): ChannelCredentials {
@@ -39,12 +56,24 @@ export async function listIntegrations(businessId: string) {
   return prisma.integration.findMany({ where: { businessId }, orderBy: { createdAt: "asc" } });
 }
 
-async function assertChannelAllowance(businessId: string): Promise<void> {
+const CONNECTED_ELSEWHERE = "This account is already connected to another SUNLEON AI workspace.";
+
+/** Reconnecting an account the workspace already has (a fresh token, say) does not use up another channel. */
+async function assertChannelAllowance(businessId: string, reconnectingAccountId?: string): Promise<void> {
   const [limits, connected] = await Promise.all([
     getPlanLimits(businessId),
-    prisma.integration.count({ where: { businessId, status: "CONNECTED", channel: { not: "SANDBOX" } } }),
+    prisma.integration.count({
+      where: { businessId, status: "CONNECTED", channel: { not: "SANDBOX" }, ...(reconnectingAccountId ? { externalAccountId: { not: reconnectingAccountId } } : {}) },
+    }),
   ]);
   if (connected >= limits.channels) throw fail.limitExceeded(`Your plan allows ${limits.channels} connected channel(s). Upgrade to add more.`);
+}
+
+/** The number's current connection, if any. Checked before any call to Meta changes the number. */
+async function existingWhatsAppNumber(actor: TenantActor, phoneNumberId: string): Promise<Integration | null> {
+  const existing = await prisma.integration.findUnique({ where: { channel_externalAccountId: { channel: "WHATSAPP", externalAccountId: phoneNumberId } } });
+  if (existing && existing.businessId !== actor.businessId) throw fail.conflict(CONNECTED_ELSEWHERE);
+  return existing;
 }
 
 async function upsertIntegration(
@@ -56,7 +85,7 @@ async function upsertIntegration(
 ): Promise<Integration> {
   const existing = await prisma.integration.findUnique({ where: { channel_externalAccountId: { channel, externalAccountId } } });
   if (existing && existing.businessId !== actor.businessId) {
-    throw fail.conflict("This account is already connected to another SUNLEON AI workspace.");
+    throw fail.conflict(CONNECTED_ELSEWHERE);
   }
   const integration = await withTenantTx(actor.businessId, async (tx) => {
     const saved = existing
@@ -79,24 +108,103 @@ async function upsertIntegration(
  */
 export async function connectWhatsApp(actor: TenantActor, input: z.infer<typeof whatsappConnectSchema>): Promise<Integration> {
   if (!actor.emailVerified) throw fail.precondition("Confirm your email address before connecting channels.");
-  await assertChannelAllowance(actor.businessId);
-  let phone;
-  try {
-    phone = await getWhatsAppPhoneNumber(input.phoneNumberId, { accessToken: input.accessToken });
-  } catch (error) {
-    throw fail.validation(`WhatsApp rejected these details: ${(error as Error).message}`);
-  }
+  const existing = await existingWhatsAppNumber(actor, input.phoneNumberId);
+  await assertChannelAllowance(actor.businessId, input.phoneNumberId);
+  const credentials: ChannelCredentials = { accessToken: input.accessToken };
+  const phone = await lookUpWhatsAppNumber(input.phoneNumberId, credentials);
   // Meta only sends a number's messages to the app its token was made for, so check that first.
   const platformAppId = env().META_APP_ID;
   const tokenAppId = await getTokenAppId(input.accessToken).catch(() => null);
   if (platformAppId && tokenAppId && tokenAppId !== platformAppId) {
     throw fail.validation("This token was made for a different Meta app. Generate it for the SUNLEON AI app, or customer messages won't reach your inbox.");
   }
+  await linkWhatsAppAccount(input.wabaId, credentials);
+  return saveWhatsAppNumber(actor, input, phone, credentials, "manual", existing);
+}
+
+/**
+ * Connects the number an owner picked in Meta's Embedded Signup popup. The browser passes only
+ * the one-time code and the ids the popup reported; each is checked with Meta before saving.
+ */
+export async function connectWhatsAppEmbedded(actor: TenantActor, input: z.infer<typeof whatsappEmbeddedConnectSchema>): Promise<Integration> {
+  if (!actor.emailVerified) throw fail.precondition("Confirm your email address before connecting channels.");
+  const { META_APP_ID, META_APP_SECRET } = env();
+  if (!META_APP_ID || !META_APP_SECRET) throw fail.precondition("Connecting with Facebook is not set up on this platform yet. Use the manual form instead.");
+  const existing = await existingWhatsAppNumber(actor, input.phoneNumberId);
+  await assertChannelAllowance(actor.businessId, input.phoneNumberId);
+
+  let accessToken: string;
   try {
-    await subscribeWhatsAppWebhooks(input.wabaId, { accessToken: input.accessToken });
+    accessToken = await exchangeEmbeddedSignupCode(input.code);
+  } catch (error) {
+    throw fail.validation(`Meta did not accept the sign-in (${(error as Error).message}). Click Connect WhatsApp and try again.`);
+  }
+  const credentials: ChannelCredentials = { accessToken };
+  const phone = await lookUpWhatsAppNumber(input.phoneNumberId, credentials);
+  let accountNumbers: string[];
+  try {
+    accountNumbers = await listWhatsAppAccountNumberIds(input.wabaId, credentials);
+  } catch (error) {
+    throw fail.validation(`WhatsApp rejected these details: ${(error as Error).message}`);
+  }
+  if (!accountNumbers.includes(input.phoneNumberId)) {
+    throw fail.validation("This number is not part of the WhatsApp account you picked in Meta. Click Connect WhatsApp and choose the number again.");
+  }
+  const registrationPin = phone.platform_type === "CLOUD_API" ? null : await registerNewNumber(input.phoneNumberId, credentials);
+  await linkWhatsAppAccount(input.wabaId, credentials);
+  return saveWhatsAppNumber(actor, input, phone, registrationPin ? { ...credentials, registrationPin } : credentials, "embedded_signup", existing);
+}
+
+/** A number new to the Cloud API has to be registered before it can send or receive. Returns its PIN. */
+async function registerNewNumber(phoneNumberId: string, credentials: ChannelCredentials): Promise<string> {
+  const pin = randomInt(0, 1_000_000).toString().padStart(6, "0");
+  try {
+    await registerWhatsAppNumber(phoneNumberId, pin, credentials);
+  } catch (error) {
+    throw fail.validation(
+      `WhatsApp would not switch this number on: ${(error as Error).message} If another provider set a two-step verification PIN on this number, turn it off in WhatsApp Manager and try again.`,
+    );
+  }
+  return pin;
+}
+
+async function lookUpWhatsAppNumber(phoneNumberId: string, credentials: ChannelCredentials) {
+  try {
+    return await getWhatsAppPhoneNumber(phoneNumberId, credentials);
+  } catch (error) {
+    throw fail.validation(`WhatsApp rejected these details: ${(error as Error).message}`);
+  }
+}
+
+/** Sends the account's webhooks to SUNLEON AI; without this, customer messages never arrive. */
+async function linkWhatsAppAccount(wabaId: string, credentials: ChannelCredentials): Promise<void> {
+  try {
+    await subscribeWhatsAppWebhooks(wabaId, credentials);
   } catch (error) {
     throw fail.validation(`WhatsApp accepted the number but would not send this number's messages to SUNLEON AI: ${(error as Error).message}`);
   }
+}
+
+/** The PIN SUNLEON AI set when it registered the number, if a previous connection stored one. */
+function storedRegistrationPin(existing: Integration | null): string | undefined {
+  if (!existing?.credentialsEnc) return undefined;
+  try {
+    return credentialsFor(existing).registrationPin;
+  } catch {
+    return undefined;
+  }
+}
+
+function saveWhatsAppNumber(
+  actor: TenantActor,
+  input: { phoneNumberId: string; wabaId: string },
+  phone: { verified_name: string; display_phone_number: string },
+  credentials: ChannelCredentials,
+  method: "manual" | "embedded_signup",
+  existing: Integration | null,
+): Promise<Integration> {
+  // A new token must not lose the PIN: Meta asks for it to register the number again.
+  const previousPin = credentials.registrationPin ? undefined : storedRegistrationPin(existing);
   return upsertIntegration(
     actor,
     "WHATSAPP",
@@ -105,10 +213,10 @@ export async function connectWhatsApp(actor: TenantActor, input: z.infer<typeof 
       externalAccountName: phone.verified_name,
       displayHandle: phone.display_phone_number,
       wabaId: input.wabaId,
-      credentialsEnc: encryptJson({ accessToken: input.accessToken } satisfies ChannelCredentials),
+      credentialsEnc: encryptJson(previousPin ? { ...credentials, registrationPin: previousPin } : credentials),
     },
     // Proof the owner saw Meta's fees, and the free allowance they were shown.
-    { metaFeesAcknowledged: true, metaFreeRepliesShown: META_FREE_REPLIES_PER_MONTH },
+    { method, metaFeesAcknowledged: true, metaFreeRepliesShown: META_FREE_REPLIES_PER_MONTH },
   );
 }
 
