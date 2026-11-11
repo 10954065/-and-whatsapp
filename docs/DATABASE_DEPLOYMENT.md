@@ -11,8 +11,8 @@ The schema is managed by Prisma migrations in `prisma/migrations`:
 
 ## 1. Create the database
 
-1. Create a Supabase project in the same region as the Vercel functions: **Central EU
-   (Frankfurt), `eu-central-1`**, matching `"regions": ["fra1"]` in `vercel.json`. Save the
+1. Create a Supabase project in the same region as the Vercel functions: **West EU
+   (Paris), `eu-west-3`**, matching `"regions": ["cdg1"]` in `vercel.json`. Save the
    database password in a password manager.
 2. From **Connect**, copy two connection strings and put the password in both:
    * **Transaction pooler** (port 6543) → `DATABASE_URL` (runtime). The app's `pg` driver
@@ -27,7 +27,7 @@ The schema is managed by Prisma migrations in `prisma/migrations`:
 5. For knowledge-base uploads, create a **private** Storage bucket named `knowledge` and an
    S3 access key (Storage → S3 Configuration). Set `OBJECT_STORAGE_ENDPOINT` to
    `https://<project-ref>.storage.supabase.co/storage/v1/s3` and `OBJECT_STORAGE_REGION` to
-   `eu-central-1`. These keys bypass Storage RLS: server-side only.
+   `eu-west-3`. These keys bypass Storage RLS: server-side only.
 
 ## 2. Apply migrations and seed
 

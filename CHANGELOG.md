@@ -2,8 +2,8 @@
 
 ## Ready for Supabase and Vercel
 
-* Production database is Supabase (Frankfurt), with Vercel functions pinned to Frankfurt
-  (`fra1`) next to it. Uploads can use Supabase Storage through the existing S3 driver.
+* Production database is Supabase (Paris), with Vercel functions pinned to Paris
+  (`cdg1`) next to it. Uploads can use Supabase Storage through the existing S3 driver.
 * New migration closes Supabase's Data API: the `anon`, `authenticated` and `service_role`
   roles can no longer read or write any table, including tables added later. Verified on a
   database set up with Supabase's roles and default grants: 0 of 62 tables reachable, the

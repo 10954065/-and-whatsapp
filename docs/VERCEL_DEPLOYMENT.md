@@ -13,8 +13,8 @@ standalone worker (`npm run worker`) is only an alternative to cron or QStash.
 2. Build command: `npm run build` (runs `prisma generate` then `next build`). Install command:
    default (`npm install`; `postinstall` also generates the Prisma client).
 3. Node.js version: 24 (Project → Settings → General).
-4. Function region: `vercel.json` pins functions to `fra1` (Frankfurt), next to the
-   Supabase project in `eu-central-1`. Without it Vercel defaults to `iad1` (Washington), an
+4. Function region: `vercel.json` pins functions to `cdg1` (Paris), next to the
+   Supabase project in `eu-west-3`. Without it Vercel defaults to `iad1` (Washington), an
    ocean away from the database. Hobby allows one region; that is all the app needs.
 5. `.vercelignore` keeps `.env*` and `.data/` out of CLI uploads; Vercel's own default list
    skips `.env.local` but not `.env`.
