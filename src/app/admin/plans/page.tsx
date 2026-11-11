@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Layers } from "lucide-react";
 import { PageHeader, Panel, PanelEmpty, StatusLabel } from "@/components/app/page-primitives";
+import { PlanCard } from "@/components/billing/plan-card";
+import { allowanceLine, cardFinish } from "@/components/billing/plan-card-format";
 import { QuickForm } from "@/components/operations/operations-forms";
 import { formatMoney, formatNumber } from "@/lib/format";
 import { requireAdminConsole } from "@/lib/auth/current";
@@ -28,7 +30,7 @@ export default async function AdminPlansPage() {
         </section>
       ) : (
         <div className="grid gap-6">
-          {plans.map((plan) => (
+          {plans.map((plan, index) => (
             <Panel
               key={plan.id}
               title={plan.name}
@@ -43,7 +45,21 @@ export default async function AdminPlansPage() {
                 <span className="font-mono">{plan.code}</span> · {formatMoney(plan.priceMonthlyMinor, plan.currency)} a month · {formatMoney(plan.priceYearlyMinor, plan.currency)} a year ·{" "}
                 {formatNumber(plan._count.subscriptions)} {plan._count.subscriptions === 1 ? "subscription" : "subscriptions"}
               </p>
-              <div className="border-t px-5 py-5">
+              <div className="grid gap-6 border-t px-5 py-5 xl:grid-cols-[17rem_minmax(0,1fr)] xl:items-start">
+                {/* How the plan looks to customers on the pricing page and in billing. */}
+                <PlanCard
+                  className="w-full max-w-xs"
+                  index={index}
+                  front={{
+                    finish: cardFinish(index),
+                    headline: formatMoney(plan.priceMonthlyMinor, plan.currency),
+                    headlineNote: "a month",
+                    allowance: allowanceLine(plan.limits),
+                    holderLabel: "Plan",
+                    holder: plan.name,
+                    tag: plan.isActive ? undefined : "Off sale",
+                  }}
+                />
                 <QuickForm
                   action={updatePlanAction}
                   submitLabel="Save plan"
