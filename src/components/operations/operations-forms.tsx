@@ -19,6 +19,8 @@ export interface FieldSpec {
   defaultValue?: string;
   hint?: string;
   step?: string;
+  /** In a multi-column form, how many columns the field takes from tablet width up. */
+  span?: 2 | "full";
 }
 
 const selectClass = "h-10 w-full rounded-xl border border-input px-3 text-sm";
@@ -108,9 +110,15 @@ export function QuickForm({
         <input key={name} type="hidden" name={name} value={value} />
       ))}
       <div className={cn("grid gap-4", columns === 2 && "sm:grid-cols-2", columns === 3 && "sm:grid-cols-3")}>
-        {fields.map((spec) => (
-          <SpecField key={spec.name} spec={spec} errors={fieldErrors(state, spec.name)} />
-        ))}
+        {fields.map((spec) =>
+          spec.span ? (
+            <div key={spec.name} className={spec.span === "full" ? "sm:col-span-full" : "sm:col-span-2"}>
+              <SpecField spec={spec} errors={fieldErrors(state, spec.name)} />
+            </div>
+          ) : (
+            <SpecField key={spec.name} spec={spec} errors={fieldErrors(state, spec.name)} />
+          ),
+        )}
       </div>
       <div>
         <SubmitButton variant={variant} isPending={isPending} pendingLabel="Saving…">
