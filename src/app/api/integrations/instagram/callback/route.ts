@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/auth/current";
 import { env } from "@/lib/env";
 import { isAppError } from "@/lib/monitoring/errors";
+import { logger } from "@/lib/monitoring/logger";
 import { reportError } from "@/lib/monitoring/report";
 import { completeInstagramConnect, instagramFailureNotice } from "@/modules/integrations/integration.service";
 
@@ -24,7 +25,8 @@ export async function GET(request: Request) {
     await completeInstagramConnect(session.user.id, state, code.replace(/#_$/, ""));
     back.searchParams.set("instagram", "connected");
   } catch (error) {
-    if (!isAppError(error)) await reportError(error, { source: "integration.instagram_callback" });
+    if (isAppError(error)) logger.warn("integration.instagram_connect_failed", { code: error.code, reason: error.message });
+    else await reportError(error, { source: "integration.instagram_callback" });
     back.searchParams.set("instagram", instagramFailureNotice(error));
   }
   return NextResponse.redirect(back);
