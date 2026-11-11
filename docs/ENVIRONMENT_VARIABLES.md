@@ -82,6 +82,7 @@ records zero cost, so spend limits do not apply to it; plan message allowances s
 | `META_WEBHOOK_VERIFY_TOKEN` | Any random string; enter the same value in the Meta app's webhook settings. |
 | `META_WHATSAPP_CONFIG_ID` | WhatsApp Embedded Signup configuration id (Facebook Login for Business → Configurations). With `META_APP_ID` and `META_APP_SECRET` it shows the Connect WhatsApp button. Public by Meta's design. |
 | `META_INSTAGRAM_CONFIG_ID` | Instagram API with Unified Login configuration id (Instagram → API setup with Unified login). With `META_APP_ID` and `META_APP_SECRET` it shows the Connect with Instagram button. Public by Meta's design. |
+| `META_INSTAGRAM_FALLBACK_ACCOUNT_IDS` | Optional. Comma-separated Instagram account ids to try when Meta lists no account after login, which happens when a portfolio connects to its own app. An id is used only if the connecting token can read it. |
 
 See `META_INTEGRATION_GUIDE.md` and `WHATSAPP_INTEGRATION_GUIDE.md`.
 

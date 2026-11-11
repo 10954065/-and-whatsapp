@@ -30,6 +30,7 @@ const digits = () => String(Math.floor(1e14 + Math.random() * 9e14));
 afterEach(() => {
   vi.unstubAllGlobals();
   delete process.env.META_INSTAGRAM_CONFIG_ID;
+  delete process.env.META_INSTAGRAM_FALLBACK_ACCOUNT_IDS;
   delete process.env.META_APP_ID;
   delete process.env.META_APP_SECRET;
   resetEnvCache();
@@ -308,6 +309,7 @@ function stubInstagramGraph({
   granted = [],
   owned = [],
   unreadableIds = [],
+  unlisted = [],
   subscribe = "ok",
 }: {
   accounts: { id: string; username: string }[];
@@ -315,6 +317,8 @@ function stubInstagramGraph({
   /** Accounts the connecting portfolio owns; found only through the business lookup. */
   owned?: { id: string; username: string }[];
   unreadableIds?: string[];
+  /** Accounts the token can read that no listing names. */
+  unlisted?: { id: string; username: string }[];
   subscribe?: "ok" | "refused";
 }) {
   const calls: { url: string; method: string }[] = [];
@@ -332,7 +336,7 @@ function stubInstagramGraph({
       if (url.includes("/me?fields=client_business_id")) return Response.json({ client_business_id: "777001", id: "1" });
       if (url.includes("/777001/owned_instagram_accounts")) return Response.json({ data: [...unreadableIds, ...owned.map((account) => account.id)].map((id) => ({ id })) });
       if (url.includes("/777001/instagram_accounts")) return Response.json({ error: { message: "(#200) Permissions error", code: 200 } }, { status: 403 });
-      const lookup = [...granted, ...owned].find((account) => url.includes(`/${account.id}?fields=`));
+      const lookup = [...granted, ...owned, ...unlisted].find((account) => url.includes(`/${account.id}?fields=`));
       if (lookup) return Response.json(lookup);
       if (url.includes("/subscribed_apps")) {
         return subscribe === "ok" ? Response.json({ success: true }) : Response.json({ error: { message: "(#200) Permissions error", code: 200 } }, { status: 403 });
@@ -413,6 +417,24 @@ describe("Instagram connection (Unified Login)", () => {
     await completeInstagramConnect(owner.id, await startState(actor), "code");
     const integration = await prisma.integration.findFirstOrThrow({ where: { businessId: business.id, channel: "INSTAGRAM" } });
     expect(integration).toMatchObject({ status: "CONNECTED", displayHandle: "@own_portfolio_shop", externalAccountId: igId });
+    expect(calls).toContainEqual({ url: expect.stringContaining(`/${igId}/subscribed_apps`), method: "POST" });
+  });
+
+  it("connects an account from the platform's fallback list only when the token can read it", async () => {
+    const { owner, actor, business } = await setup();
+    configureInstagramApp();
+    const igId = digits();
+    process.env.META_INSTAGRAM_FALLBACK_ACCOUNT_IDS = `not-an-id, ${igId}`;
+    resetEnvCache();
+
+    stubInstagramGraph({ accounts: [] });
+    await expect(completeInstagramConnect(owner.id, await startState(actor), "code")).rejects.toThrow(/No Instagram professional account was shared/);
+    expect(await prisma.integration.count({ where: { businessId: business.id, channel: "INSTAGRAM" } })).toBe(0);
+
+    const calls = stubInstagramGraph({ accounts: [], unlisted: [{ id: igId, username: "fallback_shop" }] });
+    await completeInstagramConnect(owner.id, await startState(actor), "code");
+    const integration = await prisma.integration.findFirstOrThrow({ where: { businessId: business.id, channel: "INSTAGRAM" } });
+    expect(integration).toMatchObject({ status: "CONNECTED", displayHandle: "@fallback_shop", externalAccountId: igId });
     expect(calls).toContainEqual({ url: expect.stringContaining(`/${igId}/subscribed_apps`), method: "POST" });
   });
 

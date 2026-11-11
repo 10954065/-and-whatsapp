@@ -65,6 +65,7 @@ const envSchema = z.object({
   META_WEBHOOK_VERIFY_TOKEN: optionalString,
   META_WHATSAPP_CONFIG_ID: optionalString,
   META_INSTAGRAM_CONFIG_ID: optionalString,
+  META_INSTAGRAM_FALLBACK_ACCOUNT_IDS: optionalString,
   PAYSTACK_PUBLIC_KEY: optionalString,
   PAYSTACK_SECRET_KEY: optionalString,
   RESEND_API_KEY: optionalString,

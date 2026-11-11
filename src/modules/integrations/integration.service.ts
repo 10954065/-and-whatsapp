@@ -307,6 +307,7 @@ async function findUnlistedInstagramAccounts(credentials: ChannelCredentials): P
   const tried: Record<string, string> = { grants: grants.map((grant) => `${grant.scope}:${grant.targetIds?.length ?? "all"}`).join(",") };
   let candidateIds = grants.find((grant) => grant.scope === "instagram_manage_messages")?.targetIds ?? [];
   if (candidateIds.length === 0) candidateIds = await instagramAccountIdsFromBusiness(credentials, tried);
+  if (candidateIds.length === 0) candidateIds = fallbackInstagramAccountIds();
 
   const accounts: { id: string; username: string }[] = [];
   for (const id of candidateIds.slice(0, MAX_GRANTED_ACCOUNTS)) {
@@ -319,6 +320,14 @@ async function findUnlistedInstagramAccounts(credentials: ChannelCredentials): P
   }
   if (accounts.length === 0) logger.warn("integration.instagram_no_account_found", tried);
   return accounts;
+}
+
+/** Account ids the platform owner listed for when Meta names none; only numeric ids are kept. */
+function fallbackInstagramAccountIds(): string[] {
+  return (env().META_INSTAGRAM_FALLBACK_ACCOUNT_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter((id) => /^\d{5,30}$/.test(id));
 }
 
 /** Ids from the connecting portfolio's own Instagram accounts; `tried` records what each lookup answered. */
