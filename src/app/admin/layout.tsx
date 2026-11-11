@@ -1,23 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ShieldCheck, UserRound } from "lucide-react";
-import { AdminNav } from "@/components/admin/admin-nav";
+import { AdminMenu, AdminTabs } from "@/components/admin/admin-nav";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { requireSuperAdmin } from "@/lib/auth/current";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: { default: "Admin", template: "%s · SUNLEON AI admin" }, robots: { index: false, follow: false } };
-
-const NAV = [
-  { href: "/admin", label: "Overview" },
-  { href: "/admin/businesses", label: "Businesses" },
-  { href: "/admin/plans", label: "Plans" },
-  { href: "/admin/monitoring", label: "Monitoring" },
-  { href: "/admin/inquiries", label: "Inquiries" },
-  { href: "/admin/announcements", label: "Announcements" },
-  { href: "/admin/settings", label: "Settings" },
-  { href: "/admin/audit", label: "Audit log" },
-];
 
 /** Platform administration: 404 for everyone but super-admins, and two-factor authentication is required. */
 export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -27,36 +17,31 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
   return (
     <div className="min-h-svh bg-background">
       <header className="grain sticky top-0 z-30 bg-[#1d1a16] text-[#f3efe7]">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 pt-4 pb-3 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-4 md:pt-4 lg:px-8">
           <Logo href="/admin" inverted />
           <span className="shrink-0 rounded-full bg-sun px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#1d1a16]">
             Admin console
           </span>
-          {/* Icons only on phones; the labels stay available to screen readers. */}
-          <Link
-            href="/app/account"
-            title="Account & security"
-            className="ml-auto flex items-center gap-1 text-sm whitespace-nowrap text-white/60 transition-colors hover:text-white"
-          >
-            <UserRound className="size-4" aria-hidden="true" />
-            <span className="sr-only sm:not-sr-only">Account &amp; security</span>
-          </Link>
-          <Link
-            href="/app/dashboard"
-            title="Back to app"
-            className="flex items-center gap-1 text-sm whitespace-nowrap text-white/60 transition-colors hover:text-white"
-          >
-            <ArrowLeft className="size-4" aria-hidden="true" />
-            <span className="sr-only sm:not-sr-only">Back to app</span>
-          </Link>
+          {/* With the console open, phones get the side-bar menu; the links below move into it. */}
+          {hasMfa ? <AdminMenu /> : null}
+          <div className={cn("ml-auto items-center gap-4", hasMfa ? "hidden md:flex" : "flex")}>
+            <Link href="/app/account" title="Account & security" className="flex items-center gap-1 text-sm whitespace-nowrap text-white/60 transition-colors hover:text-white">
+              <UserRound className="size-4" aria-hidden="true" />
+              <span className="sr-only sm:not-sr-only">Account &amp; security</span>
+            </Link>
+            <Link href="/app/dashboard" title="Back to app" className="flex items-center gap-1 text-sm whitespace-nowrap text-white/60 transition-colors hover:text-white">
+              <ArrowLeft className="size-4" aria-hidden="true" />
+              <span className="sr-only sm:not-sr-only">Back to app</span>
+            </Link>
+          </div>
         </div>
         {hasMfa ? (
-          <div className="mx-auto max-w-7xl px-3 pb-3 lg:px-7">
-            <AdminNav items={NAV} />
+          <div className="mx-auto hidden max-w-7xl px-3 pb-3 md:block lg:px-7">
+            <AdminTabs />
           </div>
         ) : null}
       </header>
-      <main className="mx-auto w-full max-w-7xl px-4 pt-10 pb-16 lg:px-8">
+      <main className="mx-auto w-full max-w-7xl px-4 pt-8 pb-16 sm:pt-10 lg:px-8">
         {hasMfa ? (
           children
         ) : (
