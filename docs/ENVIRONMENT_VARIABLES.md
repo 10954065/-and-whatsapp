@@ -40,6 +40,7 @@ configured" in the app (and in Admin → Settings) instead of failing.
 | --- | --- | --- |
 | `AI_PROVIDER` | `anthropic` | `anthropic` (Claude, native API) or `openai-compatible` (any provider that speaks the OpenAI Chat Completions format). |
 | `AI_API_KEY` | — | The provider's API key. Enables AI replies and the test console; without it, AI runs are skipped and messages wait for the team. For `anthropic`, the older `ANTHROPIC_API_KEY` is also accepted. |
+| `AI_API_KEYS` | — | Several keys for the same provider, separated by commas. Each request starts on the next key in turn; a rate-limited key rests for a minute and a refused key for fifteen while the next key answers. Takes precedence over `AI_API_KEY`. Providers such as Groq and Anthropic count rate limits per account, so extra keys from one account add resilience, not capacity. |
 | `AI_BASE_URL` | `https://api.openai.com/v1` for `openai-compatible`; none for `anthropic` | The provider's API endpoint (table below). For Anthropic, set it only to route through a proxy or gateway. |
 | `AI_MODEL` | Claude 5.5 models for `anthropic`; **required** for `openai-compatible` | Model id used for every tier. |
 | `AI_MODEL_FAST` | `AI_MODEL` (Anthropic: `claude-haiku-5-5`) | Fast tier (short, simple messages). |

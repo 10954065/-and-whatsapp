@@ -1,5 +1,6 @@
 import { aiProviderSettings, type AiProviderSettings } from "@/lib/env";
 import { createAnthropicClient } from "@/modules/ai/llm/anthropic";
+import { createKeyRotatingClient } from "@/modules/ai/llm/key-pool";
 import { createOpenAiCompatibleClient } from "@/modules/ai/llm/openai-compatible";
 import type { LlmClient } from "@/modules/ai/llm/types";
 import type { ModelTier } from "@/modules/ai/router";
@@ -14,16 +15,19 @@ export function isAiConfigured(): boolean {
 }
 
 function createClient(settings: AiProviderSettings): LlmClient | null {
-  if (!settings.apiKey) return null;
-  if (settings.provider === "anthropic") return createAnthropicClient({ apiKey: settings.apiKey, baseUrl: settings.baseUrl });
-  return settings.baseUrl ? createOpenAiCompatibleClient({ apiKey: settings.apiKey, baseUrl: settings.baseUrl }) : null;
+  const { apiKeys, baseUrl } = settings;
+  if (apiKeys.length === 0) return null;
+  if (settings.provider === "anthropic") return createKeyRotatingClient(apiKeys, (apiKey) => createAnthropicClient({ apiKey, baseUrl }));
+  if (!baseUrl) return null;
+  // Only the last key in line waits out a rate limit; the others hand it back so the next key is tried at once.
+  return createKeyRotatingClient(apiKeys, (apiKey, { isLastResort }) => createOpenAiCompatibleClient({ apiKey, baseUrl, retryRateLimits: isLastResort }));
 }
 
 /** The configured provider's client, or null until the AI is configured. */
 export function getLlmClient(): LlmClient | null {
   const settings = aiProviderSettings();
   if (settings.missing.length > 0) return null;
-  const signature = [settings.provider, settings.baseUrl ?? "", settings.apiKey ?? ""].join("|");
+  const signature = [settings.provider, settings.baseUrl ?? "", ...settings.apiKeys].join("|");
   if (cached?.signature !== signature) {
     const client = createClient(settings);
     if (!client) return null;

@@ -62,7 +62,7 @@ workspace UI is blocked and AI replies stop. **Restore** reverses it. Both actio
 | `CRON_SECRET`, `META_WEBHOOK_VERIFY_TOKEN` | Generate a new value, update Vercel (and Meta for the verify token), redeploy. |
 | `META_APP_SECRET`, `INSTAGRAM_APP_SECRET` | Reset in the Meta dashboard, update Vercel, redeploy. |
 | `PAYSTACK_SECRET_KEY` | Roll the key in Paystack, update Vercel, redeploy. Webhooks are verified with the new key immediately. |
-| `AI_API_KEY`, `VOYAGE_API_KEY`, `RESEND_API_KEY`, `QSTASH_*`, storage keys | Rotate at the provider, update Vercel, redeploy. |
+| `AI_API_KEY` / `AI_API_KEYS`, `VOYAGE_API_KEY`, `RESEND_API_KEY`, `QSTASH_*`, storage keys | Rotate at the provider, update Vercel, redeploy. |
 | `AUTH_SECRET` | Rotating it invalidates every session and outstanding email link (everyone signs in again). |
 | `ENCRYPTION_KEY` | **Do not simply rotate.** Stored channel tokens and MFA secrets would become unreadable. Re-encrypt them with a migration script first, or ask affected businesses to reconnect channels and users to re-enrol MFA. |
 | A business's WhatsApp/Instagram token | The owner disconnects and reconnects the channel; the old token is replaced. |

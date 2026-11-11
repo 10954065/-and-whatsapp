@@ -26,6 +26,8 @@ const envSchema = z.object({
   /** The API format the AI speaks. "openai-compatible" covers OpenAI, Gemini, OpenRouter, Groq, DeepSeek, Mistral, Ollama and similar. */
   AI_PROVIDER: z.enum(["anthropic", "openai-compatible"]).default("anthropic"),
   AI_API_KEY: optionalString,
+  /** Several keys for the same provider, separated by commas or new lines; used in turn, with failover. Takes precedence over AI_API_KEY. */
+  AI_API_KEYS: optionalString,
   /** Provider endpoint. Defaults to https://api.openai.com/v1 for "openai-compatible"; optional for Anthropic (proxies, gateways). */
   AI_BASE_URL: optionalString.pipe(z.url().optional()),
   /** One model for every tier; AI_MODEL_FAST / _STANDARD / _ADVANCED override it per tier. */
@@ -129,6 +131,9 @@ const DEFAULT_ANTHROPIC_MODELS = { fast: "claude-haiku-5-5", standard: "claude-s
 
 export interface AiProviderSettings {
   provider: Env["AI_PROVIDER"];
+  /** Every configured key, in order; the AI client rotates through them. */
+  apiKeys: string[];
+  /** The first key. */
   apiKey: string | undefined;
   baseUrl: string | undefined;
   models: { fast: string | undefined; standard: string | undefined; advanced: string | undefined };
@@ -145,7 +150,9 @@ export function aiProviderSettings(): AiProviderSettings {
   const current = env();
   const provider = current.AI_PROVIDER;
   const isAnthropic = provider === "anthropic";
-  const apiKey = current.AI_API_KEY ?? (isAnthropic ? current.ANTHROPIC_API_KEY : undefined);
+  const singleKey = current.AI_API_KEY ?? (isAnthropic ? current.ANTHROPIC_API_KEY : undefined);
+  const apiKeys = current.AI_API_KEYS ? [...new Set(current.AI_API_KEYS.split(/[\s,]+/).filter(Boolean))] : singleKey ? [singleKey] : [];
+  const apiKey = apiKeys[0];
   const defaults = isAnthropic
     ? {
         fast: current.ANTHROPIC_MODEL_FAST ?? DEFAULT_ANTHROPIC_MODELS.fast,
@@ -158,6 +165,7 @@ export function aiProviderSettings(): AiProviderSettings {
   const advanced = current.AI_MODEL_ADVANCED ?? current.AI_MODEL ?? defaults?.advanced ?? standard;
   return {
     provider,
+    apiKeys,
     apiKey,
     baseUrl: current.AI_BASE_URL?.replace(/\/+$/, "") ?? (isAnthropic ? undefined : DEFAULT_OPENAI_COMPATIBLE_BASE_URL),
     models: { fast, standard, advanced },

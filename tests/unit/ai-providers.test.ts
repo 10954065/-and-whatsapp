@@ -12,6 +12,7 @@ import type { ToolContext } from "@/modules/ai/tools/types";
 const AI_KEYS = [
   "AI_PROVIDER",
   "AI_API_KEY",
+  "AI_API_KEYS",
   "AI_BASE_URL",
   "AI_MODEL",
   "AI_MODEL_FAST",
@@ -67,6 +68,14 @@ describe("AI provider settings", () => {
     expect(aiProviderSettings().apiKey).toBe("sk-ant-new");
     expect(getLlmClient()).not.toBeNull();
     expect(aiProviderLabel()).toBe("Anthropic");
+  });
+
+  it("takes a list of keys from AI_API_KEYS ahead of AI_API_KEY, trimmed and without repeats", () => {
+    setEnv({ AI_PROVIDER: "openai-compatible", AI_MODEL: "test-model", AI_API_KEY: "gsk_single", AI_API_KEYS: " gsk_one, gsk_two ,,gsk_one\ngsk_three " });
+    expect(aiProviderSettings()).toMatchObject({ apiKeys: ["gsk_one", "gsk_two", "gsk_three"], apiKey: "gsk_one", missing: [] });
+    delete process.env.AI_API_KEYS;
+    resetEnvCache();
+    expect(aiProviderSettings()).toMatchObject({ apiKeys: ["gsk_single"], apiKey: "gsk_single" });
   });
 
   it("still honours the older ANTHROPIC_MODEL_* names for Anthropic, below the AI_MODEL_* settings", () => {

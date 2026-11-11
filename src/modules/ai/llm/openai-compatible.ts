@@ -183,6 +183,8 @@ export interface OpenAiCompatibleOptions {
   maxRetries?: number;
   retryDelayMs?: number;
   timeoutMs?: number;
+  /** False hands a 429 straight back, so a key pool can move to another key at once. */
+  retryRateLimits?: boolean;
 }
 
 /**
@@ -196,6 +198,7 @@ export function createOpenAiCompatibleClient(options: OpenAiCompatibleOptions): 
   const maxRetries = options.maxRetries ?? 2;
   const retryDelayMs = options.retryDelayMs ?? 500;
   const timeoutMs = options.timeoutMs ?? 60_000;
+  const retryRateLimits = options.retryRateLimits ?? true;
   return {
     async create(request) {
       const body = JSON.stringify(toChatCompletionBody(request, options.baseUrl));
@@ -221,7 +224,7 @@ export function createOpenAiCompatibleClient(options: OpenAiCompatibleOptions): 
           if (json === undefined) throw new LlmProviderError(`Provider error ${response.status}: the response body was not JSON.`, response.status);
           return fromChatCompletion(json);
         }
-        if (canRetry && RETRYABLE_STATUSES.has(response.status)) {
+        if (canRetry && RETRYABLE_STATUSES.has(response.status) && (retryRateLimits || response.status !== 429)) {
           await response.body?.cancel().catch(() => undefined);
           await sleep(retryAfterMs(response) ?? retryDelayMs * 2 ** attempt);
           continue;
