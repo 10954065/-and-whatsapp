@@ -1,5 +1,18 @@
 # Changelog
 
+## Emails that look like SUNLEON
+
+* Verification, password reset, invitation and notification emails now use the product's own
+  look: warm paper background, a card with the sunrise logo and wordmark, a large serif
+  heading and an ink pill button, instead of the old purple template.
+* Each email says when its link expires (24 hours, 1 hour, 7 days, matching the code), offers
+  a copyable fallback link, and closes with a line on why the reader received it.
+  Notification emails link to the alert settings.
+* Invitations show the workspace, role and inviter in a small panel.
+* Dark mode for mail apps that support it, phone-friendly sizing, an inbox preview line and a
+  clean plain-text version. Every name and link is escaped.
+* The logo is served from `/email/sunleon-mark.png`, because Gmail does not show SVG.
+
 ## Account & security, easy to find
 
 * "Account & security" (password, two-factor authentication, account deletion) is now in the
