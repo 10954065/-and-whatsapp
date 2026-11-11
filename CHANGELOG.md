@@ -1,5 +1,24 @@
 # Changelog
 
+## Admin console that works on phones
+
+* On phones the admin menu moves into a side bar (the menu button at the top right), with
+  Account & security and Back to app at the bottom. Tablets and desktops keep the tab row.
+* Every admin page follows the dashboard's design: a strip of key numbers, headed panels, and
+  states shown as a coloured dot beside a label. No page scrolls sideways at phone width.
+* Overview is a home screen: active businesses, paying subscriptions, 30-day revenue and AI
+  cost, failures and new inquiries, plus newest businesses, what needs attention, and a
+  subscription breakdown.
+* Businesses shows a table from tablet width and one readable row per business on phones.
+  A business page opens with its plan, AI use, members and channels, then the panels to
+  extend the plan, suspend or restore, and add support notes.
+* Monitoring shows the newest eight problems in each list, with the rest one tap away. Long
+  error messages wrap instead of widening the page.
+* Audit log: a fixed table from tablet width and compact rows on phones.
+* Plans: each plan shows its price, subscriptions and on-sale status above the form.
+  Settings lists every provider as configured or not. Announcements show their level and
+  state. Inquiries can be filtered by status.
+
 ## Home in the website menu
 
 * "Home" is the first link in the website header, the phone menu and the footer, so visitors
