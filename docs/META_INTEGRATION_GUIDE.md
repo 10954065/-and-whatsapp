@@ -21,6 +21,17 @@ and the **Instagram API with Instagram Login**. No browser automation or unoffic
    `META_GRAPH_API_VERSION` (default `v27.0`), `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET`.
 6. App Review: request `whatsapp_business_messaging`, `whatsapp_business_management`,
    `instagram_business_basic`, `instagram_business_manage_messages` (Advanced Access).
+7. WhatsApp Embedded Signup (the **Connect WhatsApp** button), once Business Verification and
+   App Review are approved:
+   * Complete Meta's Tech Provider onboarding for the app.
+   * Add the **Facebook Login for Business** product. In its settings turn on
+     **Login with the JavaScript SDK** and add `<APP_URL>`'s domain (for example
+     `www.sunleon-ai.com`) to **Allowed domains for the JavaScript SDK**.
+   * Under **Configurations**, create one with the **WhatsApp Embedded Signup** login variation
+     and the `whatsapp_business_management` and `whatsapp_business_messaging` permissions.
+   * Set its id as `META_WHATSAPP_CONFIG_ID` and redeploy. The button appears when
+     `META_APP_ID`, `META_APP_SECRET` and `META_WHATSAPP_CONFIG_ID` are all set; the manual form
+     stays available under it.
 
 ## 2. Security
 

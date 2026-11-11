@@ -1,5 +1,16 @@
 # Changelog
 
+## Connect WhatsApp in a few clicks
+
+* Businesses can connect their WhatsApp number with a **Connect WhatsApp** button: Meta's window
+  opens, they log in with Facebook, choose or create their business and add their number with a
+  text-message code. No IDs or tokens to copy.
+* SUNLEON AI checks the number belongs to the account chosen in Meta, switches it on for the
+  Cloud API when it is new, links it so customer messages arrive, and saves nothing if a step
+  fails, saying which one.
+* The button appears once the platform is set up as a Meta Tech Provider. Until then, and as a
+  fallback after, the manual form with IDs and a token works as before.
+
 ## Plans as payment cards
 
 * Every plan is drawn as a payment card in the brand's finishes: cream for Starter, sun for

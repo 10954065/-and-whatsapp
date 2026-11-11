@@ -80,7 +80,7 @@ records zero cost, so spend limits do not apply to it; plan message allowances s
 | `META_GRAPH_API_VERSION` | Graph API version, default `v27.0`. |
 | `META_APP_ID`, `META_APP_SECRET` | Meta app credentials. The secret verifies `X-Hub-Signature-256` on webhooks. |
 | `META_WEBHOOK_VERIFY_TOKEN` | Any random string; enter the same value in the Meta app's webhook settings. |
-| `META_WHATSAPP_CONFIG_ID` | WhatsApp Embedded Signup configuration id. |
+| `META_WHATSAPP_CONFIG_ID` | WhatsApp Embedded Signup configuration id (Facebook Login for Business → Configurations). With `META_APP_ID` and `META_APP_SECRET` it shows the Connect WhatsApp button. Public by Meta's design. |
 | `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET` | Instagram API with Instagram Login credentials. |
 
 See `META_INTEGRATION_GUIDE.md` and `WHATSAPP_INTEGRATION_GUIDE.md`.
