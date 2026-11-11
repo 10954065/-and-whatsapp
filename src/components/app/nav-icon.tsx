@@ -15,6 +15,7 @@ import {
   Headset,
   Workflow,
   Target,
+  UserRound,
   Users,
   UsersRound,
   type LucideIcon,
@@ -40,6 +41,7 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   team: UsersRound,
   billing: CreditCard,
   settings: Settings,
+  account: UserRound,
 };
 
 export function NavIconGlyph({ icon, className }: { icon: NavIcon; className?: string }) {

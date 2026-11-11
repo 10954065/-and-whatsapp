@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShieldCheck, UserRound } from "lucide-react";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
@@ -29,9 +29,25 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
       <header className="grain sticky top-0 z-30 bg-[#1d1a16] text-[#f3efe7]">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 pt-4 pb-3 lg:px-8">
           <Logo href="/admin" inverted />
-          <span className="rounded-full bg-sun px-2.5 py-0.5 text-[11px] font-semibold text-[#1d1a16]">Admin console</span>
-          <Link href="/app/dashboard" className="ml-auto flex items-center gap-1 text-sm text-white/60 transition-colors hover:text-white">
-            <ArrowLeft className="size-4" aria-hidden="true" /> Back to app
+          <span className="shrink-0 rounded-full bg-sun px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#1d1a16]">
+            Admin console
+          </span>
+          {/* Icons only on phones; the labels stay available to screen readers. */}
+          <Link
+            href="/app/account"
+            title="Account & security"
+            className="ml-auto flex items-center gap-1 text-sm whitespace-nowrap text-white/60 transition-colors hover:text-white"
+          >
+            <UserRound className="size-4" aria-hidden="true" />
+            <span className="sr-only sm:not-sr-only">Account &amp; security</span>
+          </Link>
+          <Link
+            href="/app/dashboard"
+            title="Back to app"
+            className="flex items-center gap-1 text-sm whitespace-nowrap text-white/60 transition-colors hover:text-white"
+          >
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            <span className="sr-only sm:not-sr-only">Back to app</span>
           </Link>
         </div>
         {hasMfa ? (

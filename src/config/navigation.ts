@@ -18,7 +18,8 @@ export type NavIcon =
   | "integrations"
   | "team"
   | "billing"
-  | "settings";
+  | "settings"
+  | "account";
 
 export interface NavItem {
   href: string;
@@ -70,6 +71,8 @@ export const APP_NAVIGATION: NavSection[] = [
       { href: "/app/team", label: "Team", icon: "team", permission: "team.read" },
       { href: "/app/billing", label: "Billing", icon: "billing", permission: "billing.manage" },
       { href: "/app/settings", label: "Settings", icon: "settings", permission: "business.read" },
+      // Every member manages their own sign-in, so it uses the permission all roles have.
+      { href: "/app/account", label: "Account & security", icon: "account", permission: "business.read" },
     ],
   },
 ];

@@ -1,5 +1,12 @@
 # Changelog
 
+## Account & security, easy to find
+
+* "Account & security" (password, two-factor authentication, account deletion) is now in the
+  sidebar under Workspace for every member, not only in the avatar menu.
+* The admin console header links to it too, so an admin can set up two-factor authentication
+  without leaving the console. On phones the header links show as icons.
+
 ## Ready for Supabase and Vercel
 
 * Production database is Supabase (Paris), with Vercel functions pinned to Paris
