@@ -299,8 +299,19 @@ describe("WhatsApp Embedded Signup", () => {
   });
 });
 
-/** Fake Graph API for Instagram with Unified Login: code exchange, shared accounts and linking. */
-function stubInstagramGraph({ accounts, subscribe = "ok" }: { accounts: { id: string; username: string }[]; subscribe?: "ok" | "refused" }) {
+/**
+ * Fake Graph API for Instagram with Unified Login: code exchange, shared accounts and linking.
+ * `granted` are accounts the token's message permission covers without being listed as shared.
+ */
+function stubInstagramGraph({
+  accounts,
+  granted = [],
+  subscribe = "ok",
+}: {
+  accounts: { id: string; username: string }[];
+  granted?: { id: string; username: string }[];
+  subscribe?: "ok" | "refused";
+}) {
   const calls: { url: string; method: string }[] = [];
   vi.stubGlobal(
     "fetch",
@@ -309,6 +320,12 @@ function stubInstagramGraph({ accounts, subscribe = "ok" }: { accounts: { id: st
       calls.push({ url, method: init?.method ?? "GET" });
       if (url.includes("/oauth/access_token")) return Response.json({ access_token: "EAAB_ig_business_token", token_type: "bearer" });
       if (url.includes("/me/assigned_instagram_accounts")) return Response.json({ data: accounts });
+      if (url.includes("/debug_token")) {
+        const ids = granted.map((account) => account.id);
+        return Response.json({ data: { app_id: "sunleon_app", granular_scopes: [{ scope: "instagram_basic", target_ids: ids }, { scope: "instagram_manage_messages", target_ids: ids }] } });
+      }
+      const lookup = granted.find((account) => url.includes(`/${account.id}?fields=`));
+      if (lookup) return Response.json(lookup);
       if (url.includes("/subscribed_apps")) {
         return subscribe === "ok" ? Response.json({ success: true }) : Response.json({ error: { message: "(#200) Permissions error", code: 200 } }, { status: 403 });
       }
@@ -363,6 +380,20 @@ describe("Instagram connection (Unified Login)", () => {
     stubInstagramGraph({ accounts: [] });
     await expect(completeInstagramConnect(owner.id, await startState(actor), "code")).rejects.toThrow(/No Instagram professional account was shared/);
     expect(await prisma.integration.count({ where: { businessId: business.id, channel: "INSTAGRAM" } })).toBe(0);
+  });
+
+  it("connects the account the token was granted when Meta lists none as shared", async () => {
+    const { owner, actor, business } = await setup();
+    configureInstagramApp();
+    const igId = digits();
+    const calls = stubInstagramGraph({ accounts: [], granted: [{ id: igId, username: "granted_shop" }] });
+
+    await completeInstagramConnect(owner.id, await startState(actor), "code");
+    const integration = await prisma.integration.findFirstOrThrow({ where: { businessId: business.id, channel: "INSTAGRAM" } });
+    expect(integration).toMatchObject({ status: "CONNECTED", displayHandle: "@granted_shop", externalAccountId: igId });
+    const debug = calls.find((call) => call.url.includes("/debug_token"));
+    expect(debug?.url).not.toContain("sunleon_secret");
+    expect(calls).toContainEqual({ url: expect.stringContaining(`/${igId}/subscribed_apps`), method: "POST" });
   });
 
   it("refuses an account another workspace has connected, before linking it", async () => {

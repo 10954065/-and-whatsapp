@@ -39,18 +39,31 @@ export interface MetaCredentials {
   accessToken: string;
 }
 
-/**
- * The Meta app a token was issued for, read with the platform's own app token. Null when the
- * platform app is not configured or Meta does not say.
- */
-export async function getTokenAppId(accessToken: string): Promise<string | null> {
+interface TokenDebug {
+  app_id?: string;
+  granular_scopes?: { scope: string; target_ids?: (string | number)[] }[];
+}
+
+/** Meta's token debugger, called with the platform's own app token. Null when the platform app is not configured. */
+async function debugToken(accessToken: string): Promise<TokenDebug | null> {
   const { META_APP_ID: appId, META_APP_SECRET: appSecret } = env();
   if (!appId || !appSecret) return null;
-  const body = await graphRequest<{ data?: { app_id?: string } }>(`${graphBase()}/debug_token?input_token=${encodeURIComponent(accessToken)}`, {
+  const body = await graphRequest<{ data?: TokenDebug }>(`${graphBase()}/debug_token?input_token=${encodeURIComponent(accessToken)}`, {
     method: "GET",
     accessToken: `${appId}|${appSecret}`,
   });
-  return body.data?.app_id ?? null;
+  return body.data ?? null;
+}
+
+/** The Meta app a token was issued for. Null when the platform app is not configured or Meta does not say. */
+export async function getTokenAppId(accessToken: string): Promise<string | null> {
+  return (await debugToken(accessToken))?.app_id ?? null;
+}
+
+/** Permissions a business token carries and, for each, the asset ids it covers (null: all of them). */
+export async function getGrantedScopes(accessToken: string): Promise<{ scope: string; targetIds: string[] | null }[]> {
+  const grants = (await debugToken(accessToken))?.granular_scopes ?? [];
+  return grants.map((grant) => ({ scope: grant.scope, targetIds: grant.target_ids?.map(String) ?? null }));
 }
 
 /** Sends a WhatsApp Business Account's webhooks (incoming messages, delivery statuses) to the token's app. */

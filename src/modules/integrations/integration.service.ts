@@ -13,6 +13,7 @@ import { recordAudit } from "@/modules/administration/audit.service";
 import { getPlanLimits } from "@/modules/billing/usage";
 import {
   exchangeBusinessLoginCode,
+  getGrantedScopes,
   getInstagramAccount,
   getTokenAppId,
   getWhatsAppPhoneNumber,
@@ -267,6 +268,7 @@ export async function completeInstagramConnect(userId: string, state: string, co
   try {
     credentials = { accessToken: await exchangeBusinessLoginCode(code, instagramRedirectUri()) };
     accounts = await listInstagramAccounts(credentials);
+    if (accounts.length === 0) accounts = await instagramAccountsFromGrant(credentials);
   } catch (error) {
     throw fail.validation(`Meta did not accept the sign-in (${(error as Error).message}). Click Connect with Instagram and try again.`);
   }
@@ -285,6 +287,25 @@ export async function completeInstagramConnect(userId: string, state: string, co
     scopes: [],
   });
   return { businessId: actor.businessId };
+}
+
+/** At most this many granted accounts are looked up, so one token cannot trigger unbounded calls to Meta. */
+const MAX_GRANTED_ACCOUNTS = 25;
+
+/**
+ * Meta does not always list a just-shared account under the business token. The token's own
+ * grant for message access names it, so the account is read from there.
+ */
+async function instagramAccountsFromGrant(credentials: ChannelCredentials): Promise<{ id: string; username: string }[]> {
+  const grants = await getGrantedScopes(credentials.accessToken);
+  const ids = grants.find((grant) => grant.scope === "instagram_manage_messages")?.targetIds ?? [];
+  if (ids.length === 0) logger.warn("integration.instagram_nothing_granted", { grants: grants.map((grant) => `${grant.scope}:${grant.targetIds?.length ?? "all"}`) });
+  return Promise.all(
+    ids.slice(0, MAX_GRANTED_ACCOUNTS).map(async (id) => {
+      const account = await getInstagramAccount(id, credentials);
+      return { id: account.id, username: account.username ?? account.id };
+    }),
+  );
 }
 
 /**
