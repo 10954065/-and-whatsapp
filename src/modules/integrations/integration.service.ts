@@ -12,12 +12,15 @@ import { decryptJson, encryptJson, hashToken, randomToken } from "@/lib/security
 import { recordAudit } from "@/modules/administration/audit.service";
 import { getPlanLimits } from "@/modules/billing/usage";
 import {
+  type BusinessInstagramEdge,
   exchangeBusinessLoginCode,
+  getClientBusinessId,
   getGrantedScopes,
   getInstagramAccount,
   getTokenAppId,
   getWhatsAppPhoneNumber,
   instagramLoginUrl,
+  listBusinessInstagramAccountIds,
   listInstagramAccounts,
   listWhatsAppAccountNumberIds,
   registerWhatsAppNumber,
@@ -268,7 +271,7 @@ export async function completeInstagramConnect(userId: string, state: string, co
   try {
     credentials = { accessToken: await exchangeBusinessLoginCode(code, instagramRedirectUri()) };
     accounts = await listInstagramAccounts(credentials);
-    if (accounts.length === 0) accounts = await instagramAccountsFromGrant(credentials);
+    if (accounts.length === 0) accounts = await findUnlistedInstagramAccounts(credentials);
   } catch (error) {
     throw fail.validation(`Meta did not accept the sign-in (${(error as Error).message}). Click Connect with Instagram and try again.`);
   }
@@ -292,20 +295,55 @@ export async function completeInstagramConnect(userId: string, state: string, co
 /** At most this many granted accounts are looked up, so one token cannot trigger unbounded calls to Meta. */
 const MAX_GRANTED_ACCOUNTS = 25;
 
+const BUSINESS_INSTAGRAM_EDGES: BusinessInstagramEdge[] = ["owned_instagram_accounts", "instagram_accounts"];
+
 /**
- * Meta does not always list a just-shared account under the business token. The token's own
- * grant for message access names it, so the account is read from there.
+ * Meta does not always list a shared account under the business token: a portfolio connecting to
+ * its own app gets a token that covers every account and has none assigned. The account is then
+ * looked for in the token's grant and in the portfolio itself, and kept only if the token reads it.
  */
-async function instagramAccountsFromGrant(credentials: ChannelCredentials): Promise<{ id: string; username: string }[]> {
+async function findUnlistedInstagramAccounts(credentials: ChannelCredentials): Promise<{ id: string; username: string }[]> {
   const grants = await getGrantedScopes(credentials.accessToken);
-  const ids = grants.find((grant) => grant.scope === "instagram_manage_messages")?.targetIds ?? [];
-  if (ids.length === 0) logger.warn("integration.instagram_nothing_granted", { grants: grants.map((grant) => `${grant.scope}:${grant.targetIds?.length ?? "all"}`) });
-  return Promise.all(
-    ids.slice(0, MAX_GRANTED_ACCOUNTS).map(async (id) => {
+  const tried: Record<string, string> = { grants: grants.map((grant) => `${grant.scope}:${grant.targetIds?.length ?? "all"}`).join(",") };
+  let candidateIds = grants.find((grant) => grant.scope === "instagram_manage_messages")?.targetIds ?? [];
+  if (candidateIds.length === 0) candidateIds = await instagramAccountIdsFromBusiness(credentials, tried);
+
+  const accounts: { id: string; username: string }[] = [];
+  for (const id of candidateIds.slice(0, MAX_GRANTED_ACCOUNTS)) {
+    try {
       const account = await getInstagramAccount(id, credentials);
-      return { id: account.id, username: account.username ?? account.id };
-    }),
-  );
+      accounts.push({ id: account.id, username: account.username ?? account.id });
+    } catch (error) {
+      tried.read = (error as Error).message;
+    }
+  }
+  if (accounts.length === 0) logger.warn("integration.instagram_no_account_found", tried);
+  return accounts;
+}
+
+/** Ids from the connecting portfolio's own Instagram accounts; `tried` records what each lookup answered. */
+async function instagramAccountIdsFromBusiness(credentials: ChannelCredentials, tried: Record<string, string>): Promise<string[]> {
+  let businessId: string | null;
+  try {
+    businessId = await getClientBusinessId(credentials);
+  } catch (error) {
+    tried.business = (error as Error).message;
+    return [];
+  }
+  if (!businessId) {
+    tried.business = "none reported";
+    return [];
+  }
+  for (const edge of BUSINESS_INSTAGRAM_EDGES) {
+    try {
+      const ids = await listBusinessInstagramAccountIds(businessId, edge, credentials);
+      tried[edge] = String(ids.length);
+      if (ids.length > 0) return ids;
+    } catch (error) {
+      tried[edge] = (error as Error).message;
+    }
+  }
+  return [];
 }
 
 /**

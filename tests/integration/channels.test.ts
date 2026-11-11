@@ -306,10 +306,15 @@ describe("WhatsApp Embedded Signup", () => {
 function stubInstagramGraph({
   accounts,
   granted = [],
+  owned = [],
+  unreadableIds = [],
   subscribe = "ok",
 }: {
   accounts: { id: string; username: string }[];
   granted?: { id: string; username: string }[];
+  /** Accounts the connecting portfolio owns; found only through the business lookup. */
+  owned?: { id: string; username: string }[];
+  unreadableIds?: string[];
   subscribe?: "ok" | "refused";
 }) {
   const calls: { url: string; method: string }[] = [];
@@ -324,7 +329,10 @@ function stubInstagramGraph({
         const ids = granted.map((account) => account.id);
         return Response.json({ data: { app_id: "sunleon_app", granular_scopes: [{ scope: "instagram_basic", target_ids: ids }, { scope: "instagram_manage_messages", target_ids: ids }] } });
       }
-      const lookup = granted.find((account) => url.includes(`/${account.id}?fields=`));
+      if (url.includes("/me?fields=client_business_id")) return Response.json({ client_business_id: "777001", id: "1" });
+      if (url.includes("/777001/owned_instagram_accounts")) return Response.json({ data: [...unreadableIds, ...owned.map((account) => account.id)].map((id) => ({ id })) });
+      if (url.includes("/777001/instagram_accounts")) return Response.json({ error: { message: "(#200) Permissions error", code: 200 } }, { status: 403 });
+      const lookup = [...granted, ...owned].find((account) => url.includes(`/${account.id}?fields=`));
       if (lookup) return Response.json(lookup);
       if (url.includes("/subscribed_apps")) {
         return subscribe === "ok" ? Response.json({ success: true }) : Response.json({ error: { message: "(#200) Permissions error", code: 200 } }, { status: 403 });
@@ -393,6 +401,18 @@ describe("Instagram connection (Unified Login)", () => {
     expect(integration).toMatchObject({ status: "CONNECTED", displayHandle: "@granted_shop", externalAccountId: igId });
     const debug = calls.find((call) => call.url.includes("/debug_token"));
     expect(debug?.url).not.toContain("sunleon_secret");
+    expect(calls).toContainEqual({ url: expect.stringContaining(`/${igId}/subscribed_apps`), method: "POST" });
+  });
+
+  it("connects an account the connecting portfolio owns when the token names none, skipping one it cannot read", async () => {
+    const { owner, actor, business } = await setup();
+    configureInstagramApp();
+    const igId = digits();
+    const calls = stubInstagramGraph({ accounts: [], owned: [{ id: igId, username: "own_portfolio_shop" }], unreadableIds: [digits()] });
+
+    await completeInstagramConnect(owner.id, await startState(actor), "code");
+    const integration = await prisma.integration.findFirstOrThrow({ where: { businessId: business.id, channel: "INSTAGRAM" } });
+    expect(integration).toMatchObject({ status: "CONNECTED", displayHandle: "@own_portfolio_shop", externalAccountId: igId });
     expect(calls).toContainEqual({ url: expect.stringContaining(`/${igId}/subscribed_apps`), method: "POST" });
   });
 

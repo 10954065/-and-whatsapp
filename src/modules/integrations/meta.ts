@@ -175,6 +175,23 @@ export async function listInstagramAccounts(credentials: MetaCredentials): Promi
   return (body.data ?? []).map((account) => ({ id: account.id, username: account.username ?? account.id }));
 }
 
+/** The business portfolio that connected, as the business token reports it. Null when Meta does not say. */
+export async function getClientBusinessId(credentials: MetaCredentials): Promise<string | null> {
+  const body = await graphRequest<{ client_business_id?: string | number }>(`${graphBase()}/me?fields=client_business_id`, { method: "GET", accessToken: credentials.accessToken });
+  return body.client_business_id ? String(body.client_business_id) : null;
+}
+
+export type BusinessInstagramEdge = "owned_instagram_accounts" | "instagram_accounts";
+
+/** Ids of the Instagram accounts a business portfolio owns or has access to. */
+export async function listBusinessInstagramAccountIds(businessId: string, edge: BusinessInstagramEdge, credentials: MetaCredentials): Promise<string[]> {
+  const body = await graphRequest<{ data?: { id: string }[] }>(`${graphBase()}/${encodeURIComponent(businessId)}/${edge}?fields=id&limit=100`, {
+    method: "GET",
+    accessToken: credentials.accessToken,
+  });
+  return (body.data ?? []).map((account) => String(account.id));
+}
+
 export async function getInstagramAccount(accountId: string, credentials: MetaCredentials) {
   return graphRequest<{ id: string; username?: string; name?: string }>(`${graphBase()}/${encodeURIComponent(accountId)}?fields=id,username,name`, {
     method: "GET",
