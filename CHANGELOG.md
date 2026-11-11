@@ -1,5 +1,26 @@
 # Changelog
 
+## Plans as payment cards
+
+* Every plan is drawn as a payment card in the brand's finishes: cream for Starter, sun for
+  Business and ink for Enterprise, with a chip, contactless mark, embossed price, what the
+  plan includes and a hologram.
+* Cards rise in as they scroll into view, tilt toward the mouse with a glare that follows it,
+  and catch a passing band of light. A Monthly/Yearly switch flips them one after another to
+  show the yearly price and the real saving. People who ask for reduced motion get still cards.
+* Under each card, a block in the same colours holds the description, what is included and
+  the button, with the card tucked into its top edge.
+* Billing shows your current plan as a card with the workspace name and the month it is
+  valid through, and the Pay button follows the Monthly/Yearly switch.
+* The admin Plans page previews each plan's card beside its form.
+* The featured plan is labelled Recommended instead of Most chosen.
+
+## Headers with their own tone
+
+* The website and dashboard headers use a warm sand tone in light mode and a deeper tone in
+  dark mode, with a faint sun line along the bottom, so the menus stand apart from the page.
+  They stay fixed at the top as before.
+
 ## Admin console that works on phones
 
 * On phones the admin menu moves into a side bar (the menu button at the top right), with
