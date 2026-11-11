@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { ArrowRight, CalendarClock, ChevronRight, MessagesSquare, ShoppingBag, Target, Users, type LucideIcon } from "lucide-react";
-import { Metric, MetricStrip } from "@/components/app/page-primitives";
+import { ArrowRight, CalendarClock, MessagesSquare, ShoppingBag, Target, Users } from "lucide-react";
+import { Metric, MetricStrip, Panel, PanelEmpty, StatusLabel } from "@/components/app/page-primitives";
 import { DailyColumnChart } from "@/components/analytics/daily-column-chart";
 import { Button } from "@/components/ui/button";
 import type { PaymentStatus } from "@/generated/prisma/enums";
@@ -71,48 +70,9 @@ function ProgressRing({ value, total }: { value: number; total: number }) {
   );
 }
 
-function Panel({ title, href, linkLabel, children }: { title: string; href?: string; linkLabel?: string; children: ReactNode }) {
-  return (
-    <section className="surface flex h-full flex-col overflow-hidden rounded-[1.25rem]">
-      <div className="flex items-center justify-between px-5 pt-4 pb-2">
-        <h2 className="text-[15px] font-semibold tracking-[-0.01em]">{title}</h2>
-        {href ? (
-          <Link
-            href={href}
-            className="-mr-1.5 flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[13px] text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {linkLabel ?? "See all"} <ChevronRight className="size-3.5" aria-hidden="true" />
-          </Link>
-        ) : null}
-      </div>
-      <div className="flex flex-1 flex-col">{children}</div>
-    </section>
-  );
-}
-
-function PanelEmpty({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) {
-  return (
-    <div className="flex min-h-32 flex-1 flex-col items-center justify-center gap-2.5 px-6 pt-1 pb-6 text-center">
-      <span className="flex size-10 items-center justify-center rounded-full bg-foreground/5 text-foreground/45">
-        <Icon className="size-4.5" aria-hidden="true" />
-      </span>
-      <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">{children}</p>
-    </div>
-  );
-}
-
 function Initials({ name }: { name: string }) {
   const letters = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("");
   return <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground/[0.07] text-[12px] font-semibold text-foreground/75">{letters || "?"}</span>;
-}
-
-function StatusLabel({ dot, label }: { dot: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 text-[12px] text-muted-foreground">
-      <span className={cn("size-1.5 shrink-0 rounded-full", dot)} aria-hidden="true" />
-      {label}
-    </span>
-  );
 }
 
 export default async function DashboardPage({ searchParams }: { searchParams: SearchParams }) {

@@ -118,7 +118,20 @@ export function MetricStrip({ label, children }: { label: string; children: Reac
   );
 }
 
-export function Metric({ label, value, icon: Icon, href }: { label: string; value: ReactNode; icon: LucideIcon; href?: string }) {
+export function Metric({
+  label,
+  value,
+  icon: Icon,
+  href,
+  hint,
+}: {
+  label: string;
+  value: ReactNode;
+  icon: LucideIcon;
+  href?: string;
+  /** A short line under the figure, e.g. "0 suspended · 103 total". */
+  hint?: ReactNode;
+}) {
   const body = (
     <>
       <span className="flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
@@ -132,6 +145,7 @@ export function Metric({ label, value, icon: Icon, href }: { label: string; valu
         ) : null}
       </span>
       <span className="mt-3 block text-[2rem] leading-none font-semibold tracking-[-0.035em]">{value}</span>
+      {hint ? <span className="mt-2 block truncate text-xs text-muted-foreground">{hint}</span> : null}
     </>
   );
   const className = "group block bg-card px-4 pt-4 pb-5 sm:px-5";
@@ -147,6 +161,62 @@ export function Metric({ label, value, icon: Icon, href }: { label: string; valu
     </Link>
   ) : (
     <div className={className}>{body}</div>
+  );
+}
+
+/** A headed card for a list or a form. `aside` sits at the right of the header (a count, a button). */
+export function Panel({
+  title,
+  href,
+  linkLabel,
+  aside,
+  children,
+  className,
+}: {
+  title: string;
+  href?: string;
+  linkLabel?: string;
+  aside?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn("surface flex h-full min-w-0 flex-col overflow-hidden rounded-[1.25rem]", className)}>
+      <div className="flex items-center justify-between gap-3 px-5 pt-4 pb-2">
+        <h2 className="text-[15px] font-semibold tracking-[-0.01em]">{title}</h2>
+        {aside}
+        {href ? (
+          <Link
+            href={href}
+            className="-mr-1.5 flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[13px] text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {linkLabel ?? "See all"} <ChevronRight className="size-3.5" aria-hidden="true" />
+          </Link>
+        ) : null}
+      </div>
+      <div className="flex flex-1 flex-col">{children}</div>
+    </section>
+  );
+}
+
+export function PanelEmpty({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) {
+  return (
+    <div className="flex min-h-32 flex-1 flex-col items-center justify-center gap-2.5 px-6 pt-1 pb-6 text-center">
+      <span className="flex size-10 items-center justify-center rounded-full bg-foreground/5 text-foreground/45">
+        <Icon className="size-4.5" aria-hidden="true" />
+      </span>
+      <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">{children}</p>
+    </div>
+  );
+}
+
+/** A state shown as a coloured dot beside its label: colour never stands alone. */
+export function StatusLabel({ dot, label, className }: { dot: string; label: string; className?: string }) {
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 text-[12px] text-muted-foreground", className)}>
+      <span className={cn("size-1.5 shrink-0 rounded-full", dot)} aria-hidden="true" />
+      {label}
+    </span>
   );
 }
 
