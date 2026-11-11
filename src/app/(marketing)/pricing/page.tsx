@@ -44,8 +44,8 @@ function PlanDetails({ plan, isFeatured }: { plan: PublicPlan; isFeatured: boole
     ...plan.features,
   ].filter((item): item is string => Boolean(item));
   return (
-    <div className="mt-9 flex flex-1 flex-col px-1">
-      <p className="min-h-10 text-sm text-muted-foreground">{plan.description}</p>
+    <div className="flex flex-1 flex-col">
+      <p className="min-h-10 text-sm leading-relaxed text-muted-foreground">{plan.description}</p>
       <ul className="mt-5 grid gap-3 border-t pt-5 text-sm">
         {included.map((item) => (
           <li key={item} className="flex gap-2.5">
@@ -53,9 +53,11 @@ function PlanDetails({ plan, isFeatured }: { plan: PublicPlan; isFeatured: boole
           </li>
         ))}
       </ul>
-      <Button asChild size="lg" variant={isFeatured ? "default" : "outline"} className="pressable mt-8">
-        <Link href="/register">Start {plan.trialDays}-day free trial</Link>
-      </Button>
+      <div className="mt-auto pt-8">
+        <Button asChild size="lg" variant={isFeatured ? "default" : "outline"} className="pressable w-full">
+          <Link href="/register">Start {plan.trialDays}-day free trial</Link>
+        </Button>
+      </div>
     </div>
   );
 }

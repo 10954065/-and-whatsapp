@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import { AccessDenied, PageHeader } from "@/components/app/page-primitives";
+import { Check, CreditCard } from "lucide-react";
+import { AccessDenied, PageHeader, Panel, PanelEmpty, StatusLabel } from "@/components/app/page-primitives";
+import { PlanCard, PlanDeck, type BillingInterval, type DeckPlan } from "@/components/billing/plan-card";
+import { allowanceLine, cardFinish, freeMonthsLabel, validThru, yearlySavingMinor } from "@/components/billing/plan-card-format";
 import { ActionButton } from "@/components/operations/operations-forms";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -12,6 +15,8 @@ import { GRACE_DAYS, RENEWAL_REMINDER_DAYS, getBillingOverview, isSubscriptionLa
 export const metadata: Metadata = { title: "Billing" };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+type Overview = Awaited<ReturnType<typeof getBillingOverview>>;
+type Subscription = NonNullable<Overview["subscription"]>;
 
 const PAYMENT_MESSAGES: Record<string, { tone: "success" | "warning" | "destructive"; text: string }> = {
   success: { tone: "success", text: "Payment confirmed with Paystack. Your plan is active." },
@@ -20,7 +25,14 @@ const PAYMENT_MESSAGES: Record<string, { tone: "success" | "warning" | "destruct
   unknown: { tone: "warning", text: "We couldn't match that payment to this workspace. If you were charged, contact support with your Paystack receipt." },
 };
 
-const STATUS_LABEL: Record<string, string> = { TRIALING: "Free trial", ACTIVE: "Active", PAST_DUE: "Payment due", GRACE: "Grace period", CANCELLED: "Cancelled", EXPIRED: "Expired" };
+const STATUS: Record<string, { dot: string; label: string }> = {
+  TRIALING: { dot: "bg-info", label: "Free trial" },
+  ACTIVE: { dot: "bg-success", label: "Active" },
+  PAST_DUE: { dot: "bg-warning", label: "Payment due" },
+  GRACE: { dot: "bg-warning", label: "Grace period" },
+  CANCELLED: { dot: "bg-foreground/30", label: "Cancelled" },
+  EXPIRED: { dot: "bg-destructive", label: "Expired" },
+};
 
 const TX_STATUS: Record<string, "default" | "secondary" | "destructive" | "outline"> = { SUCCESS: "default", PENDING: "outline", FAILED: "destructive", ABANDONED: "secondary", REVERSED: "destructive" };
 
@@ -28,7 +40,7 @@ function Meter({ label, used, limit, unit = "" }: { label: string; used: number;
   const ratio = limit > 0 ? Math.min(1, used / limit) : 1;
   return (
     <div className="grid gap-1.5">
-      <div className="flex justify-between text-sm">
+      <div className="flex justify-between gap-3 text-sm">
         <span>{label}</span>
         <span className="text-muted-foreground tabular-nums">
           {formatNumber(used)}
@@ -39,6 +51,107 @@ function Meter({ label, used, limit, unit = "" }: { label: string; used: number;
       <Progress value={ratio * 100} aria-label={`${label}: ${used} of ${limit}`} className={cn(ratio >= 1 && "**:data-[slot=progress-indicator]:bg-destructive", ratio >= 0.8 && ratio < 1 && "**:data-[slot=progress-indicator]:bg-warning")} />
     </div>
   );
+}
+
+/** When the current card stops being valid: the trial end, the grace end or the paid period end. */
+function cardEndsAt(subscription: Subscription): Date {
+  if (subscription.status === "TRIALING") return subscription.trialEndsAt ?? subscription.currentPeriodEnd;
+  if (subscription.status === "GRACE") return subscription.graceUntil ?? subscription.currentPeriodEnd;
+  return subscription.currentPeriodEnd;
+}
+
+function CurrentPlan({ overview, businessName, tz }: { overview: Overview; businessName: string; tz: string }) {
+  const { subscription, limits } = overview;
+  if (!subscription) return <PanelEmpty icon={CreditCard}>No plan yet. Choose one below.</PanelEmpty>;
+  const lapsed = isSubscriptionLapsed(subscription);
+  const plan = subscription.plan;
+  const isYearly = subscription.interval === "YEARLY";
+  const planIndex = Math.max(0, overview.plans.findIndex((candidate) => candidate.id === plan.id));
+  return (
+    <div className="grid gap-5 px-5 pb-5">
+      <PlanCard
+        className={cn("w-full max-w-sm", lapsed && "grayscale")}
+        front={{
+          finish: cardFinish(planIndex),
+          headline: plan.name,
+          headlineNote: isYearly ? `${formatMoney(plan.priceYearlyMinor, plan.currency)} a year` : `${formatMoney(plan.priceMonthlyMinor, plan.currency)} a month`,
+          allowance: allowanceLine(limits),
+          holderLabel: "Workspace",
+          holder: businessName,
+          dateLabel: "Valid thru",
+          date: validThru(cardEndsAt(subscription), tz),
+        }}
+      />
+      <div className="grid gap-1 text-sm">
+        {subscription.status === "TRIALING" && subscription.trialEndsAt ? (
+          <p className="text-muted-foreground">Free trial {lapsed ? "ended" : "ends"} on {formatDate(subscription.trialEndsAt, tz)}.</p>
+        ) : null}
+        {subscription.status === "ACTIVE" ? (
+          <p className="text-muted-foreground">
+            Paid {isYearly ? "yearly" : "monthly"} until {formatDate(subscription.currentPeriodEnd, tz)}. We&apos;ll remind you {RENEWAL_REMINDER_DAYS} days before it ends.
+          </p>
+        ) : null}
+        {subscription.status === "GRACE" && subscription.graceUntil ? (
+          <p className="text-warning">Your paid period ended. Everything keeps working until {formatDate(subscription.graceUntil, tz)}. Renew to avoid interruption.</p>
+        ) : null}
+        {lapsed ? <p className="text-destructive">AI replies and automations are paused. Your data is safe; choose a plan below to resume.</p> : null}
+      </div>
+    </div>
+  );
+}
+
+function payLabel(interval: BillingInterval, isRenewal: boolean, price: string): string {
+  if (interval === "MONTHLY") return isRenewal ? "Pay next month" : `Pay ${price} for a month`;
+  return isRenewal ? "Pay next year" : `Pay ${price} for a year`;
+}
+
+function toDeckPlan(plan: Overview["plans"][number], index: number, subscription: Overview["subscription"], canPay: boolean): DeckPlan {
+  const isCurrent = subscription?.planId === plan.id && subscription.status === "ACTIVE";
+  const saving = yearlySavingMinor(plan.priceMonthlyMinor, plan.priceYearlyMinor);
+  const payButton = (interval: BillingInterval, priceMinor: number) => (
+    <ActionButton
+      action={startCheckoutAction}
+      values={{ planCode: plan.code, interval }}
+      label={payLabel(interval, isCurrent && subscription?.interval === interval, formatMoney(priceMinor, plan.currency))}
+      variant="default"
+    />
+  );
+  return {
+    id: plan.id,
+    front: {
+      finish: cardFinish(index),
+      headline: formatMoney(plan.priceMonthlyMinor, plan.currency),
+      headlineNote: "a month",
+      allowance: allowanceLine(plan.limits),
+      holderLabel: "Plan",
+      holder: plan.name,
+      headingLevel: 3,
+      tag: isCurrent ? "Current" : undefined,
+    },
+    back: {
+      headline: formatMoney(plan.priceYearlyMinor, plan.currency),
+      headlineNote: "a year",
+      note: saving ? `Saves ${formatMoney(saving, plan.currency)} against monthly` : undefined,
+      signature: plan.name,
+      headingLevel: 3,
+      finePrint: "One payment covers a full year. Nothing renews automatically.",
+    },
+    details: (
+      <>
+        {plan.description ? <p className="text-sm text-muted-foreground">{plan.description}</p> : null}
+        {plan.features.length ? (
+          <ul className="mt-4 grid gap-1.5 border-t pt-4 text-sm">
+            {plan.features.map((feature) => (
+              <li key={feature} className="flex gap-2">
+                <Check className="mt-0.5 size-4 shrink-0 text-sun" aria-hidden="true" /> {feature}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </>
+    ),
+    actions: canPay ? { MONTHLY: payButton("MONTHLY", plan.priceMonthlyMinor), YEARLY: payButton("YEARLY", plan.priceYearlyMinor) } : undefined,
+  };
 }
 
 export default async function BillingPage({ searchParams }: { searchParams: SearchParams }) {
@@ -54,6 +167,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
   const latest = overview.payments[0];
   const outcome = typeof payment === "string" && Object.hasOwn(PAYMENT_MESSAGES, payment) ? payment : null;
   const notice = outcome === "success" && latest?.status !== "SUCCESS" ? undefined : outcome ? PAYMENT_MESSAGES[outcome] : undefined;
+  const status = subscription ? (lapsed && subscription.status === "TRIALING" ? { dot: "bg-destructive", label: "Trial ended" } : STATUS[subscription.status]) : null;
 
   return (
     <>
@@ -74,87 +188,41 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <section className="surface rounded-[1.25rem] p-6">
-          <h2 className="font-semibold">Current plan</h2>
-          {subscription ? (
-            <div className="mt-3 grid gap-1 text-sm">
-              <p className="flex items-center gap-2 text-lg font-semibold">
-                {subscription.plan.name} <Badge variant={lapsed ? "destructive" : "secondary"}>{lapsed && subscription.status === "TRIALING" ? "Trial ended" : STATUS_LABEL[subscription.status]}</Badge>
-              </p>
-              {subscription.status === "TRIALING" && subscription.trialEndsAt ? (
-                <p className="text-muted-foreground">Free trial {lapsed ? "ended" : "ends"} on {formatDate(subscription.trialEndsAt, tz)}.</p>
-              ) : null}
-              {subscription.status === "ACTIVE" ? (
-                <p className="text-muted-foreground">
-                  Paid {subscription.interval === "YEARLY" ? "yearly" : "monthly"} until {formatDate(subscription.currentPeriodEnd, tz)}. We&apos;ll remind you {RENEWAL_REMINDER_DAYS} days before it ends.
-                </p>
-              ) : null}
-              {subscription.status === "GRACE" && subscription.graceUntil ? (
-                <p className="text-warning">Your paid period ended. Everything keeps working until {formatDate(subscription.graceUntil, tz)}. Renew to avoid interruption.</p>
-              ) : null}
-              {lapsed ? <p className="text-destructive">AI replies and automations are paused. Your data is safe; choose a plan below to resume.</p> : null}
-            </div>
-          ) : (
-            <p className="mt-3 text-sm text-muted-foreground">No plan yet. Choose one below.</p>
-          )}
-        </section>
+        <Panel title="Current plan" aside={status ? <StatusLabel {...status} /> : null}>
+          <CurrentPlan overview={overview} businessName={context.business.name} tz={tz} />
+        </Panel>
 
-        <section className="surface rounded-[1.25rem] p-6">
-          <h2 className="mb-4 font-semibold">Usage this month</h2>
-          <div className="grid gap-4">
+        <Panel title="Usage this month">
+          <div className="grid gap-4 px-5 pt-1 pb-5">
             <Meter label="AI replies" used={usage.aiMessages} limit={limits.aiMessagesPerMonth} />
             <Meter label="Automation runs" used={usage.workflowExecutions} limit={limits.workflowExecutionsPerMonth} />
             <Meter label="Connected channels" used={usage.channels} limit={limits.channels} />
             <Meter label="Team seats (incl. invitations)" used={usage.seats} limit={limits.staffSeats} />
             <Meter label="Knowledge storage" used={usage.storageMb} limit={limits.knowledgeStorageMb} unit=" MB" />
           </div>
-        </section>
+        </Panel>
       </div>
 
-      <section className="mt-6" aria-labelledby="plans-heading">
-        <h2 id="plans-heading" className="mb-1 font-semibold">
+      <section className="mt-10" aria-labelledby="plans-heading">
+        <h2 id="plans-heading" className="text-[15px] font-semibold tracking-[-0.01em]">
           Plans
         </h2>
-        <p className="mb-4 text-sm text-muted-foreground">
+        <p className="mt-1 mb-5 max-w-3xl text-sm text-muted-foreground">
           Each payment covers one month or one year, and nothing renews automatically. Paying early for your current plan extends it; switching plans starts the new one today and credits your unused time. If a period ends, you have {GRACE_DAYS} days of grace.
         </p>
         {!overview.paymentsConfigured ? (
-          <p className="mb-4 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm">Online payments are not configured on this platform yet. Contact SUNLEON AI support to activate a plan.</p>
+          <p className="mb-5 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm">Online payments are not configured on this platform yet. Contact SUNLEON AI support to activate a plan.</p>
         ) : !context.user.emailVerifiedAt ? (
-          <p className="mb-4 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm">Confirm your email address before paying. Paystack sends your receipt there.</p>
+          <p className="mb-5 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm">Confirm your email address before paying. Paystack sends your receipt there.</p>
         ) : null}
-        <div className="grid gap-4 md:grid-cols-3">
-          {overview.plans.map((plan) => {
-            const isCurrent = subscription?.planId === plan.id && subscription.status === "ACTIVE";
-            return (
-              <article key={plan.id} className={cn("flex flex-col surface rounded-[1.25rem] p-6", isCurrent && "border-primary")}>
-                <h3 className="flex items-center gap-2 text-lg font-semibold">
-                  {plan.name} {isCurrent ? <Badge>Current</Badge> : null}
-                </h3>
-                {plan.description ? <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p> : null}
-                <p className="mt-4 text-2xl font-bold tabular-nums">
-                  {formatMoney(plan.priceMonthlyMinor, plan.currency)}
-                  <span className="text-sm font-normal text-muted-foreground"> / month</span>
-                </p>
-                <p className="text-sm text-muted-foreground tabular-nums">or {formatMoney(plan.priceYearlyMinor, plan.currency)} / year</p>
-                <ul className="mt-4 grid flex-1 content-start gap-1.5 text-sm">
-                  {plan.features.map((feature) => (
-                    <li key={feature}>✓ {feature}</li>
-                  ))}
-                </ul>
-                {canPay ? (
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    <ActionButton action={startCheckoutAction} values={{ planCode: plan.code, interval: "MONTHLY" }} label={isCurrent && subscription.interval === "MONTHLY" ? "Pay next month" : "Pay monthly"} variant="default" />
-                    <ActionButton action={startCheckoutAction} values={{ planCode: plan.code, interval: "YEARLY" }} label={isCurrent && subscription.interval === "YEARLY" ? "Pay next year" : "Pay yearly"} />
-                  </div>
-                ) : null}
-              </article>
-            );
-          })}
-        </div>
+        <PlanDeck
+          plans={overview.plans.map((plan, index) => toDeckPlan(plan, index, subscription, canPay))}
+          bonusLabel={freeMonthsLabel(overview.plans)}
+          gridClassName="sm:grid-cols-2 xl:grid-cols-3"
+        />
       </section>
 
-      <section className="mt-6 surface rounded-[1.25rem] p-6">
+      <section className="mt-12 surface rounded-[1.25rem] p-6">
         <h2 className="mb-3 font-semibold">Payment history</h2>
         {overview.payments.length === 0 ? (
           <p className="text-sm text-muted-foreground">No payments yet.</p>

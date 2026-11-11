@@ -424,6 +424,14 @@ export interface DeckPlan {
   actions?: Partial<Record<BillingInterval, ReactNode>>;
 }
 
+/** The block under each card, in that card's colours. The ink block switches its contents to the dark palette. */
+const SLEEVE: Record<CardFinish, string> = {
+  paper:
+    "bg-[linear-gradient(180deg,oklch(0.952_0.024_78),var(--card)_58%)] shadow-[var(--shadow-hairline),var(--shadow-soft)] dark:bg-[linear-gradient(180deg,oklch(0.3_0.032_74),var(--card)_62%)]",
+  sun: "bg-[linear-gradient(180deg,color-mix(in_oklch,var(--sun)_30%,var(--sun-soft)),var(--sun-soft)_58%)] shadow-[0_0_0_1px_color-mix(in_oklch,var(--sun)_32%,transparent),var(--shadow-soft)]",
+  ink: "dark grain bg-[radial-gradient(120%_55%_at_50%_0%,color-mix(in_oklch,var(--sun)_20%,transparent),transparent_75%),linear-gradient(180deg,oklch(0.29_0.012_62),oklch(0.16_0.01_62)_58%)] text-foreground shadow-[0_0_0_1px_color-mix(in_oklch,var(--sun)_24%,transparent),var(--shadow-lifted)]",
+};
+
 /** Plan cards with a Monthly/Yearly switch: switching flips every card, one after another, to its other side. */
 export function PlanDeck({
   plans,
@@ -440,14 +448,20 @@ export function PlanDeck({
   return (
     <div>
       <IntervalToggle value={interval} onChange={setBillingInterval} bonusLabel={bonusLabel} className={cn(isCentered && "justify-center")} />
-      <div className={cn("mt-10 grid items-start gap-x-6 gap-y-14", gridClassName)}>
-        {plans.map((plan, index) => (
-          <div key={plan.id} className="flex min-w-0 flex-col">
-            <PlanCard front={plan.front} back={plan.back} isFlipped={interval === "YEARLY"} index={index} />
-            {plan.details}
-            {plan.actions?.[interval] ?? null}
-          </div>
-        ))}
+      <div className={cn("mt-10 grid gap-x-6 gap-y-10", gridClassName)}>
+        {plans.map((plan, index) => {
+          const action = plan.actions?.[interval];
+          return (
+            <div key={plan.id} className="flex min-w-0 flex-col">
+              {/* The card sits tucked into the top of its block, like a card in a sleeve. */}
+              <PlanCard className="z-10 mx-4 sm:mx-5" front={plan.front} back={plan.back} isFlipped={interval === "YEARLY"} index={index} />
+              <div className={cn("-mt-16 flex flex-1 flex-col rounded-[1.75rem] px-6 pt-22 pb-6 sm:px-7", SLEEVE[plan.front.finish])}>
+                {plan.details}
+                {action ? <div className="mt-auto pt-6">{action}</div> : null}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
