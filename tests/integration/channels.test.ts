@@ -10,6 +10,7 @@ import {
   disconnectIntegration,
   listIntegrations,
   startInstagramConnect,
+  whatsappConnectSchema,
 } from "@/modules/integrations/integration.service";
 import { createBusinessFor, createUser } from "./helpers";
 
@@ -30,6 +31,15 @@ afterEach(() => {
 });
 
 describe("WhatsApp connection", () => {
+  it("cannot be submitted until the owner confirms Meta's WhatsApp fees", () => {
+    const details = { phoneNumberId: digits(), wabaId: digits(), accessToken: "EAAG".padEnd(40, "v") };
+    const missing = whatsappConnectSchema.safeParse(details);
+    expect(missing.success).toBe(false);
+    expect(missing.error?.issues.map((issue) => issue.path.join("."))).toEqual(["metaFeesAcknowledged"]);
+    expect(missing.error?.issues[0]?.message).toBe("Confirm that you understand Meta's WhatsApp fees.");
+    expect(whatsappConnectSchema.safeParse({ ...details, metaFeesAcknowledged: "on" }).success).toBe(true);
+  });
+
   it("verifies the number with Graph, stores the token encrypted, checks health and disconnects", async () => {
     const { actor, business } = await setup();
     const phoneNumberId = digits();
@@ -43,12 +53,14 @@ describe("WhatsApp connection", () => {
       ),
     );
 
-    await expect(connectWhatsApp({ ...actor, emailVerified: false }, { phoneNumberId, wabaId: digits(), accessToken: "EAAG".padEnd(40, "x") })).rejects.toThrow(/Confirm your email/);
-    const integration = await connectWhatsApp(actor, { phoneNumberId, wabaId: digits(), accessToken: "EAAG".padEnd(40, "x") });
+    await expect(connectWhatsApp({ ...actor, emailVerified: false }, { phoneNumberId, wabaId: digits(), accessToken: "EAAG".padEnd(40, "x"), metaFeesAcknowledged: "on" })).rejects.toThrow(/Confirm your email/);
+    const integration = await connectWhatsApp(actor, { phoneNumberId, wabaId: digits(), accessToken: "EAAG".padEnd(40, "x"), metaFeesAcknowledged: "on" });
     expect(integration).toMatchObject({ channel: "WHATSAPP", status: "CONNECTED", displayHandle: "+233 24 400 0111", externalAccountName: "Channel Shop" });
     expect(integration.credentialsEnc).not.toContain("EAAG");
     expect(credentialsFor(integration).accessToken).toBe("EAAG".padEnd(40, "x"));
     expect((await listIntegrations(business.id)).map((entry) => entry.id)).toContain(integration.id);
+    const audit = await prisma.auditLog.findFirstOrThrow({ where: { action: "integration.connected", entityId: integration.id } });
+    expect(audit.metadata).toMatchObject({ channel: "WHATSAPP", metaFeesAcknowledged: true, metaFreeRepliesShown: 1_000 });
 
     tokenValid = false;
     const unhealthy = await checkIntegrationHealth(actor, integration.id);
@@ -64,12 +76,12 @@ describe("WhatsApp connection", () => {
   it("explains a rejected token and enforces the plan's channel allowance", async () => {
     const { actor } = await setup();
     vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: { message: "Unsupported get request", code: 100 } }, { status: 400 })));
-    await expect(connectWhatsApp(actor, { phoneNumberId: digits(), wabaId: digits(), accessToken: "EAAG".padEnd(40, "y") })).rejects.toThrow(/WhatsApp rejected these details: Unsupported get request/);
+    await expect(connectWhatsApp(actor, { phoneNumberId: digits(), wabaId: digits(), accessToken: "EAAG".padEnd(40, "y"), metaFeesAcknowledged: "on" })).rejects.toThrow(/WhatsApp rejected these details: Unsupported get request/);
 
     vi.stubGlobal("fetch", vi.fn(async () => Response.json({ id: "1", display_phone_number: "+233", verified_name: "Shop" })));
-    await connectWhatsApp(actor, { phoneNumberId: digits(), wabaId: digits(), accessToken: "EAAG".padEnd(40, "z") });
+    await connectWhatsApp(actor, { phoneNumberId: digits(), wabaId: digits(), accessToken: "EAAG".padEnd(40, "z"), metaFeesAcknowledged: "on" });
     // Default limits allow one connected channel.
-    await expect(connectWhatsApp(actor, { phoneNumberId: digits(), wabaId: digits(), accessToken: "EAAG".padEnd(40, "w") })).rejects.toThrow(/allows 1 connected channel/);
+    await expect(connectWhatsApp(actor, { phoneNumberId: digits(), wabaId: digits(), accessToken: "EAAG".padEnd(40, "w"), metaFeesAcknowledged: "on" })).rejects.toThrow(/allows 1 connected channel/);
   });
 });
 

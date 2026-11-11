@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Camera, FlaskConical, MessageCircle } from "lucide-react";
 import { AccessDenied, PageHeader } from "@/components/app/page-primitives";
 import { InstagramConnectButton, IntegrationActions, SandboxConnectButton, WhatsAppConnectForm } from "@/components/integrations/integration-forms";
+import { MetaFeeNotice } from "@/components/integrations/meta-fees";
 import { Badge } from "@/components/ui/badge";
 import { env, outboundMessagingMode, providerStatus } from "@/lib/env";
 import { formatRelative } from "@/lib/format";
@@ -74,6 +75,10 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
           <p className="mt-1 mb-4 text-sm text-muted-foreground">
             Uses the WhatsApp Cloud API. You need a Meta Business account, a WhatsApp Business Account and a registered phone number.
           </p>
+          <div className="mb-5 rounded-xl border bg-muted/40 p-4">
+            <h3 className="text-sm font-semibold">Meta&apos;s WhatsApp fees</h3>
+            <MetaFeeNotice className="mt-2" />
+          </div>
           {!providers.meta ? (
             <p className="text-sm text-warning">The platform&apos;s Meta app credentials are not configured yet, so incoming messages cannot be received.</p>
           ) : canManage && context.user.emailVerifiedAt ? (

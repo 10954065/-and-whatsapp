@@ -16,7 +16,12 @@ Notes
 
 * Messages to customers who have not written in the last 24 hours require an approved template.
 * Customers can reply **STOP** to opt out; SUNLEON AI will not message them until they reply **START**.
-* Meta charges per conversation/template according to its current WhatsApp pricing; those charges are
-  billed by Meta, not SUNLEON AI.
+* Meta bills each business's own WhatsApp Business account, not SUNLEON AI. Since 2026-10-01 every
+  business number gets 1,000 free delivered replies (service messages) a month; Meta charges each
+  delivered reply after that, and template messages by category. Replies stop after the free 1,000 when
+  the business has no payment method in Meta Billing Hub. The rules live in
+  `src/config/whatsapp-fees.ts`; the pricing page (`/pricing#whatsapp-fees`), sign-up, Terms and the
+  Integrations page all show them, and connecting a number requires ticking an acknowledgment that is
+  stored in the `integration.connected` audit entry.
 * The Embedded Signup flow (`META_WHATSAPP_CONFIG_ID`) is reserved for a later release; manual
   connection with a system-user token is the supported path today.

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LegalPage } from "@/components/marketing/legal-page";
 
 export const metadata: Metadata = { title: "Terms of Service" };
@@ -51,7 +52,17 @@ export default function TermsPage() {
         },
         {
           heading: "Third-party services",
-          body: <p>Messaging relies on Meta platforms and payments on Paystack. Their terms and fees apply, and their availability is outside our control.</p>,
+          body: (
+            <p>
+              Messaging relies on Meta platforms and payments on Paystack. Their terms and fees apply, and their
+              availability is outside our control. Meta charges for WhatsApp messages separately from your subscription
+              and bills your own WhatsApp Business account directly, as explained on our{" "}
+              <Link href="/pricing#whatsapp-fees" className="font-medium text-foreground link-underline">
+                pricing page
+              </Link>
+              . We do not collect or set those charges.
+            </p>
+          ),
         },
         {
           heading: "Data",

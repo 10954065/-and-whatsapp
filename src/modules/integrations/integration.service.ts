@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { META_FREE_REPLIES_PER_MONTH } from "@/config/whatsapp-fees";
 import type { Channel, Integration } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { withTenantTx } from "@/lib/db/tenant";
@@ -24,6 +25,7 @@ export const whatsappConnectSchema = z.object({
   phoneNumberId: z.string().trim().regex(/^\d{6,30}$/, "The phone number ID is a long number from WhatsApp Manager."),
   wabaId: z.string().trim().regex(/^\d{6,30}$/, "The WhatsApp Business Account ID is a long number."),
   accessToken: z.string().trim().min(20, "Paste the permanent system-user access token.").max(1_000),
+  metaFeesAcknowledged: z.literal("on", { error: "Confirm that you understand Meta's WhatsApp fees." }),
 });
 
 export function credentialsFor(integration: Pick<Integration, "credentialsEnc">): ChannelCredentials {
@@ -48,6 +50,7 @@ async function upsertIntegration(
   channel: Channel,
   externalAccountId: string,
   data: { externalAccountName?: string | null; displayHandle?: string | null; wabaId?: string | null; credentialsEnc?: string | null; tokenExpiresAt?: Date | null; scopes?: string[] },
+  auditMetadata: Record<string, unknown> = {},
 ): Promise<Integration> {
   const existing = await prisma.integration.findUnique({ where: { channel_externalAccountId: { channel, externalAccountId } } });
   if (existing && existing.businessId !== actor.businessId) {
@@ -60,7 +63,7 @@ async function upsertIntegration(
           data: { businessId: actor.businessId, channel, externalAccountId, status: "CONNECTED", connectedById: actor.userId, lastHealthCheckAt: new Date(), scopes: [], ...data },
         });
     await recordAudit(
-      { businessId: actor.businessId, actorType: "USER", actorId: actor.userId, action: "integration.connected", entityType: "Integration", entityId: saved.id, metadata: { channel } },
+      { businessId: actor.businessId, actorType: "USER", actorId: actor.userId, action: "integration.connected", entityType: "Integration", entityId: saved.id, metadata: { channel, ...auditMetadata } },
       tx,
     );
     return saved;
@@ -81,12 +84,19 @@ export async function connectWhatsApp(actor: TenantActor, input: z.infer<typeof 
   } catch (error) {
     throw fail.validation(`WhatsApp rejected these details: ${(error as Error).message}`);
   }
-  return upsertIntegration(actor, "WHATSAPP", input.phoneNumberId, {
-    externalAccountName: phone.verified_name,
-    displayHandle: phone.display_phone_number,
-    wabaId: input.wabaId,
-    credentialsEnc: encryptJson({ accessToken: input.accessToken } satisfies ChannelCredentials),
-  });
+  return upsertIntegration(
+    actor,
+    "WHATSAPP",
+    input.phoneNumberId,
+    {
+      externalAccountName: phone.verified_name,
+      displayHandle: phone.display_phone_number,
+      wabaId: input.wabaId,
+      credentialsEnc: encryptJson({ accessToken: input.accessToken } satisfies ChannelCredentials),
+    },
+    // Proof the owner saw Meta's fees, and the free allowance they were shown.
+    { metaFeesAcknowledged: true, metaFreeRepliesShown: META_FREE_REPLIES_PER_MONTH },
+  );
 }
 
 /** A private test channel: messages are simulated in the inbox and never leave SUNLEON AI. */

@@ -15,7 +15,7 @@ tax). Free tiers change; re-check before relying on them and watch the in-app
 | Resend | Free | 3,000 emails/month, 100/day | $0 |
 | Voyage AI (optional) | Free allowance | Embeddings for knowledge base | $0 within allowance |
 | Anthropic | Pay as you go | — | usage-based (see §3) |
-| Meta WhatsApp | Per-message pricing set by Meta | Service conversations inside the 24 h window are not charged by Meta at the time of writing; template messages are charged per country/category | usage-based |
+| Meta WhatsApp | Per-message pricing set by Meta, billed to each business's own WhatsApp Business account | Since 2026-10-01 each business number gets 1,000 free delivered service messages (replies) a month; Meta charges each delivered reply after that, and template messages per country/category. Without a payment method in Meta Billing Hub, replies stop after the free 1,000. Explained to businesses on `/pricing#whatsapp-fees` and the Integrations page | paid by the business, not SUNLEON |
 | Paystack | Per transaction | No monthly fee; Paystack charges a percentage per local transaction | usage-based |
 
 **Fixed cost at launch: $0**, plus AI and messaging usage.

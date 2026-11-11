@@ -1,5 +1,18 @@
 # Changelog
 
+## WhatsApp fees from Meta, stated up front
+
+* Meta now charges for WhatsApp replies after each number's first 1,000 a month (since October 1,
+  2026). The pricing page has a "WhatsApp fees from Meta" section that says so plainly: customer
+  messages are free, the first 1,000 replies a month are free, Meta charges each delivered reply after
+  that and bills the business's own WhatsApp account, template messages are charged separately, and a
+  payment method in Meta Billing Hub keeps replies flowing past the free 1,000.
+* Sign-up and the Terms of Service point to that section, and the Integrations page shows the same
+  explanation above the WhatsApp form. All of them read from one source, so they can't disagree.
+* Connecting a WhatsApp number now requires ticking "I understand that Meta bills my WhatsApp Business
+  account…". The acknowledgment is stored in the connection's audit entry.
+* The pricing footnote no longer suggests that only template messages carry Meta fees.
+
 ## Friendlier replies
 
 * The assistant now adds a sweet, friendly emoji (😊 🙏 ✨ 💛 🎉) on its own in greetings, thanks

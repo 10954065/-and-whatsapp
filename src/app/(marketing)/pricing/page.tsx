@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Check } from "lucide-react";
+import { MetaFeeNotice } from "@/components/integrations/meta-fees";
 import { CtaBand, PageHero } from "@/components/marketing/marketing-blocks";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db/prisma";
@@ -101,9 +102,18 @@ export default async function PricingPage() {
             })}
           </div>
         )}
-        <p className="mx-auto mt-12 max-w-2xl text-center text-xs leading-relaxed text-muted-foreground">
-          Prices include platform usage within plan limits. WhatsApp template-message fees charged by Meta and Paystack
-          transaction fees are billed by those providers.
+        <section
+          id="whatsapp-fees"
+          aria-labelledby="whatsapp-fees-heading"
+          className="surface mx-auto mt-16 max-w-3xl scroll-mt-24 rounded-[2rem] p-8 sm:p-10"
+        >
+          <h2 id="whatsapp-fees-heading" className="font-display text-3xl leading-tight tracking-[-0.01em]">
+            WhatsApp fees from Meta
+          </h2>
+          <MetaFeeNotice className="mt-4" />
+        </section>
+        <p className="mx-auto mt-10 max-w-2xl text-center text-xs leading-relaxed text-muted-foreground">
+          Prices include platform usage within plan limits. Paystack transaction fees are billed by Paystack.
         </p>
       </section>
       <CtaBand />
