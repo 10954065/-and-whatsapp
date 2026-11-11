@@ -11,7 +11,7 @@ endpoints below exist for providers (webhooks, OAuth, payments, queue), for oper
 | `GET /api/cron/jobs` | Vercel Cron, operators | `Authorization: Bearer $CRON_SECRET` |
 | `GET /api/webhooks/meta` | Meta (verification handshake) | `hub.verify_token` = `META_WEBHOOK_VERIFY_TOKEN` |
 | `POST /api/webhooks/meta` | Meta (WhatsApp + Instagram events) | `X-Hub-Signature-256` (HMAC-SHA256, app secret) |
-| `GET /api/integrations/instagram/callback` | Instagram Login redirect | Signed-in session + single-use hashed OAuth `state` |
+| `GET /api/integrations/instagram/callback` | Instagram Unified Login redirect | Signed-in session + single-use hashed OAuth `state` |
 | `POST /api/webhooks/paystack` | Paystack | `x-paystack-signature` (HMAC-SHA512, secret key) |
 | `GET /api/billing/paystack/callback` | Owner's browser after checkout | None needed — triggers server-side verification only |
 | `POST /api/queue/qstash` | Upstash QStash | `Upstash-Signature` (HS256 JWT, current/next signing key) |

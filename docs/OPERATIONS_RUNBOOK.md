@@ -60,7 +60,7 @@ workspace UI is blocked and AI replies stop. **Restore** reverses it. Both actio
 | Secret | Action |
 | --- | --- |
 | `CRON_SECRET`, `META_WEBHOOK_VERIFY_TOKEN` | Generate a new value, update Vercel (and Meta for the verify token), redeploy. |
-| `META_APP_SECRET`, `INSTAGRAM_APP_SECRET` | Reset in the Meta dashboard, update Vercel, redeploy. |
+| `META_APP_SECRET` | Reset in the Meta dashboard, update Vercel, redeploy. It signs both WhatsApp and Instagram webhooks. |
 | `PAYSTACK_SECRET_KEY` | Roll the key in Paystack, update Vercel, redeploy. Webhooks are verified with the new key immediately. |
 | `AI_API_KEY` / `AI_API_KEYS`, `VOYAGE_API_KEY`, `RESEND_API_KEY`, `QSTASH_*`, storage keys | Rotate at the provider, update Vercel, redeploy. |
 | `AUTH_SECRET` | Rotating it invalidates every session and outstanding email link (everyone signs in again). |

@@ -61,7 +61,7 @@ Alternatively, keep the daily cron and set `QUEUE_PROVIDER=qstash` (see
 | Provider | Configure | Value |
 | --- | --- | --- |
 | Meta (WhatsApp + Instagram webhooks) | Meta app → Webhooks | `https://<domain>/api/webhooks/meta`, verify token = `META_WEBHOOK_VERIFY_TOKEN` |
-| Instagram Login | Meta app → Instagram → API setup → OAuth redirect | `https://<domain>/api/integrations/instagram/callback` |
+| Instagram Unified Login | Meta app → Instagram → API setup with Unified login → configuration redirect URL | `https://<domain>/api/integrations/instagram/callback` |
 | Paystack | Dashboard → Settings → API Keys & Webhooks | `https://<domain>/api/webhooks/paystack` |
 | Resend | Domains | Verify the domain used in `EMAIL_FROM` |
 | QStash (optional) | Nothing to register; the app publishes to `https://<domain>/api/queue/qstash` | — |

@@ -1,5 +1,15 @@
 # Changelog
 
+## Instagram with Instagram or Facebook login
+
+* Connect with Instagram now uses Meta's Unified Login: owners sign in with their Instagram or
+  their Facebook account, pick their Instagram professional account and approve message access.
+  No Facebook Page is needed, and the connection does not expire after 60 days.
+* WhatsApp and Instagram now run on the same Meta app, so one App Review covers both.
+* An account already connected to another workspace, or a full channel allowance, is now caught
+  before anything is linked, and the Integrations page says which it was. Reconnecting an
+  account the workspace already has no longer counts as a new channel.
+
 ## Connect WhatsApp in a few clicks
 
 * Businesses can connect their WhatsApp number with a **Connect WhatsApp** button: Meta's window

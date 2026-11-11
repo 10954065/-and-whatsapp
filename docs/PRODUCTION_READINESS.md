@@ -57,7 +57,7 @@ paths in `lib/auth/session.ts`) are exercised by the E2E suite, but E2E runs are
 | Resend email (verification, reset, invitations, notifications) | `RESEND_API_KEY` and a verified sending domain |
 | Cloudflare R2 / S3 storage driver | Bucket and token; upload and delete one document |
 | QStash dispatcher | `QUEUE_PROVIDER=qstash` and QStash keys; enqueue a job and watch delivery |
-| Meta Graph clients (WhatsApp text, templates, read receipts; Instagram Login, profile, send) | Tested against a scripted Graph API; live use is blocked (next section) |
+| Meta Graph clients (WhatsApp text, templates, read receipts, Embedded Signup; Instagram Unified Login, account lookup, send) | Tested against a scripted Graph API; live use is blocked (next section) |
 | Vercel deployment and Vercel Cron | Not deployed from this environment (Vercel CLI not installed; Vercel connector not authorised). Follow `VERCEL_DEPLOYMENT.md` |
 | Neon production database | Migrations verified on local PostgreSQL 17 + pgvector; run `DATABASE_DEPLOYMENT.md` on Neon |
 
@@ -66,7 +66,7 @@ paths in `lib/auth/session.ts`) are exercised by the E2E suite, but E2E runs are
 | Item | Blocker |
 | --- | --- |
 | Live WhatsApp messaging | Meta developer app and Meta Business verification; WhatsApp Business Account with a registered phone number; a permanent system-user token; webhooks on a public HTTPS domain |
-| Instagram messaging beyond app testers | Meta App Review for Advanced Access to `instagram_business_manage_messages` |
+| Instagram messaging beyond app testers | Meta App Review for Advanced Access to `instagram_manage_messages` |
 | Paystack live mode | Paystack Ghana business activation (compliance review) |
 | Production email sending | Resend domain verification (DNS records on the production domain) |
 | Production domain | DNS for `APP_URL`, needed by Meta callbacks, Instagram OAuth and the Paystack callback |

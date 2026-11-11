@@ -1,7 +1,7 @@
 # SUNLEON AI — Meta Integration Guide (WhatsApp + Instagram)
 
 SUNLEON AI uses only Meta's official platforms: the **WhatsApp Business Platform (Cloud API)**
-and the **Instagram API with Instagram Login**. No browser automation or unofficial libraries.
+and the **Instagram API with Unified Login**. No browser automation or unofficial libraries.
 
 > Status: implemented and covered by tests with recorded payload shapes. **Not live-verified** —
 > it requires a Meta app, App Review approval and real credentials (see "Blocked by" below).
@@ -14,13 +14,20 @@ and the **Instagram API with Instagram Login**. No browser automation or unoffic
 3. Webhooks — callback URL `https://<APP_URL>/api/webhooks/meta`, verify token = `META_WEBHOOK_VERIFY_TOKEN`.
    * WhatsApp (`whatsapp_business_account`): subscribe to `messages`. Each business's WhatsApp
      Business Account is linked to the app automatically when it connects (`subscribed_apps`).
-   * Instagram (`instagram`): subscribe to `messages`, `messaging_seen`.
-4. Instagram → *API setup with Instagram login*: add the redirect URI
-   `https://<APP_URL>/api/integrations/instagram/callback`; copy the Instagram app id/secret.
+   * Instagram (`instagram`, on the *API setup with Unified login* tab): subscribe to `messages`,
+     `messaging_seen`. Each connected Instagram account is linked automatically
+     (`POST /{instagram-account-id}/subscribed_apps`).
+4. Instagram → *API setup with Unified login* → create a configuration: login variation
+   **General**, **System-user access token**, expiration **Never**, asset **Instagram account**
+   only, permissions `instagram_basic` and `instagram_manage_messages`. Register the redirect URL
+   `https://<APP_URL>/api/integrations/instagram/callback` and set the configuration's id as
+   `META_INSTAGRAM_CONFIG_ID`. Owners then connect by logging in with Instagram or Facebook; no
+   Facebook Page is needed.
 5. Set env vars: `META_APP_ID`, `META_APP_SECRET`, `META_WEBHOOK_VERIFY_TOKEN`,
-   `META_GRAPH_API_VERSION` (default `v27.0`), `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET`.
+   `META_GRAPH_API_VERSION` (default `v27.0`), `META_INSTAGRAM_CONFIG_ID`. All webhooks, WhatsApp
+   and Instagram, are signed with `META_APP_SECRET`.
 6. App Review: request `whatsapp_business_messaging`, `whatsapp_business_management`,
-   `instagram_business_basic`, `instagram_business_manage_messages` (Advanced Access).
+   `instagram_basic`, `instagram_manage_messages` (Advanced Access).
 7. WhatsApp Embedded Signup (the **Connect WhatsApp** button), once Business Verification and
    App Review are approved:
    * Complete Meta's Tech Provider onboarding for the app.
