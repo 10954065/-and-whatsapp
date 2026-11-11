@@ -1,7 +1,7 @@
 # Deploying to Vercel
 
 SUNLEON AI is a single Next.js 16 application. It runs on Vercel Functions (Node.js, Fluid
-Compute) with Neon PostgreSQL. No Railway or other container host is required. The optional
+Compute) with Supabase PostgreSQL. No Railway or other container host is required. The optional
 standalone worker (`npm run worker`) is only an alternative to cron or QStash.
 
 > **Plan choice.** Vercel Hobby is for personal, non-commercial use. Use it only to evaluate
@@ -13,13 +13,15 @@ standalone worker (`npm run worker`) is only an alternative to cron or QStash.
 2. Build command: `npm run build` (runs `prisma generate` then `next build`). Install command:
    default (`npm install`; `postinstall` also generates the Prisma client).
 3. Node.js version: 24 (Project → Settings → General).
-4. Function region: put functions in the same region as the Neon database. Neon has no
-   African region, so a European pair is a sensible default for Ghana (for example Neon
-   `aws-eu-central-1` with Vercel `fra1`). Measure from Accra before committing.
+4. Function region: `vercel.json` pins functions to `fra1` (Frankfurt), next to the
+   Supabase project in `eu-central-1`. Without it Vercel defaults to `iad1` (Washington), an
+   ocean away from the database. Hobby allows one region; that is all the app needs.
+5. `.vercelignore` keeps `.env*` and `.data/` out of CLI uploads; Vercel's own default list
+   skips `.env.local` but not `.env`.
 
 ## 2. Database
 
-Create the Neon project and run migrations **before** the first production deploy. See
+Create the Supabase project and run migrations **before** the first production deploy. See
 `DATABASE_DEPLOYMENT.md`. Migrations are deliberately **not** run during the Vercel build, so
 a preview build can never alter the production schema.
 
@@ -27,11 +29,11 @@ a preview build can never alter the production schema.
 
 Set every required variable from `ENVIRONMENT_VARIABLES.md` for **Production**:
 * `APP_URL` is the production domain.
-* `DATABASE_URL` is the Neon **pooled** host.
-* `DIRECT_URL` is the direct host.
+* `DATABASE_URL` is the Supabase **transaction pooler** (port 6543).
+* `DIRECT_URL` is the Supabase **session pooler** (port 5432).
 * `AUTH_SECRET`, `ENCRYPTION_KEY` and `CRON_SECRET` are fresh random values.
 
-For **Preview**, use a separate Neon branch or database, a different `AUTH_SECRET` and
+For **Preview**, use a separate Supabase project, a different `AUTH_SECRET` and
 `ENCRYPTION_KEY`, and leave Paystack in test mode. Preview deployments always sandbox outbound
 WhatsApp/Instagram messages.
 
@@ -88,4 +90,4 @@ Alternatively, keep the daily cron and set `QUEUE_PROVIDER=qstash` (see
 
 Vercel → Deployments → promote the previous deployment. Database migrations are
 forward-only. If a release added a migration, roll the app back only to a build that is
-compatible with the new schema, or restore the Neon branch (see `OPERATIONS_RUNBOOK.md`).
+compatible with the new schema, or restore a database backup (see `DATABASE_DEPLOYMENT.md`).

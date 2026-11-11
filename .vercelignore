@@ -1,0 +1,9 @@
+# Vercel CLI uploads ignore .env.local but not these. Secrets live in Vercel's environment
+# variables, and .data holds local renders, screenshots and scratch files.
+.env
+.env.*
+!.env.example
+.data
+coverage
+playwright-report
+test-results

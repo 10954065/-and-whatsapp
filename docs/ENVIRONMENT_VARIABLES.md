@@ -16,8 +16,8 @@ configured" in the app (and in Admin → Settings) instead of failing.
 | Variable | Purpose | How to generate |
 | --- | --- | --- |
 | `APP_URL` | Public base URL, no trailing slash. Used for email links, OAuth redirects, the Paystack callback and the QStash destination. | e.g. `https://app.sunleonrouterenterprise.com` |
-| `DATABASE_URL` | Runtime PostgreSQL connection. On Neon use the **pooled** (`-pooler`) host. | Neon console |
-| `DIRECT_URL` | Direct (non-pooled) connection used by `prisma migrate deploy`. | Neon console |
+| `DATABASE_URL` | Runtime PostgreSQL connection: the Supabase **transaction pooler** (port 6543). | Supabase → Connect |
+| `DIRECT_URL` | Connection used by `prisma migrate deploy`: the Supabase **session pooler** (port 5432). | Supabase → Connect |
 | `AUTH_SECRET` | Keys session and token hashing (HMAC). At least 32 characters. **Rotating it signs everyone out.** | `openssl rand -base64 48` |
 | `ENCRYPTION_KEY` | AES-256-GCM key for integration credentials and MFA secrets. Exactly 32 bytes, base64. **Never rotate without re-encrypting stored data.** | `openssl rand -base64 32` |
 | `CRON_SECRET` | Bearer secret Vercel Cron sends to `/api/cron/jobs`. Without it the sweeper refuses every call. | `openssl rand -hex 32` |

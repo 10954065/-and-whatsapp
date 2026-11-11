@@ -4,7 +4,7 @@ import { PrismaClient } from "@/generated/prisma/client";
 const globalForPrisma = globalThis as unknown as { sunleonPrisma?: PrismaClient };
 
 function createPrismaClient(): PrismaClient {
-  // DATABASE_URL is the pooled (PgBouncer) connection string on Neon. Keep the per-
+  // DATABASE_URL is the pooled connection (Supabase transaction pooler). Keep the per-
   // instance pool small: Fluid Compute reuses instances across concurrent requests.
   const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL,

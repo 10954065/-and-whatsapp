@@ -1,21 +1,33 @@
-# Database deployment (Neon PostgreSQL)
+# Database deployment (Supabase PostgreSQL)
 
 The schema is managed by Prisma migrations in `prisma/migrations`:
-* `20261108203109_init` — tables, plus the `vector` and `btree_gist` extensions.
+* `20261108203109_init` — tables, plus the `vector`, `btree_gist` and `pg_trgm` extensions.
 * `20261108203500_integrity_and_rls` — CHECK constraints, the booking exclusion constraint,
   the `sunleon_tenant` role and row-level security policies.
 * `20261108204940_contact_inquiries`.
+* `20261111090000_supabase_data_api_lockdown` — revokes every privilege Supabase's Data API
+  roles (`anon`, `authenticated`, `service_role`) get on `public`, now and for later tables.
+  A no-op on servers without those roles.
 
 ## 1. Create the database
 
-1. Create a Neon project (PostgreSQL 17) in the region you chose for Vercel functions.
-2. From the Neon console, copy two connection strings:
-   * **pooled** (host contains `-pooler`) → `DATABASE_URL` (runtime)
-   * **direct** → `DIRECT_URL` (migrations)
-   Both must use `sslmode=require`.
-3. The connecting role must be able to create extensions and roles. The default Neon owner
-   role can. The migration creates `sunleon_tenant` (NOLOGIN, NOBYPASSRLS) and grants it to
-   the migrating role.
+1. Create a Supabase project in the same region as the Vercel functions: **Central EU
+   (Frankfurt), `eu-central-1`**, matching `"regions": ["fra1"]` in `vercel.json`. Save the
+   database password in a password manager.
+2. From **Connect**, copy two connection strings and put the password in both:
+   * **Transaction pooler** (port 6543) → `DATABASE_URL` (runtime). The app's `pg` driver
+     adapter uses unnamed statements, so no `pgbouncer=true` flag is needed.
+   * **Session pooler** (port 5432) → `DIRECT_URL` (migrations). The "direct connection"
+     host is IPv6-only unless you buy the IPv4 add-on, so use the session pooler.
+3. The default `postgres` role can create the extensions and the `sunleon_tenant` role
+   (NOLOGIN, NOBYPASSRLS), which the migration grants to the migrating role.
+4. SUNLEON AI never uses Supabase's Data API. The lockdown migration removes its access; also
+   turn the Data API off (or at least **Automatically expose new tables**) in the project's
+   Data API settings so nothing is exposed by default.
+5. For knowledge-base uploads, create a **private** Storage bucket named `knowledge` and an
+   S3 access key (Storage → S3 Configuration). Set `OBJECT_STORAGE_ENDPOINT` to
+   `https://<project-ref>.storage.supabase.co/storage/v1/s3` and `OBJECT_STORAGE_REGION` to
+   `eu-central-1`. These keys bypass Storage RLS: server-side only.
 
 ## 2. Apply migrations and seed
 
@@ -40,6 +52,10 @@ Check the result with `npx prisma migrate status`. It should say "Database schem
 SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public' AND rowsecurity;
 -- The tenant role must not bypass RLS
 SELECT rolname, rolbypassrls FROM pg_roles WHERE rolname = 'sunleon_tenant';
+-- Supabase's Data API roles must reach no table (expect 0)
+SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public' AND c.relkind = 'r'
+  AND (has_table_privilege('anon', c.oid, 'SELECT') OR has_table_privilege('authenticated', c.oid, 'SELECT'));
 ```
 
 The integration suite proves isolation on every run (`tests/integration/tenancy.test.ts`).
@@ -57,14 +73,14 @@ Run it against a disposable Neon branch to check a new environment:
 
 ## 5. Backups and restore
 
-* Neon keeps point-in-time history (the restore window depends on the plan: short on Free,
-  longer on paid plans).
-* Before any risky migration, create a branch: Neon console → Branches → *Create branch* from
-  `main`. It is an instant copy-on-write snapshot.
-* To restore: create a branch at a timestamp before the incident, check it, then point
-  `DATABASE_URL`/`DIRECT_URL` at it (or promote it to primary) and redeploy.
-* For an off-platform copy, run a periodic `pg_dump --format=custom "$DIRECT_URL" > backup.dump`
-  from a trusted machine and keep it encrypted.
+* What Supabase backs up depends on the plan (Database → Backups shows it). Daily backups and
+  point-in-time recovery are paid features; on the Free plan, rely on your own dumps.
+* Before any risky migration, and on a schedule, run
+  `pg_dump --format=custom "$DIRECT_URL" > backup.dump` from a trusted machine and keep it
+  encrypted. Restore with `pg_restore` into a fresh project, check it, then point
+  `DATABASE_URL`/`DIRECT_URL` at it and redeploy.
+* Free-plan projects can be paused after a period of inactivity; check the current policy in
+  the Supabase dashboard before relying on the Free plan for paying customers.
 
 ## 6. Data retention
 
