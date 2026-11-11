@@ -2,16 +2,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { resetEnvCache } from "@/lib/env";
 import { fetchPublicText } from "@/lib/security/ssrf";
 import {
-  exchangeInstagramCode,
-  getInstagramProfile,
+  getInstagramAccount,
   getWhatsAppPhoneNumber,
-  instagramAuthorizeUrl,
+  instagramLoginUrl,
+  listInstagramAccounts,
   listWhatsAppTemplates,
   markWhatsAppRead,
-  refreshInstagramToken,
   sendInstagramText,
   sendWhatsAppTemplate,
   sendWhatsAppText,
+  subscribeInstagramWebhooks,
 } from "@/modules/integrations/meta";
 import { EMBEDDING_DIMENSIONS, embedTexts, toVectorLiteral } from "@/modules/knowledge/embeddings";
 
@@ -25,7 +25,7 @@ function stubFetch(handler: Handler) {
 
 afterEach(() => {
   vi.unstubAllGlobals();
-  for (const key of ["VOYAGE_API_KEY", "INSTAGRAM_APP_ID", "INSTAGRAM_APP_SECRET"]) delete process.env[key];
+  for (const key of ["VOYAGE_API_KEY", "META_APP_ID", "META_INSTAGRAM_CONFIG_ID"]) delete process.env[key];
   resetEnvCache();
 });
 
@@ -117,28 +117,39 @@ describe("Meta Graph clients", () => {
     expect(await listWhatsAppTemplates("waba_1", credentials)).toEqual({ data: [] });
   });
 
-  it("runs the Instagram Login flow: authorise URL, code exchange, refresh, profile and send", async () => {
-    expect(() => instagramAuthorizeUrl("state", "https://app.example/cb")).toThrow(/not configured/);
-    process.env.INSTAGRAM_APP_ID = "ig_app";
-    process.env.INSTAGRAM_APP_SECRET = "ig_secret";
+  it("runs Instagram with Unified Login: login URL, shared accounts, linking, profile and send", async () => {
+    expect(() => instagramLoginUrl("state", "https://app.example/cb")).toThrow(/not configured/);
+    process.env.META_APP_ID = "meta_app";
+    process.env.META_INSTAGRAM_CONFIG_ID = "ig_config";
     resetEnvCache();
-    const authorize = new URL(instagramAuthorizeUrl("state123", "https://app.example/cb"));
-    expect(authorize.searchParams.get("scope")).toBe("instagram_business_basic,instagram_business_manage_messages");
+    const login = new URL(instagramLoginUrl("state123", "https://app.example/cb"));
+    expect(`${login.origin}${login.pathname}`).toBe("https://www.facebook.com/dialog/oauth");
+    expect(Object.fromEntries(login.searchParams)).toMatchObject({
+      client_id: "meta_app",
+      config_id: "ig_config",
+      redirect_uri: "https://app.example/cb",
+      response_type: "code",
+      state: "state123",
+    });
 
-    stubFetch((url) => {
-      if (url === "https://api.instagram.com/oauth/access_token") return Response.json({ access_token: "short", user_id: 17841400000, permissions: ["instagram_business_basic"] });
-      if (url.startsWith("https://graph.instagram.com/access_token")) return Response.json({ access_token: "long", expires_in: 5_184_000 });
-      if (url.startsWith("https://graph.instagram.com/refresh_access_token")) return Response.json({ access_token: "refreshed", expires_in: 5_184_000 });
-      if (url.includes("/me?fields=")) return Response.json({ user_id: "17841400000", username: "kente_shop" });
+    const fetchMock = stubFetch((url) => {
+      if (url.includes("/me/assigned_instagram_accounts")) return Response.json({ data: [{ id: "17841400000", username: "kente_shop" }] });
+      if (url.includes("/subscribed_apps")) return Response.json({ success: true });
+      if (url.includes("/17841400000?fields=")) return Response.json({ id: "17841400000", username: "kente_shop" });
       return Response.json({ message_id: "ig-mid-1" });
     });
-    const exchanged = await exchangeInstagramCode("code", "https://app.example/cb");
-    expect(exchanged).toMatchObject({ accessToken: "long", userId: "17841400000", scopes: ["instagram_business_basic"] });
-    expect((await refreshInstagramToken("long")).accessToken).toBe("refreshed");
-    expect((await getInstagramProfile("long")).username).toBe("kente_shop");
-    expect(await sendInstagramText("igsid_1", "Hello", "long")).toEqual({ providerMessageId: "ig-mid-1" });
+    const credentials = { accessToken: "EAAB-suat" };
+    expect(await listInstagramAccounts(credentials)).toEqual([{ id: "17841400000", username: "kente_shop" }]);
+    await subscribeInstagramWebhooks("17841400000", credentials);
+    expect((await getInstagramAccount("17841400000", credentials)).username).toBe("kente_shop");
+    expect(await sendInstagramText("17841400000", "igsid_1", "Hello", credentials)).toEqual({ providerMessageId: "ig-mid-1" });
 
-    stubFetch(() => Response.json({ error_message: "Invalid code" }, { status: 400 }));
-    await expect(exchangeInstagramCode("bad", "https://app.example/cb")).rejects.toThrow(/Invalid code/);
+    const urls = fetchMock.mock.calls.map(([url]) => String(url));
+    expect(urls.every((url) => url.startsWith("https://graph.facebook.com/v27.0/"))).toBe(true);
+    expect(urls[1]).toBe("https://graph.facebook.com/v27.0/17841400000/subscribed_apps?subscribed_fields=messages,messaging_seen");
+    expect(urls[3]).toBe("https://graph.facebook.com/v27.0/17841400000/messages");
+    const sent = fetchMock.mock.calls[3][1];
+    expect(sent?.headers).toMatchObject({ authorization: "Bearer EAAB-suat" });
+    expect(JSON.parse(String(sent?.body))).toEqual({ recipient: { id: "igsid_1" }, message: { text: "Hello" } });
   });
 });

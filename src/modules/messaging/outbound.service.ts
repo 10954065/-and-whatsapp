@@ -85,7 +85,7 @@ export async function sendConversationMessage(input: SendInput) {
           ? (await sendWhatsAppTemplate(integration.externalAccountId, identity.externalId, input.template, credentials)).providerMessageId
           : (await sendWhatsAppText(integration.externalAccountId, identity.externalId, input.text!, credentials)).providerMessageId;
       } else if (conversation.channel === "INSTAGRAM") {
-        providerMessageId = (await sendInstagramText(identity.externalId, input.text!, credentials.accessToken)).providerMessageId;
+        providerMessageId = (await sendInstagramText(integration.externalAccountId, identity.externalId, input.text!, credentials)).providerMessageId;
       }
     }
     const now = new Date();

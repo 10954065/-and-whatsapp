@@ -14,6 +14,15 @@ export const metadata: Metadata = { title: "Integrations" };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
+/** Messages for the `instagram` value the connection callback adds to this page's address. */
+const INSTAGRAM_NOTICES: Record<string, string> = {
+  connected: "account connected.",
+  cancelled: "connection cancelled.",
+  limit: "your plan's channel limit is reached. Disconnect a channel or upgrade, then try again.",
+  taken: "that account is already connected to another SUNLEON AI workspace.",
+  failed: "connection failed. Choose an Instagram professional account with message access turned on, and try again.",
+};
+
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   CONNECTED: "default",
   PENDING: "secondary",
@@ -48,7 +57,7 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
       ) : null}
       {instagramNotice ? (
         <p role="status" className="mb-6 rounded-xl border bg-card px-4 py-3 text-sm">
-          Instagram: {instagramNotice === "connected" ? "account connected." : instagramNotice === "cancelled" ? "connection cancelled." : "connection failed. Check the account is a professional account and try again."}
+          Instagram: {Object.hasOwn(INSTAGRAM_NOTICES, instagramNotice) ? INSTAGRAM_NOTICES[instagramNotice] : INSTAGRAM_NOTICES.failed}
         </p>
       ) : null}
 
@@ -112,12 +121,12 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
             <Camera className="size-4 text-[#E1306C]" aria-hidden="true" /> Instagram messaging
           </h2>
           <p className="mt-1 mb-4 text-sm text-muted-foreground">
-            Requires an Instagram professional (business or creator) account. You&apos;ll sign in with Instagram and approve message access.
+            Requires an Instagram professional (business or creator) account. You&apos;ll sign in with Instagram or Facebook, choose the account and approve message access.
           </p>
           {providers.instagram ? (
             canManage ? <InstagramConnectButton disabled={!context.user.emailVerifiedAt} /> : null
           ) : (
-            <p className="text-sm text-warning">Instagram Login is not configured on this platform yet.</p>
+            <p className="text-sm text-warning">Instagram is not configured on this platform yet.</p>
           )}
         </section>
         <section className="surface rounded-[1.25rem] p-6 lg:col-span-2">

@@ -6,21 +6,23 @@ import { prisma } from "@/lib/db/prisma";
 import { withTenantTx } from "@/lib/db/tenant";
 import { env } from "@/lib/env";
 import type { TenantActor } from "@/lib/auth/tenant";
-import { fail } from "@/lib/monitoring/errors";
+import { fail, isAppError } from "@/lib/monitoring/errors";
+import { logger } from "@/lib/monitoring/logger";
 import { decryptJson, encryptJson, hashToken, randomToken } from "@/lib/security/crypto";
 import { recordAudit } from "@/modules/administration/audit.service";
 import { getPlanLimits } from "@/modules/billing/usage";
 import {
-  exchangeEmbeddedSignupCode,
-  exchangeInstagramCode,
-  getInstagramProfile,
+  exchangeBusinessLoginCode,
+  getInstagramAccount,
   getTokenAppId,
   getWhatsAppPhoneNumber,
-  instagramAuthorizeUrl,
+  instagramLoginUrl,
+  listInstagramAccounts,
   listWhatsAppAccountNumberIds,
   registerWhatsAppNumber,
   subscribeInstagramWebhooks,
   subscribeWhatsAppWebhooks,
+  unsubscribeInstagramWebhooks,
 } from "@/modules/integrations/meta";
 
 export interface ChannelCredentials {
@@ -69,9 +71,9 @@ async function assertChannelAllowance(businessId: string, reconnectingAccountId?
   if (connected >= limits.channels) throw fail.limitExceeded(`Your plan allows ${limits.channels} connected channel(s). Upgrade to add more.`);
 }
 
-/** The number's current connection, if any. Checked before any call to Meta changes the number. */
-async function existingWhatsAppNumber(actor: TenantActor, phoneNumberId: string): Promise<Integration | null> {
-  const existing = await prisma.integration.findUnique({ where: { channel_externalAccountId: { channel: "WHATSAPP", externalAccountId: phoneNumberId } } });
+/** The account's current connection, if any. Checked before any call to Meta changes the account. */
+async function existingConnection(actor: TenantActor, channel: Channel, externalAccountId: string): Promise<Integration | null> {
+  const existing = await prisma.integration.findUnique({ where: { channel_externalAccountId: { channel, externalAccountId } } });
   if (existing && existing.businessId !== actor.businessId) throw fail.conflict(CONNECTED_ELSEWHERE);
   return existing;
 }
@@ -108,7 +110,7 @@ async function upsertIntegration(
  */
 export async function connectWhatsApp(actor: TenantActor, input: z.infer<typeof whatsappConnectSchema>): Promise<Integration> {
   if (!actor.emailVerified) throw fail.precondition("Confirm your email address before connecting channels.");
-  const existing = await existingWhatsAppNumber(actor, input.phoneNumberId);
+  const existing = await existingConnection(actor, "WHATSAPP", input.phoneNumberId);
   await assertChannelAllowance(actor.businessId, input.phoneNumberId);
   const credentials: ChannelCredentials = { accessToken: input.accessToken };
   const phone = await lookUpWhatsAppNumber(input.phoneNumberId, credentials);
@@ -130,12 +132,12 @@ export async function connectWhatsAppEmbedded(actor: TenantActor, input: z.infer
   if (!actor.emailVerified) throw fail.precondition("Confirm your email address before connecting channels.");
   const { META_APP_ID, META_APP_SECRET } = env();
   if (!META_APP_ID || !META_APP_SECRET) throw fail.precondition("Connecting with Facebook is not set up on this platform yet. Use the manual form instead.");
-  const existing = await existingWhatsAppNumber(actor, input.phoneNumberId);
+  const existing = await existingConnection(actor, "WHATSAPP", input.phoneNumberId);
   await assertChannelAllowance(actor.businessId, input.phoneNumberId);
 
   let accessToken: string;
   try {
-    accessToken = await exchangeEmbeddedSignupCode(input.code);
+    accessToken = await exchangeBusinessLoginCode(input.code);
   } catch (error) {
     throw fail.validation(`Meta did not accept the sign-in (${(error as Error).message}). Click Connect WhatsApp and try again.`);
   }
@@ -229,48 +231,91 @@ export function instagramRedirectUri(): string {
   return `${env().APP_URL}/api/integrations/instagram/callback`;
 }
 
-/** Starts Instagram Login: stores a hashed one-time state bound to user + business. */
+/** Starts Instagram's Unified Login: stores a hashed one-time state bound to user + business. */
 export async function startInstagramConnect(actor: TenantActor): Promise<string> {
   if (!actor.emailVerified) throw fail.precondition("Confirm your email address before connecting channels.");
-  await assertChannelAllowance(actor.businessId);
   const state = randomToken(24);
   await prisma.oAuthState.create({
     data: { stateHash: hashToken(state), userId: actor.userId, businessId: actor.businessId, provider: "instagram", expiresAt: new Date(Date.now() + 10 * 60_000) },
   });
-  return instagramAuthorizeUrl(state, instagramRedirectUri());
+  // The plan's channel allowance is checked once Meta says which account was shared, so
+  // reconnecting an account the workspace already has is not refused here.
+  return instagramLoginUrl(state, instagramRedirectUri());
 }
 
-/** Completes Instagram Login after validating the state against the signed-in user. */
-export async function completeInstagramConnect(userId: string, state: string, code: string): Promise<{ businessId: string }> {
+/** Uses up the one-time state and returns the owner or admin it was issued to. */
+async function instagramActorFor(userId: string, state: string): Promise<TenantActor> {
+  const expired = fail.validation("This Instagram connection link has expired. Start again from Integrations.");
   const record = await prisma.oAuthState.findUnique({ where: { stateHash: hashToken(state) } });
-  if (!record || record.provider !== "instagram" || record.usedAt || record.expiresAt < new Date() || record.userId !== userId) {
-    throw fail.validation("This Instagram connection link has expired. Start again from Integrations.");
-  }
-  await prisma.oAuthState.update({ where: { id: record.id }, data: { usedAt: new Date() } });
+  if (!record || record.provider !== "instagram" || record.userId !== userId) throw expired;
+  // One conditional update, so two redirects arriving together cannot both use the state.
+  const now = new Date();
+  const used = await prisma.oAuthState.updateMany({ where: { id: record.id, usedAt: null, expiresAt: { gt: now } }, data: { usedAt: now } });
+  if (used.count !== 1) throw expired;
   const membership = await prisma.businessMembership.findUnique({ where: { businessId_userId: { businessId: record.businessId, userId } } });
   if (!membership || !["OWNER", "ADMIN"].includes(membership.role)) throw fail.forbidden();
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { name: true, emailVerifiedAt: true } });
   const business = await prisma.business.findUniqueOrThrow({ where: { id: record.businessId }, select: { name: true } });
+  return { userId, userName: user.name, emailVerified: Boolean(user.emailVerifiedAt), businessId: record.businessId, businessName: business.name, role: membership.role, ipAddress: null };
+}
 
-  const token = await exchangeInstagramCode(code, instagramRedirectUri());
-  const profile = await getInstagramProfile(token.accessToken);
-  await subscribeInstagramWebhooks(token.accessToken).catch(() => undefined);
-  await upsertIntegration(
-    { userId, userName: user.name, emailVerified: Boolean(user.emailVerifiedAt), businessId: record.businessId, businessName: business.name, role: membership.role, ipAddress: null },
-    "INSTAGRAM",
-    profile.user_id,
-    {
-      externalAccountName: profile.name ?? profile.username,
-      displayHandle: `@${profile.username}`,
-      credentialsEnc: encryptJson({ accessToken: token.accessToken } satisfies ChannelCredentials),
-      tokenExpiresAt: token.expiresAt,
-      scopes: token.scopes,
-    },
-  );
-  return { businessId: record.businessId };
+/** Completes Instagram's Unified Login after validating the state against the signed-in user. */
+export async function completeInstagramConnect(userId: string, state: string, code: string): Promise<{ businessId: string }> {
+  const actor = await instagramActorFor(userId, state);
+  let credentials: ChannelCredentials;
+  let accounts: { id: string; username: string }[];
+  try {
+    credentials = { accessToken: await exchangeBusinessLoginCode(code, instagramRedirectUri()) };
+    accounts = await listInstagramAccounts(credentials);
+  } catch (error) {
+    throw fail.validation(`Meta did not accept the sign-in (${(error as Error).message}). Click Connect with Instagram and try again.`);
+  }
+  const account = await chooseInstagramAccount(actor, accounts);
+  await assertChannelAllowance(actor.businessId, account.id);
+  try {
+    await subscribeInstagramWebhooks(account.id, credentials);
+  } catch (error) {
+    throw fail.validation(`Instagram connected but would not send this account's messages to SUNLEON AI: ${(error as Error).message}`);
+  }
+  await upsertIntegration(actor, "INSTAGRAM", account.id, {
+    externalAccountName: account.username,
+    displayHandle: `@${account.username}`,
+    credentialsEnc: encryptJson(credentials),
+    tokenExpiresAt: null,
+    scopes: [],
+  });
+  return { businessId: actor.businessId };
+}
+
+/**
+ * Meta lists every Instagram account the business has shared with the platform, not only the one
+ * picked just now. Prefer one this workspace has not connected yet, then one it has (a reconnect),
+ * and never one that belongs to another workspace.
+ */
+async function chooseInstagramAccount(actor: TenantActor, accounts: { id: string; username: string }[]) {
+  if (accounts.length === 0) throw fail.validation("No Instagram professional account was shared. Click Connect with Instagram and choose your account.");
+  const known = await prisma.integration.findMany({
+    where: { channel: "INSTAGRAM", externalAccountId: { in: accounts.map((account) => account.id) } },
+    select: { externalAccountId: true, businessId: true, status: true },
+  });
+  const ownedElsewhere = new Set(known.filter((row) => row.businessId !== actor.businessId).map((row) => row.externalAccountId));
+  const connectedHere = new Set(known.filter((row) => row.businessId === actor.businessId && row.status !== "DISCONNECTED").map((row) => row.externalAccountId));
+  const available = accounts.filter((account) => !ownedElsewhere.has(account.id));
+  const account = available.find((candidate) => !connectedHere.has(candidate.id)) ?? available[0];
+  if (!account) throw fail.conflict(CONNECTED_ELSEWHERE);
+  return account;
+}
+
+/** The notice the Integrations page shows after an Instagram connection fails. */
+export function instagramFailureNotice(error: unknown): "limit" | "taken" | "failed" {
+  if (isAppError(error) && error.code === "LIMIT_EXCEEDED") return "limit";
+  if (isAppError(error) && error.code === "CONFLICT") return "taken";
+  return "failed";
 }
 
 export async function disconnectIntegration(actor: TenantActor, integrationId: string): Promise<void> {
+  const integration = await prisma.integration.findFirst({ where: { id: integrationId, businessId: actor.businessId } });
+  if (integration?.channel === "INSTAGRAM" && integration.credentialsEnc) await unlinkInstagramAccount(integration);
   await withTenantTx(actor.businessId, async (tx) => {
     const result = await tx.integration.updateMany({
       where: { id: integrationId, businessId: actor.businessId },
@@ -281,6 +326,18 @@ export async function disconnectIntegration(actor: TenantActor, integrationId: s
   });
 }
 
+/**
+ * The business token never expires, so a disconnected account also stops its webhooks at Meta.
+ * Best effort: disconnecting must still work when Meta is unreachable or the token was revoked.
+ */
+async function unlinkInstagramAccount(integration: Integration): Promise<void> {
+  try {
+    await unsubscribeInstagramWebhooks(integration.externalAccountId, credentialsFor(integration));
+  } catch (error) {
+    logger.warn("integration.instagram_unlink_failed", { integrationId: integration.id, error: (error as Error).message });
+  }
+}
+
 /** Re-validates stored credentials against Meta and records the result. */
 export async function checkIntegrationHealth(actor: TenantActor, integrationId: string): Promise<Integration> {
   const integration = await prisma.integration.findFirst({ where: { id: integrationId, businessId: actor.businessId } });
@@ -288,7 +345,7 @@ export async function checkIntegrationHealth(actor: TenantActor, integrationId: 
   let error: string | null = null;
   try {
     if (integration.channel === "WHATSAPP") await getWhatsAppPhoneNumber(integration.externalAccountId, credentialsFor(integration));
-    if (integration.channel === "INSTAGRAM") await getInstagramProfile(credentialsFor(integration).accessToken);
+    if (integration.channel === "INSTAGRAM") await getInstagramAccount(integration.externalAccountId, credentialsFor(integration));
   } catch (caught) {
     error = (caught as Error).message;
   }

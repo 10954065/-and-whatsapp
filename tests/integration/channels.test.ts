@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TenantActor } from "@/lib/auth/tenant";
 import { prisma } from "@/lib/db/prisma";
 import { resetEnvCache } from "@/lib/env";
+import { AppError } from "@/lib/monitoring/errors";
 import {
   checkIntegrationHealth,
   completeInstagramConnect,
@@ -9,6 +10,7 @@ import {
   connectWhatsAppEmbedded,
   credentialsFor,
   disconnectIntegration,
+  instagramFailureNotice,
   listIntegrations,
   startInstagramConnect,
   whatsappConnectSchema,
@@ -27,8 +29,7 @@ const digits = () => String(Math.floor(1e14 + Math.random() * 9e14));
 
 afterEach(() => {
   vi.unstubAllGlobals();
-  delete process.env.INSTAGRAM_APP_ID;
-  delete process.env.INSTAGRAM_APP_SECRET;
+  delete process.env.META_INSTAGRAM_CONFIG_ID;
   delete process.env.META_APP_ID;
   delete process.env.META_APP_SECRET;
   resetEnvCache();
@@ -298,34 +299,159 @@ describe("WhatsApp Embedded Signup", () => {
   });
 });
 
-describe("Instagram Login connection", () => {
-  it("binds the single-use state to the user and connects the professional account", async () => {
-    const { owner, actor, business } = await setup();
-    process.env.INSTAGRAM_APP_ID = "ig_app";
-    process.env.INSTAGRAM_APP_SECRET = "ig_secret";
-    resetEnvCache();
-    const igUserId = digits();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (input: string | URL) => {
-        const url = String(input);
-        if (url === "https://api.instagram.com/oauth/access_token") return Response.json({ access_token: "short", user_id: igUserId, permissions: "instagram_business_basic,instagram_business_manage_messages" });
-        if (url.startsWith("https://graph.instagram.com/access_token")) return Response.json({ access_token: "long-lived", expires_in: 5_184_000 });
-        if (url.includes("/me?fields=")) return Response.json({ user_id: igUserId, username: "channel_shop", name: "Channel Shop" });
-        return Response.json({ success: true });
-      }),
-    );
+/** Fake Graph API for Instagram with Unified Login: code exchange, shared accounts and linking. */
+function stubInstagramGraph({ accounts, subscribe = "ok" }: { accounts: { id: string; username: string }[]; subscribe?: "ok" | "refused" }) {
+  const calls: { url: string; method: string }[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      calls.push({ url, method: init?.method ?? "GET" });
+      if (url.includes("/oauth/access_token")) return Response.json({ access_token: "EAAB_ig_business_token", token_type: "bearer" });
+      if (url.includes("/me/assigned_instagram_accounts")) return Response.json({ data: accounts });
+      if (url.includes("/subscribed_apps")) {
+        return subscribe === "ok" ? Response.json({ success: true }) : Response.json({ error: { message: "(#200) Permissions error", code: 200 } }, { status: 403 });
+      }
+      return Response.json({ error: { message: `Unexpected request ${url}`, code: 1 } }, { status: 400 });
+    }),
+  );
+  return calls;
+}
 
-    const authorizeUrl = new URL(await startInstagramConnect(actor));
-    const state = authorizeUrl.searchParams.get("state")!;
+function configureInstagramApp() {
+  process.env.META_APP_ID = "sunleon_app";
+  process.env.META_APP_SECRET = "sunleon_secret";
+  process.env.META_INSTAGRAM_CONFIG_ID = "ig_config";
+  resetEnvCache();
+}
+
+/** Starts the connection as the owner and returns the one-time state Meta sends back. */
+async function startState(actor: TenantActor): Promise<string> {
+  return new URL(await startInstagramConnect(actor)).searchParams.get("state")!;
+}
+
+describe("Instagram connection (Unified Login)", () => {
+  it("binds the single-use state to the user, then connects and links the shared professional account", async () => {
+    const { owner, actor, business } = await setup();
+    configureInstagramApp();
+    const igId = digits();
+    const calls = stubInstagramGraph({ accounts: [{ id: igId, username: "channel_shop" }] });
+
+    const login = new URL(await startInstagramConnect(actor));
+    expect(`${login.origin}${login.pathname}`).toBe("https://www.facebook.com/dialog/oauth");
+    expect(login.searchParams.get("config_id")).toBe("ig_config");
+    expect(login.searchParams.get("redirect_uri")).toMatch(/\/api\/integrations\/instagram\/callback$/);
+    const state = login.searchParams.get("state")!;
     const stranger = await createUser();
     await expect(completeInstagramConnect(stranger.id, state, "code")).rejects.toThrow(/expired/);
 
-    expect(await completeInstagramConnect(owner.id, state, "code#_")).toEqual({ businessId: business.id });
+    expect(await completeInstagramConnect(owner.id, state, "code")).toEqual({ businessId: business.id });
     const integration = await prisma.integration.findFirstOrThrow({ where: { businessId: business.id, channel: "INSTAGRAM" } });
-    expect(integration).toMatchObject({ status: "CONNECTED", displayHandle: "@channel_shop", externalAccountId: igUserId, scopes: ["instagram_business_basic", "instagram_business_manage_messages"] });
-    expect(credentialsFor(integration).accessToken).toBe("long-lived");
+    expect(integration).toMatchObject({ status: "CONNECTED", displayHandle: "@channel_shop", externalAccountId: igId, tokenExpiresAt: null });
+    expect(credentialsFor(integration)).toEqual({ accessToken: "EAAB_ig_business_token" });
+    const exchange = calls.find((call) => call.url.includes("/oauth/access_token"));
+    expect(exchange?.url).toContain("code=code&");
+    expect(exchange?.url).toContain("redirect_uri=");
+    expect(calls).toContainEqual({ url: expect.stringContaining(`/${igId}/subscribed_apps?subscribed_fields=messages,messaging_seen`), method: "POST" });
 
     await expect(completeInstagramConnect(owner.id, state, "code")).rejects.toThrow(/expired/);
+  });
+
+  it("asks the owner to choose an account when none was shared, and saves nothing", async () => {
+    const { owner, actor, business } = await setup();
+    configureInstagramApp();
+    stubInstagramGraph({ accounts: [] });
+    await expect(completeInstagramConnect(owner.id, await startState(actor), "code")).rejects.toThrow(/No Instagram professional account was shared/);
+    expect(await prisma.integration.count({ where: { businessId: business.id, channel: "INSTAGRAM" } })).toBe(0);
+  });
+
+  it("refuses an account another workspace has connected, before linking it", async () => {
+    const first = await setup();
+    const second = await setup();
+    configureInstagramApp();
+    const account = { id: digits(), username: "shared_shop" };
+    stubInstagramGraph({ accounts: [account] });
+    await completeInstagramConnect(first.owner.id, await startState(first.actor), "code");
+
+    const calls = stubInstagramGraph({ accounts: [account] });
+    await expect(completeInstagramConnect(second.owner.id, await startState(second.actor), "code")).rejects.toThrow(/already connected to another SUNLEON AI workspace/);
+    expect(calls.some((call) => call.url.includes("/subscribed_apps"))).toBe(false);
+  });
+
+  it("reconnects the same account without using another channel", async () => {
+    const { owner, actor, business } = await setup();
+    configureInstagramApp();
+    const account = { id: digits(), username: "loyal_shop" };
+    stubInstagramGraph({ accounts: [account] });
+    await completeInstagramConnect(owner.id, await startState(actor), "code");
+    await completeInstagramConnect(owner.id, await startState(actor), "code");
+    expect(await prisma.integration.count({ where: { businessId: business.id, channel: "INSTAGRAM" } })).toBe(1);
+  });
+
+  it("explains a refused link, and enforces the plan's channel allowance once the account is known", async () => {
+    const { owner, actor, business } = await setup();
+    configureInstagramApp();
+    stubInstagramGraph({ accounts: [{ id: digits(), username: "quiet_shop" }], subscribe: "refused" });
+    await expect(completeInstagramConnect(owner.id, await startState(actor), "code")).rejects.toThrow(
+      /would not send this account's messages to SUNLEON AI: \(#200\) Permissions error/,
+    );
+    expect(await prisma.integration.count({ where: { businessId: business.id, channel: "INSTAGRAM" } })).toBe(0);
+
+    stubGraph();
+    await connectWhatsApp(actor, { phoneNumberId: digits(), wabaId: digits(), accessToken: "EAAG".padEnd(40, "i"), metaFeesAcknowledged: "on" });
+    stubInstagramGraph({ accounts: [{ id: digits(), username: "second_channel" }] });
+    await expect(completeInstagramConnect(owner.id, await startState(actor), "code")).rejects.toThrow(/allows 1 connected channel/);
+  });
+
+  it("picks the shared account this workspace has not connected yet, skipping ones another workspace owns", async () => {
+    const first = await setup();
+    const second = await setup();
+    configureInstagramApp();
+    const owned = { id: digits(), username: "agency_owned" };
+    const fresh = { id: digits(), username: "new_brand" };
+    stubInstagramGraph({ accounts: [owned] });
+    await completeInstagramConnect(first.owner.id, await startState(first.actor), "code");
+
+    stubInstagramGraph({ accounts: [owned, fresh] });
+    await completeInstagramConnect(second.owner.id, await startState(second.actor), "code");
+    const connected = await prisma.integration.findFirstOrThrow({ where: { businessId: second.business.id, channel: "INSTAGRAM" } });
+    expect(connected.externalAccountId).toBe(fresh.id);
+  });
+
+  it("uses up the one-time state only once, even when Meta's redirect arrives twice at the same moment", async () => {
+    const { owner, actor } = await setup();
+    configureInstagramApp();
+    stubInstagramGraph({ accounts: [{ id: digits(), username: "double_tap" }] });
+    const state = await startState(actor);
+    const results = await Promise.allSettled([completeInstagramConnect(owner.id, state, "code"), completeInstagramConnect(owner.id, state, "code")]);
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.find((result) => result.status === "rejected")).toMatchObject({ reason: expect.objectContaining({ message: expect.stringMatching(/expired/) }) });
+  });
+
+  it("stops Meta sending an Instagram account's messages when it is disconnected, even if Meta is unreachable", async () => {
+    const { owner, actor, business } = await setup();
+    configureInstagramApp();
+    const account = { id: digits(), username: "leaving_shop" };
+    stubInstagramGraph({ accounts: [account] });
+    await completeInstagramConnect(owner.id, await startState(actor), "code");
+    const integration = await prisma.integration.findFirstOrThrow({ where: { businessId: business.id, channel: "INSTAGRAM" } });
+
+    const calls = stubInstagramGraph({ accounts: [account] });
+    await disconnectIntegration(actor, integration.id);
+    expect(calls).toContainEqual({ url: expect.stringContaining(`/${account.id}/subscribed_apps`), method: "DELETE" });
+    expect(await prisma.integration.findUniqueOrThrow({ where: { id: integration.id } })).toMatchObject({ status: "DISCONNECTED", credentialsEnc: null });
+
+    await completeInstagramConnect(owner.id, await startState(actor), "code");
+    const again = await prisma.integration.findUniqueOrThrow({ where: { id: integration.id } });
+    vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new Error("network down"))));
+    await disconnectIntegration(actor, again.id);
+    expect(await prisma.integration.findUniqueOrThrow({ where: { id: again.id } })).toMatchObject({ status: "DISCONNECTED" });
+  });
+
+  it("tells the page why a connection failed", () => {
+    expect(instagramFailureNotice(new AppError("LIMIT_EXCEEDED", "limit"))).toBe("limit");
+    expect(instagramFailureNotice(new AppError("CONFLICT", "taken"))).toBe("taken");
+    expect(instagramFailureNotice(new AppError("VALIDATION", "no account"))).toBe("failed");
+    expect(instagramFailureNotice(new Error("network"))).toBe("failed");
   });
 });

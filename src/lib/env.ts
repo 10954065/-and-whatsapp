@@ -64,8 +64,7 @@ const envSchema = z.object({
   META_APP_SECRET: optionalString,
   META_WEBHOOK_VERIFY_TOKEN: optionalString,
   META_WHATSAPP_CONFIG_ID: optionalString,
-  INSTAGRAM_APP_ID: optionalString,
-  INSTAGRAM_APP_SECRET: optionalString,
+  META_INSTAGRAM_CONFIG_ID: optionalString,
   PAYSTACK_PUBLIC_KEY: optionalString,
   PAYSTACK_SECRET_KEY: optionalString,
   RESEND_API_KEY: optionalString,
@@ -182,7 +181,7 @@ export function providerStatus() {
     meta: Boolean(current.META_APP_ID && current.META_APP_SECRET && current.META_WEBHOOK_VERIFY_TOKEN),
     // The secret swaps the popup's one-time code for the business's token.
     whatsappEmbeddedSignup: Boolean(current.META_APP_ID && current.META_APP_SECRET && current.META_WHATSAPP_CONFIG_ID),
-    instagram: Boolean(current.INSTAGRAM_APP_ID && current.INSTAGRAM_APP_SECRET),
+    instagram: Boolean(current.META_APP_ID && current.META_APP_SECRET && current.META_INSTAGRAM_CONFIG_ID),
     // Checkout is server-initialised, so only the secret key is needed.
     paystack: Boolean(current.PAYSTACK_SECRET_KEY),
     resend: Boolean(current.RESEND_API_KEY),
