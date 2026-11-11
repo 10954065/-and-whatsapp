@@ -12,9 +12,11 @@ import { getPlanLimits } from "@/modules/billing/usage";
 import {
   exchangeInstagramCode,
   getInstagramProfile,
+  getTokenAppId,
   getWhatsAppPhoneNumber,
   instagramAuthorizeUrl,
   subscribeInstagramWebhooks,
+  subscribeWhatsAppWebhooks,
 } from "@/modules/integrations/meta";
 
 export interface ChannelCredentials {
@@ -83,6 +85,17 @@ export async function connectWhatsApp(actor: TenantActor, input: z.infer<typeof 
     phone = await getWhatsAppPhoneNumber(input.phoneNumberId, { accessToken: input.accessToken });
   } catch (error) {
     throw fail.validation(`WhatsApp rejected these details: ${(error as Error).message}`);
+  }
+  // Meta only sends a number's messages to the app its token was made for, so check that first.
+  const platformAppId = env().META_APP_ID;
+  const tokenAppId = await getTokenAppId(input.accessToken).catch(() => null);
+  if (platformAppId && tokenAppId && tokenAppId !== platformAppId) {
+    throw fail.validation("This token was made for a different Meta app. Generate it for the SUNLEON AI app, or customer messages won't reach your inbox.");
+  }
+  try {
+    await subscribeWhatsAppWebhooks(input.wabaId, { accessToken: input.accessToken });
+  } catch (error) {
+    throw fail.validation(`WhatsApp accepted the number but would not send this number's messages to SUNLEON AI: ${(error as Error).message}`);
   }
   return upsertIntegration(
     actor,

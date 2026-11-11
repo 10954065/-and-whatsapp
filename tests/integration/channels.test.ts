@@ -27,8 +27,34 @@ afterEach(() => {
   vi.unstubAllGlobals();
   delete process.env.INSTAGRAM_APP_ID;
   delete process.env.INSTAGRAM_APP_SECRET;
+  delete process.env.META_APP_ID;
+  delete process.env.META_APP_SECRET;
   resetEnvCache();
 });
+
+/** Fake Graph API: the phone number check, the token's app, and the webhook subscription. */
+function stubGraph({ tokenAppId, subscribe = "ok" }: { tokenAppId?: string; subscribe?: "ok" | "refused" } = {}) {
+  const calls: { url: string; method: string }[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      calls.push({ url, method: init?.method ?? "GET" });
+      if (url.includes("/debug_token")) return Response.json({ data: { app_id: tokenAppId, is_valid: true } });
+      if (url.endsWith("/subscribed_apps")) {
+        return subscribe === "ok" ? Response.json({ success: true }) : Response.json({ error: { message: "(#200) Permissions error", code: 200 } }, { status: 403 });
+      }
+      return Response.json({ id: "1", display_phone_number: "+233 24 400 0222", verified_name: "Linked Shop" });
+    }),
+  );
+  return calls;
+}
+
+function useMetaApp() {
+  process.env.META_APP_ID = "sunleon_app";
+  process.env.META_APP_SECRET = "sunleon_secret";
+  resetEnvCache();
+}
 
 describe("WhatsApp connection", () => {
   it("cannot be submitted until the owner confirms Meta's WhatsApp fees", () => {
@@ -82,6 +108,33 @@ describe("WhatsApp connection", () => {
     await connectWhatsApp(actor, { phoneNumberId: digits(), wabaId: digits(), accessToken: "EAAG".padEnd(40, "z"), metaFeesAcknowledged: "on" });
     // Default limits allow one connected channel.
     await expect(connectWhatsApp(actor, { phoneNumberId: digits(), wabaId: digits(), accessToken: "EAAG".padEnd(40, "w"), metaFeesAcknowledged: "on" })).rejects.toThrow(/allows 1 connected channel/);
+  });
+
+  it("links the WhatsApp account to the SUNLEON AI app so customer messages arrive", async () => {
+    const { actor } = await setup();
+    useMetaApp();
+    const calls = stubGraph({ tokenAppId: "sunleon_app" });
+    const wabaId = digits();
+    await connectWhatsApp(actor, { phoneNumberId: digits(), wabaId, accessToken: "EAAG".padEnd(40, "l"), metaFeesAcknowledged: "on" });
+    expect(calls).toContainEqual({ url: expect.stringContaining(`/${wabaId}/subscribed_apps`), method: "POST" });
+  });
+
+  it("refuses a token made for a different Meta app before linking anything", async () => {
+    const { actor, business } = await setup();
+    useMetaApp();
+    const calls = stubGraph({ tokenAppId: "someone_elses_app" });
+    await expect(connectWhatsApp(actor, { phoneNumberId: digits(), wabaId: digits(), accessToken: "EAAG".padEnd(40, "o"), metaFeesAcknowledged: "on" })).rejects.toThrow(/different Meta app/);
+    expect(calls.some((call) => call.url.endsWith("/subscribed_apps"))).toBe(false);
+    expect(await prisma.integration.count({ where: { businessId: business.id, channel: "WHATSAPP" } })).toBe(0);
+  });
+
+  it("explains when Meta will not send the number's messages to SUNLEON AI, and saves nothing", async () => {
+    const { actor, business } = await setup();
+    stubGraph({ subscribe: "refused" });
+    await expect(connectWhatsApp(actor, { phoneNumberId: digits(), wabaId: digits(), accessToken: "EAAG".padEnd(40, "r"), metaFeesAcknowledged: "on" })).rejects.toThrow(
+      /would not send this number's messages to SUNLEON AI: \(#200\) Permissions error/,
+    );
+    expect(await prisma.integration.count({ where: { businessId: business.id, channel: "WHATSAPP" } })).toBe(0);
   });
 });
 

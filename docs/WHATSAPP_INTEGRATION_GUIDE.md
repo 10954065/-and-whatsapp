@@ -2,13 +2,15 @@
 
 1. In **Meta Business Suite → WhatsApp Manager**, add and verify the business phone number.
 2. In **Business Settings → Users → System users**, create a system user, assign it the WhatsApp
-   Business Account, and generate a **permanent token** with `whatsapp_business_messaging` and
-   `whatsapp_business_management`.
+   Business Account, and generate a **permanent token for the SUNLEON AI app** with
+   `whatsapp_business_messaging` and `whatsapp_business_management`. Meta only sends a number's
+   messages to the app its token was made for, so a token from any other app is refused.
 3. Copy the **Phone number ID** and the **WhatsApp Business Account ID** from WhatsApp Manager →
    API setup.
 4. In SUNLEON AI open **Integrations → WhatsApp Business Platform**, paste the three values and
-   press **Connect WhatsApp**. SUNLEON AI checks them with Meta before saving; the token is stored
-   encrypted.
+   press **Connect WhatsApp**. SUNLEON AI checks them with Meta, confirms the token belongs to the
+   SUNLEON AI app, and subscribes the WhatsApp Business Account to the app's webhooks
+   (`POST /{waba-id}/subscribed_apps`) before saving; the token is stored encrypted.
 5. Use **Check connection** at any time. Status `error` or `expired` means the token was revoked —
    generate a new one and connect again.
 

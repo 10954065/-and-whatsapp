@@ -12,7 +12,8 @@ and the **Instagram API with Instagram Login**. No browser automation or unoffic
    **Business Verification** for Sunleon Router Enterprise.
 2. Add the **WhatsApp** and **Instagram** products.
 3. Webhooks — callback URL `https://<APP_URL>/api/webhooks/meta`, verify token = `META_WEBHOOK_VERIFY_TOKEN`.
-   * WhatsApp (`whatsapp_business_account`): subscribe to `messages`.
+   * WhatsApp (`whatsapp_business_account`): subscribe to `messages`. Each business's WhatsApp
+     Business Account is linked to the app automatically when it connects (`subscribed_apps`).
    * Instagram (`instagram`): subscribe to `messages`, `messaging_seen`.
 4. Instagram → *API setup with Instagram login*: add the redirect URI
    `https://<APP_URL>/api/integrations/instagram/callback`; copy the Instagram app id/secret.

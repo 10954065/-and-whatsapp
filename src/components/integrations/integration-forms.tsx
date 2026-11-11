@@ -31,7 +31,7 @@ export function WhatsAppConnectForm() {
         name="accessToken"
         type="password"
         autoComplete="off"
-        hint="Create a system user in Meta Business Settings with whatsapp_business_messaging and whatsapp_business_management permissions. Stored encrypted."
+        hint="From a system user in Meta Business Settings: generate it for the SUNLEON AI app, with whatsapp_business_messaging and whatsapp_business_management permissions. Stored encrypted."
         errors={fieldErrors(state, "accessToken")}
       />
       <div className="grid gap-1.5">

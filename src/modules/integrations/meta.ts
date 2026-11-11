@@ -41,6 +41,25 @@ export interface WhatsAppCredentials {
   accessToken: string;
 }
 
+/**
+ * The Meta app a token was issued for, read with the platform's own app token. Null when the
+ * platform app is not configured or Meta does not say.
+ */
+export async function getTokenAppId(accessToken: string): Promise<string | null> {
+  const { META_APP_ID: appId, META_APP_SECRET: appSecret } = env();
+  if (!appId || !appSecret) return null;
+  const body = await graphRequest<{ data?: { app_id?: string } }>(`${graphBase()}/debug_token?input_token=${encodeURIComponent(accessToken)}`, {
+    method: "GET",
+    accessToken: `${appId}|${appSecret}`,
+  });
+  return body.data?.app_id ?? null;
+}
+
+/** Sends a WhatsApp Business Account's webhooks (incoming messages, delivery statuses) to the token's app. */
+export async function subscribeWhatsAppWebhooks(wabaId: string, credentials: WhatsAppCredentials): Promise<void> {
+  await graphRequest(`${graphBase()}/${encodeURIComponent(wabaId)}/subscribed_apps`, { method: "POST", accessToken: credentials.accessToken });
+}
+
 export async function getWhatsAppPhoneNumber(phoneNumberId: string, credentials: WhatsAppCredentials) {
   return graphRequest<{ id: string; display_phone_number: string; verified_name: string; quality_rating?: string }>(
     `${graphBase()}/${encodeURIComponent(phoneNumberId)}?fields=display_phone_number,verified_name,quality_rating`,
