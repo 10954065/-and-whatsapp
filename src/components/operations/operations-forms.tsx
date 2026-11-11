@@ -109,7 +109,7 @@ export function QuickForm({
       {Object.entries(hidden).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
       ))}
-      <div className={cn("grid gap-4", columns === 2 && "sm:grid-cols-2", columns === 3 && "sm:grid-cols-3")}>
+      <div className={cn("grid items-start gap-4", columns === 2 && "sm:grid-cols-2", columns === 3 && "sm:grid-cols-3")}>
         {fields.map((spec) =>
           spec.span ? (
             <div key={spec.name} className={spec.span === "full" ? "sm:col-span-full" : "sm:col-span-2"}>
