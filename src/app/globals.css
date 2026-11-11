@@ -331,6 +331,18 @@
   }
 }
 
+/* A band of light that crosses a plan card now and then, like a real card catching the light. */
+@keyframes plan-card-sheen {
+  0%,
+  64% {
+    transform: translateX(-140%) skewX(-18deg);
+  }
+  84%,
+  100% {
+    transform: translateX(340%) skewX(-18deg);
+  }
+}
+
 @keyframes marquee {
   to {
     transform: translateX(-50%);

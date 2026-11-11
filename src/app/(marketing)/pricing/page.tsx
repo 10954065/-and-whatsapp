@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Check } from "lucide-react";
+import { PlanDeck, type DeckPlan } from "@/components/billing/plan-card";
+import { allowanceLine, cardFinish, freeMonthsLabel, yearlySavingMinor } from "@/components/billing/plan-card-format";
 import { MetaFeeNotice } from "@/components/integrations/meta-fees";
 import { CtaBand, PageHero } from "@/components/marketing/marketing-blocks";
 import { Button } from "@/components/ui/button";
@@ -8,7 +10,6 @@ import { pageMetadata } from "@/config/seo";
 import { prisma } from "@/lib/db/prisma";
 import { formatMoney, formatNumber } from "@/lib/format";
 import { logger } from "@/lib/monitoring/logger";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = pageMetadata("/pricing");
 export const revalidate = 3600;
@@ -18,6 +19,10 @@ interface PlanLimits {
   channels?: number;
   staffSeats?: number;
 }
+
+type PublicPlan = Awaited<ReturnType<typeof loadPlans>>[number];
+
+const FEATURED_INDEX = 1;
 
 async function loadPlans() {
   try {
@@ -29,6 +34,57 @@ async function loadPlans() {
     logger.warn("pricing.plans_unavailable", { error });
     return [];
   }
+}
+
+function PlanDetails({ plan, isFeatured }: { plan: PublicPlan; isFeatured: boolean }) {
+  const limits = plan.limits as PlanLimits;
+  const included = [
+    limits.aiMessagesPerMonth ? `${formatNumber(limits.aiMessagesPerMonth)} assistant replies a month` : null,
+    limits.staffSeats ? `${limits.staffSeats} team seats` : null,
+    ...plan.features,
+  ].filter((item): item is string => Boolean(item));
+  return (
+    <div className="mt-9 flex flex-1 flex-col px-1">
+      <p className="min-h-10 text-sm text-muted-foreground">{plan.description}</p>
+      <ul className="mt-5 grid gap-3 border-t pt-5 text-sm">
+        {included.map((item) => (
+          <li key={item} className="flex gap-2.5">
+            <Check className="size-4 shrink-0 text-sun" aria-hidden="true" /> {item}
+          </li>
+        ))}
+      </ul>
+      <Button asChild size="lg" variant={isFeatured ? "default" : "outline"} className="pressable mt-8">
+        <Link href="/register">Start {plan.trialDays}-day free trial</Link>
+      </Button>
+    </div>
+  );
+}
+
+function toDeckPlan(plan: PublicPlan, index: number): DeckPlan {
+  const isFeatured = index === FEATURED_INDEX;
+  const saving = yearlySavingMinor(plan.priceMonthlyMinor, plan.priceYearlyMinor);
+  return {
+    id: plan.id,
+    front: {
+      finish: cardFinish(index),
+      headline: formatMoney(plan.priceMonthlyMinor, plan.currency),
+      headlineNote: "a month",
+      allowance: allowanceLine(plan.limits),
+      holderLabel: "Plan",
+      holder: plan.name,
+      headingLevel: 2,
+      tag: isFeatured ? "Recommended" : undefined,
+    },
+    back: {
+      headline: formatMoney(plan.priceYearlyMinor, plan.currency),
+      headlineNote: "a year",
+      note: saving ? `Saves ${formatMoney(saving, plan.currency)} against monthly` : undefined,
+      signature: plan.name,
+      headingLevel: 2,
+      finePrint: "One payment covers a full year. Nothing renews automatically.",
+    },
+    details: <PlanDetails plan={plan} isFeatured={isFeatured} />,
+  };
 }
 
 export default async function PricingPage() {
@@ -49,64 +105,12 @@ export default async function PricingPage() {
             for a quote.
           </p>
         ) : (
-          <div className="grid items-start gap-5 lg:grid-cols-3">
-            {plans.map((plan, index) => {
-              const limits = plan.limits as PlanLimits;
-              const isFeatured = index === 1;
-              return (
-                <article
-                  key={plan.id}
-                  className={cn(
-                    "relative flex flex-col rounded-[2rem] p-8 sm:p-9",
-                    isFeatured ? "grain bg-[#1d1a16] text-[#f3efe7] shadow-[var(--shadow-lifted)] lg:-mt-4 lg:pb-12" : "surface",
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">{plan.name}</h2>
-                    {isFeatured ? <span className="rounded-full bg-sun px-3 py-1 text-xs font-semibold text-[#1d1a16]">Most chosen</span> : null}
-                  </div>
-                  <p className={cn("mt-1.5 min-h-10 text-sm", isFeatured ? "text-white/60" : "text-muted-foreground")}>{plan.description}</p>
-                  <p className="mt-8 flex items-baseline gap-2">
-                    <span className="font-display text-6xl leading-none tracking-[-0.02em]">{formatMoney(plan.priceMonthlyMinor, plan.currency)}</span>
-                    <span className={cn("text-sm", isFeatured ? "text-white/60" : "text-muted-foreground")}>a month</span>
-                  </p>
-                  <p className={cn("mt-2 text-xs", isFeatured ? "text-white/50" : "text-muted-foreground")}>
-                    or {formatMoney(plan.priceYearlyMinor, plan.currency)} paid yearly
-                  </p>
-                  <ul className={cn("mt-8 grid gap-3 border-t pt-6 text-sm", isFeatured && "border-white/10")}>
-                    {limits.aiMessagesPerMonth ? (
-                      <li className="flex gap-2.5">
-                        <Check className="size-4 shrink-0 text-sun" aria-hidden="true" /> {formatNumber(limits.aiMessagesPerMonth)} assistant replies a month
-                      </li>
-                    ) : null}
-                    {limits.staffSeats ? (
-                      <li className="flex gap-2.5">
-                        <Check className="size-4 shrink-0 text-sun" aria-hidden="true" /> {limits.staffSeats} team seats
-                      </li>
-                    ) : null}
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex gap-2.5">
-                        <Check className="size-4 shrink-0 text-sun" aria-hidden="true" /> {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    asChild
-                    size="lg"
-                    variant={isFeatured ? "default" : "outline"}
-                    className={cn("mt-9", isFeatured && "bg-sun text-[#1d1a16] hover:bg-sun/90 dark:bg-sun dark:text-[#1d1a16]")}
-                  >
-                    <Link href="/register">Start {plan.trialDays}-day free trial</Link>
-                  </Button>
-                </article>
-              );
-            })}
-          </div>
+          <PlanDeck plans={plans.map(toDeckPlan)} bonusLabel={freeMonthsLabel(plans)} isCentered gridClassName="mx-auto max-w-md lg:max-w-none lg:grid-cols-3 lg:gap-x-8" />
         )}
         <section
           id="whatsapp-fees"
           aria-labelledby="whatsapp-fees-heading"
-          className="surface mx-auto mt-16 max-w-3xl scroll-mt-24 rounded-[2rem] p-8 sm:p-10"
+          className="surface mx-auto mt-20 max-w-3xl scroll-mt-24 rounded-[2rem] p-8 sm:p-10"
         >
           <h2 id="whatsapp-fees-heading" className="font-display text-3xl leading-tight tracking-[-0.01em]">
             WhatsApp fees from Meta
