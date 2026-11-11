@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Lock } from "lucide-react";
 import { HANDOVER_SCRIPT } from "@/components/marketing/chat-scripts";
@@ -7,6 +8,10 @@ import { CtaBand } from "@/components/marketing/marketing-blocks";
 import { ReceiptStory } from "@/components/marketing/receipt-story";
 import { Button } from "@/components/ui/button";
 import { INDUSTRY_OPTIONS } from "@/config/industries";
+import { organizationJsonLd, pageMetadata } from "@/config/seo";
+import { env } from "@/lib/env";
+
+export const metadata: Metadata = pageMetadata("/");
 
 const CAPABILITIES = [
   { title: "One inbox for both apps", body: "WhatsApp and Instagram in one list, with each customer's orders, bookings and notes beside the chat. Take over any conversation with one tap." },
@@ -46,8 +51,11 @@ function RuleValue({ value }: { value: string }) {
 }
 
 export default function HomePage() {
+  // Static data from our own config; "<" is escaped so the JSON can never close the script tag.
+  const structuredData = JSON.stringify(organizationJsonLd(env().APP_URL)).replace(/</g, "\\u003c");
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: structuredData }} />
       <section className="grain relative overflow-hidden">
         <div aria-hidden="true" className="pointer-events-none absolute top-24 right-[-14rem] hidden size-[46rem] rounded-full bg-sun-soft lg:block" />
         <div aria-hidden="true" className="pointer-events-none absolute right-0 bottom-28 left-1/2 hidden h-px bg-foreground/10 lg:block" />

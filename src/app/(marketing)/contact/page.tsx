@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { ContactForm } from "@/components/marketing/contact-form";
 import { PageHero } from "@/components/marketing/marketing-blocks";
+import { pageMetadata } from "@/config/seo";
 
-export const metadata: Metadata = { title: "Contact" };
+export const metadata: Metadata = pageMetadata("/contact");
 
 const DETAILS = [
   { title: "Company", body: "Sunleon Router Enterprise" },

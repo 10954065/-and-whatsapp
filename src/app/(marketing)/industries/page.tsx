@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { BubbleReveal } from "@/components/marketing/bubble-reveal";
 import { CtaBand, PageHero } from "@/components/marketing/marketing-blocks";
 import { INDUSTRY_OPTIONS } from "@/config/industries";
+import { pageMetadata } from "@/config/seo";
 
-export const metadata: Metadata = { title: "Industries" };
+export const metadata: Metadata = pageMetadata("/industries");
 
 const EXAMPLES: Record<string, string> = {
   RESTAURANT: "Is jollof available tonight? Can you deliver to Spintex?",

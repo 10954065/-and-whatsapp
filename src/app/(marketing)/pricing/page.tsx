@@ -4,12 +4,13 @@ import { Check } from "lucide-react";
 import { MetaFeeNotice } from "@/components/integrations/meta-fees";
 import { CtaBand, PageHero } from "@/components/marketing/marketing-blocks";
 import { Button } from "@/components/ui/button";
+import { pageMetadata } from "@/config/seo";
 import { prisma } from "@/lib/db/prisma";
 import { formatMoney, formatNumber } from "@/lib/format";
 import { logger } from "@/lib/monitoring/logger";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Pricing" };
+export const metadata: Metadata = pageMetadata("/pricing");
 export const revalidate = 3600;
 
 interface PlanLimits {

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage } from "@/components/marketing/legal-page";
+import { pageMetadata } from "@/config/seo";
 
-export const metadata: Metadata = { title: "Terms of Service" };
+export const metadata: Metadata = pageMetadata("/terms");
 
 export default function TermsPage() {
   return (

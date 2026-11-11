@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { CtaBand, PageHero } from "@/components/marketing/marketing-blocks";
+import { pageMetadata } from "@/config/seo";
 
-export const metadata: Metadata = { title: "About" };
+export const metadata: Metadata = pageMetadata("/about");
 
 const VALUES = [
   { title: "Truth over convenience", body: "Sunleon never invents a price, a stock level or a payment. If it doesn't know, it says so and asks your team." },

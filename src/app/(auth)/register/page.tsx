@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { RegisterForm } from "@/components/auth/auth-forms";
+import { pageMetadata } from "@/config/seo";
 import { META_FREE_REPLIES_PER_MONTH } from "@/config/whatsapp-fees";
 import { getCurrentSession } from "@/lib/auth/current";
 import { formatNumber } from "@/lib/format";
 
-export const metadata: Metadata = { title: "Create your account" };
+export const metadata: Metadata = pageMetadata("/register");
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

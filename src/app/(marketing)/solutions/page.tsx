@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { CtaBand, PageHero } from "@/components/marketing/marketing-blocks";
+import { pageMetadata } from "@/config/seo";
 
-export const metadata: Metadata = { title: "Solutions" };
+export const metadata: Metadata = pageMetadata("/solutions");
 
 const SOLUTIONS = [
   {

@@ -3,6 +3,7 @@ import { Geist_Mono, Instrument_Serif, Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { OG_IMAGE, PUBLIC_PAGES, SITE_NAME } from "@/config/seo";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], axes: ["opsz"] });
@@ -17,13 +18,35 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
   title: {
-    default: "SUNLEON AI · Every customer message, answered",
-    template: "%s · SUNLEON AI",
+    default: PUBLIC_PAGES["/"].title,
+    template: `%s · ${SITE_NAME}`,
   },
-  description:
-    "SUNLEON AI answers your customers on WhatsApp and Instagram with your real prices and stock, takes orders and bookings, and passes the tricky conversations to you.",
-  applicationName: "SUNLEON AI",
+  description: PUBLIC_PAGES["/"].description,
+  applicationName: SITE_NAME,
   authors: [{ name: "Sunleon Router Enterprise", url: "https://sunleonrouterenterprise.com" }],
+  creator: "Sunleon Router Enterprise",
+  publisher: "Sunleon Router Enterprise",
+  keywords: [
+    "WhatsApp AI assistant",
+    "WhatsApp chatbot Ghana",
+    "Instagram DM automation",
+    "AI customer service Ghana",
+    "WhatsApp Business API Ghana",
+    "online shop orders on WhatsApp",
+    "booking assistant for salons",
+    "SUNLEON AI",
+  ],
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "en_GH",
+    title: PUBLIC_PAGES["/"].title,
+    description: PUBLIC_PAGES["/"].description,
+    images: [OG_IMAGE],
+  },
+  twitter: { card: "summary_large_image", title: PUBLIC_PAGES["/"].title, description: PUBLIC_PAGES["/"].description, images: [OG_IMAGE.url] },
+  // Set GOOGLE_SITE_VERIFICATION to verify a URL-prefix property in Search Console with a meta tag.
+  verification: process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : undefined,
 };
 
 export const viewport: Viewport = {

@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/auth-forms";
+import { pageMetadata } from "@/config/seo";
 import { getCurrentSession } from "@/lib/auth/current";
 
-export const metadata: Metadata = { title: "Sign in" };
+export const metadata: Metadata = pageMetadata("/login");
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

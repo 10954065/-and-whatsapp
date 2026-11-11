@@ -1,5 +1,19 @@
 # Changelog
 
+## Ready for Google Search
+
+* `robots.txt` lets search engines read the public site, keeps them out of the dashboard, admin
+  console, API, onboarding, invitations and one-time email links, and points to the sitemap.
+  Preview deployments are never indexed.
+* `sitemap.xml` lists every public page, built from the same list that sets each page's title.
+* Every public page has a keyword-rich title, a description, a canonical URL and a link
+  preview (Open Graph and X card) with a new 1200 x 630 image in the brand's fonts.
+* The home page describes Sunleon Router Enterprise to Google (schema.org Organization and
+  WebSite): logo, Accra address, Instagram, WhatsApp and email support.
+* New icons from the sunrise mark: favicon.ico (16, 32, 48 px), an SVG icon, an Apple touch
+  icon, and 192/512 px and maskable icons in a web app manifest.
+* Optional `GOOGLE_SITE_VERIFICATION` adds Google's meta tag for URL-prefix verification.
+
 ## Emails that look like SUNLEON
 
 * Verification, password reset, invitation and notification emails now use the product's own
