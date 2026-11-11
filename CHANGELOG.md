@@ -1,5 +1,12 @@
 # Changelog
 
+## Home in the website menu
+
+* "Home" is the first link in the website header, the phone menu and the footer, so visitors
+  on any page can get back to the homepage.
+* Tablets (below 1024px) now use the menu sheet: seven links no longer fit beside the sign-in
+  buttons there, which pushed "Start free trial" off screen.
+
 ## Ready for Google Search
 
 * `robots.txt` lets search engines read the public site, keeps them out of the dashboard, admin

@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { cn } from "@/lib/utils";
 
 const NAV = [
+  { href: "/", label: "Home" },
   { href: "/features", label: "Features" },
   { href: "/solutions", label: "Solutions" },
   { href: "/industries", label: "Industries" },
@@ -41,9 +42,10 @@ export function SiteHeader() {
         hasScrolled ? "material shadow-[0_1px_0_var(--border)]" : "bg-transparent",
       )}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-8 px-6">
+      {/* Seven links plus the actions need ~1000px, so tablets use the menu sheet like phones. */}
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-6 xl:gap-8">
         <Logo />
-        <nav aria-label="Main navigation" className="hidden items-center gap-0.5 md:flex">
+        <nav aria-label="Main navigation" className="hidden items-center gap-0.5 lg:flex">
           {NAV.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -52,7 +54,7 @@ export function SiteHeader() {
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "relative rounded-full px-3.5 py-2 text-sm font-medium transition-colors duration-200 hover:bg-foreground/5 hover:text-foreground",
+                  "relative rounded-full px-2.5 py-2 text-sm font-medium transition-colors duration-200 hover:bg-foreground/5 hover:text-foreground xl:px-3.5",
                   isActive ? "text-foreground" : "text-muted-foreground",
                 )}
               >
@@ -62,7 +64,7 @@ export function SiteHeader() {
             );
           })}
         </nav>
-        <div className="ml-auto hidden items-center gap-1.5 md:flex">
+        <div className="ml-auto hidden items-center gap-1.5 lg:flex">
           <ThemeToggle />
           <Button asChild variant="ghost">
             <Link href="/login">Sign in</Link>
@@ -73,7 +75,7 @@ export function SiteHeader() {
         </div>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="ml-auto md:hidden" aria-label="Open menu">
+            <Button variant="ghost" size="icon" className="ml-auto lg:hidden" aria-label="Open menu">
               <Menu />
             </Button>
           </SheetTrigger>
@@ -116,6 +118,7 @@ const FOOTER_COLUMNS = [
   {
     title: "Product",
     links: [
+      { href: "/", label: "Home" },
       { href: "/features", label: "Features" },
       { href: "/solutions", label: "Solutions" },
       { href: "/industries", label: "Industries" },
