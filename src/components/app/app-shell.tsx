@@ -160,7 +160,7 @@ export function AppTopbar({
   const [mobileOpen, setMobileOpen] = useState(false);
   const notificationsLabel = unreadNotifications > 0 ? `Notifications, ${unreadNotifications} unread` : "Notifications";
   return (
-    <header className="material sticky top-0 z-30 flex h-14 items-center gap-2 px-3 shadow-[0_1px_0_var(--border)] lg:px-8">
+    <header className="chrome-bar sticky top-0 z-30 flex h-14 items-center gap-2 px-3 lg:px-8">
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open navigation">
@@ -189,7 +189,7 @@ export function AppTopbar({
             <Bell />
             {unreadNotifications > 0 ? (
               <span
-                className="absolute top-1 right-1 flex min-w-[17px] items-center justify-center rounded-full bg-sun px-1 text-[10px] leading-[17px] font-semibold text-[#1d1a16] ring-2 ring-background"
+                className="absolute top-1 right-1 flex min-w-[17px] items-center justify-center rounded-full bg-sun px-1 text-[10px] leading-[17px] font-semibold text-[#1d1a16] ring-2 ring-chrome"
                 aria-hidden="true"
               >
                 {unreadNotifications > 99 ? "99+" : unreadNotifications}

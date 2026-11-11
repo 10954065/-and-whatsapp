@@ -36,12 +36,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const hasScrolled = useHasScrolled();
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-40 transition-[background-color,box-shadow] duration-300",
-        hasScrolled ? "material shadow-[0_1px_0_var(--border)]" : "bg-transparent",
-      )}
-    >
+    <header data-scrolled={hasScrolled} className="chrome-bar sticky top-0 z-40">
       {/* Seven links plus the actions need ~1000px, so tablets use the menu sheet like phones. */}
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-6 xl:gap-8">
         <Logo />
