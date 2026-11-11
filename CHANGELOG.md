@@ -12,6 +12,9 @@
 * Dark mode for mail apps that support it, phone-friendly sizing, an inbox preview line and a
   clean plain-text version. Every name and link is escaped.
 * The logo is served from `/email/sunleon-mark.png`, because Gmail does not show SVG.
+* Every email footer has a "Need help? Talk to us" block: WhatsApp +233 55 610 5551 (opens a
+  chat), admin@sunleonrouterenterprise.com and Instagram @sunleonrouterenterprise, also in the
+  plain-text version. The contacts live in `src/config/contact.ts`.
 
 ## Account & security, easy to find
 

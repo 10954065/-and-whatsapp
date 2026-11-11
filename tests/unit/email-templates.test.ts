@@ -27,6 +27,17 @@ describe("email templates", () => {
     expect(email.text).toContain("localhost:3000");
   });
 
+  it.each(Object.entries(samples))("%s footer lists WhatsApp, email and Instagram", (_name, email) => {
+    expect(email.html).toContain('href="https://wa.me/233556105551"');
+    expect(email.html).toContain("WhatsApp +233 55 610 5551");
+    expect(email.html).toContain('href="mailto:admin@sunleonrouterenterprise.com"');
+    expect(email.html).toContain('href="https://www.instagram.com/sunleonrouterenterprise/"');
+    expect(email.html).not.toContain("vrfl=");
+    expect(email.text).toContain("WhatsApp +233 55 610 5551: https://wa.me/233556105551");
+    expect(email.text).toContain("Email: admin@sunleonrouterenterprise.com");
+    expect(email.text).toContain("Instagram @sunleonrouterenterprise: https://www.instagram.com/sunleonrouterenterprise/");
+  });
+
   it.each(Object.entries(samples))("%s copy uses no em or en dashes", (_name, email) => {
     expect(email.html).not.toMatch(/[–—]/);
     expect(email.text).not.toMatch(/[–—]/);

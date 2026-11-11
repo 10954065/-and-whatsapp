@@ -1,3 +1,4 @@
+import { CONTACT } from "@/config/contact";
 import type { EmailMessage } from "@/lib/email";
 import { env } from "@/lib/env";
 
@@ -106,12 +107,26 @@ function headerHtml(appUrl: string): string {
 </tr></table></td></tr>`;
 }
 
+function contactHtml(): string {
+  const link = (href: string, label: string) =>
+    `<a class="sl-link" href="${escapeHtml(href)}" target="_blank" style="display:inline-block;white-space:nowrap;color:${COLOR.link};font-weight:600;text-decoration:none">${escapeHtml(label)}</a>`;
+  const links = [
+    link(CONTACT.whatsapp.url, `WhatsApp ${CONTACT.whatsapp.display}`),
+    link(`mailto:${CONTACT.email}`, CONTACT.email),
+    link(CONTACT.instagram.url, `Instagram ${CONTACT.instagram.handle}`),
+  ].join("<br>");
+  return `<tr><td align="center" style="padding:28px 24px 0;font-family:${SANS};font-size:13px;line-height:22px">
+<span class="sl-ink" style="color:${COLOR.ink};font-weight:600">Need help? Talk to us</span><br>${links}
+</td></tr>`;
+}
+
 function footerHtml(input: Pick<LayoutInput, "reason" | "manage">, appUrl: string): string {
   const host = new URL(appUrl).host;
   const manage = input.manage
     ? ` <a class="sl-muted" href="${escapeHtml(input.manage.url)}" target="_blank" style="color:${COLOR.muted};text-decoration:underline">${escapeHtml(input.manage.label)}</a>`
     : "";
-  return `<tr><td align="center" class="sl-muted" style="padding:28px 24px 0;font-family:${SANS};font-size:12px;line-height:19px;color:${COLOR.muted}">
+  return `${contactHtml()}
+<tr><td align="center" class="sl-muted" style="padding:18px 24px 0;font-family:${SANS};font-size:12px;line-height:19px;color:${COLOR.muted}">
 ${escapeHtml(input.reason)}${manage}<br>
 <a class="sl-muted" href="${escapeHtml(appUrl)}" target="_blank" style="color:${COLOR.muted};text-decoration:underline">${escapeHtml(host)}</a> · Sunleon Router Enterprise, Accra, Ghana
 </td></tr>`;
@@ -146,6 +161,11 @@ function plainText(input: LayoutInput, appUrl: string): string {
     ...(input.note ? [input.note, ""] : []),
     ...(input.footnote ? [input.footnote, ""] : []),
     "---",
+    "Need help? Talk to us:",
+    `WhatsApp ${CONTACT.whatsapp.display}: ${CONTACT.whatsapp.url}`,
+    `Email: ${CONTACT.email}`,
+    `Instagram ${CONTACT.instagram.handle}: ${CONTACT.instagram.url}`,
+    "",
     input.reason,
     ...(input.manage ? [`${input.manage.label}: ${input.manage.url}`] : []),
     `SUNLEON AI · ${new URL(appUrl).host}`,
