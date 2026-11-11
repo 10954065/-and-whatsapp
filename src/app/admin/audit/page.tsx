@@ -104,7 +104,7 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: S
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     {formatDateTime(entry.createdAt, TZ)} · {actorLabel(entry)} · <BusinessLink entry={entry} />
                   </p>
-                  <Details entry={entry} className="mt-1" />
+                  {entry.metadata ? <Details entry={entry} className="mt-1" /> : null}
                 </li>
               ))}
             </ul>
