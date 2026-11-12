@@ -1,5 +1,10 @@
 # Changelog
 
+## A livelier Contact page
+
+* A pen stroke underlines "person" in the heading, and the form opens with a warm header and a
+  paper plane that glides in on a dotted trail.
+
 ## A livelier About page
 
 * A pen stroke underlines "businesses." in the heading.
