@@ -1,5 +1,12 @@
 # Changelog
 
+## A livelier Industries page
+
+* Each industry card now has its own pen drawing (a bowl of jollof, a shopping bag, an agbada
+  on a hanger, a jar of shea butter and so on) with one colour of its own. The lines draw
+  themselves in as the card scrolls into view; the jollof steams and the shea butter sparkles.
+  Visitors who prefer less motion see the finished drawings, standing still.
+
 ## Tighter rate limits
 
 * Changing your password, turning off two-factor and deleting your account now share five password

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BubbleReveal } from "@/components/marketing/bubble-reveal";
+import { IndustryDrawing } from "@/components/marketing/industry-drawing";
 import { CtaBand, PageHero } from "@/components/marketing/marketing-blocks";
 import { INDUSTRY_OPTIONS } from "@/config/industries";
 import { pageMetadata } from "@/config/seo";
@@ -31,6 +32,7 @@ export default function IndustriesPage() {
         {INDUSTRY_OPTIONS.map((industry, index) => (
           <article key={industry.value} className="flex flex-col">
             <div className="rounded-[1.75rem] bg-[#efe7de] p-5 pb-6 dark:bg-white/[0.04]">
+              <IndustryDrawing industry={industry.value} delay={(index % 3) * 0.08} className="mx-auto mt-1 mb-5 h-28 w-auto text-foreground" />
               <p className="mb-3 text-[11px] font-medium text-[#54656f] dark:text-muted-foreground">A customer asks</p>
               <BubbleReveal delay={(index % 3) * 0.08} className="dark:bg-card">
                 {EXAMPLES[industry.value]}
