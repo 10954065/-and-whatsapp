@@ -15,6 +15,7 @@ import {
   setSessionCookie,
 } from "@/lib/auth/session";
 import { getCurrentSession } from "@/lib/auth/current";
+import { assertHuman } from "@/lib/security/bot-check";
 import { enforceRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";
 import {
   authenticate,
@@ -44,6 +45,7 @@ type FormAction<T = void> = (previous: ActionResult<T> | null, formData: FormDat
 export const registerAction: FormAction<AuthDestination> = async (_previous, formData) =>
   runAction(
     async () => {
+      await assertHuman("auth.register");
       const input = parseInput(registerSchema, formData);
       const meta = await getRequestMeta();
       const { userId } = await registerUser(input, meta);
@@ -58,6 +60,7 @@ export const registerAction: FormAction<AuthDestination> = async (_previous, for
 export const loginAction: FormAction<AuthDestination> = async (_previous, formData) =>
   runAction(
     async () => {
+      await assertHuman("auth.login");
       const input = parseInput(loginSchema, formData);
       const meta = await getRequestMeta();
       const { userId, requiresMfa } = await authenticate(input, meta);
@@ -80,6 +83,7 @@ export async function logoutAction(): Promise<void> {
 export const forgotPasswordAction: FormAction = async (_previous, formData) =>
   runAction(
     async () => {
+      await assertHuman("auth.forgot_password");
       const { email } = parseInput(forgotPasswordSchema, formData);
       await requestPasswordReset(email, await getRequestMeta());
     },

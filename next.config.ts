@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withBotId } from "botid/next/config";
 
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -38,4 +39,5 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// BotID serves its browser check from same-origin paths it adds here (see config/bot-protection.ts).
+export default withBotId(nextConfig);

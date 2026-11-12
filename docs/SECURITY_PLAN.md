@@ -51,6 +51,7 @@ every tenant service runs through it, the runtime `DATABASE_URL` can use a login
 | Input validation with Zod at every Server Action boundary | ✅ |
 | SQL injection: Prisma query builder and tagged-template raw SQL only | 🟡 |
 | Contact form honeypot + rate limit | 🟡 |
+| Vercel BotID (Basic) on sign-in, sign-up, forgot-password and contact: bots get a refresh message and a `security.bot_blocked` log line; checks run on Vercel only | ✅ `tests/unit/bot-check.test.ts` |
 | Every signed-in Server Action capped at 300 per 5 min per user (`requireUserForAction`); page loads and the Inbox refresh don't count | ✅ |
 | Connect with Instagram limited to 20 attempts per hour per workspace, like WhatsApp | ✅ |
 | One flooding conversation pauses the assistant after 12 replies in 10 min, so it can't use up the business's AI budget or trigger a stream of auto replies | ✅ |

@@ -1,5 +1,12 @@
 # Changelog
 
+## Bot protection on sign-in and sign-up
+
+* The sign-in, sign-up, forgot-password and contact forms now run Vercel BotID, an invisible
+  check that tells people from scripts without a CAPTCHA. A submission it flags as a bot is
+  refused with "We couldn't confirm this came from a person. Refresh the page and try again."
+  and logged. People notice nothing.
+
 ## A livelier Industries page
 
 * Each industry card now has its own pen drawing (a bowl of jollof, a shopping bag, an agbada
