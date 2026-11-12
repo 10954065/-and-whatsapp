@@ -1,53 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { motion, stagger, useReducedMotion, type Variants } from "motion/react";
-import { INDUSTRY_TONES } from "@/config/industry-tones";
+import { Ambient, Line, PAPER, PenDrawing, ring, Shape } from "@/components/marketing/pen-drawing";
+import { INDUSTRY_TONES } from "@/config/tones";
 import type { Industry } from "@/generated/prisma/enums";
 import { cn } from "@/lib/utils";
-
-const EASE_PEN = [0.65, 0, 0.35, 1] as const;
-
-const SCENE: Variants = {
-  hidden: {},
-  shown: (delay: number) => ({ transition: { delayChildren: stagger(0.05, { startDelay: delay }) } }),
-};
-const INK: Variants = {
-  hidden: { pathLength: 0, opacity: 0 },
-  shown: { pathLength: 1, opacity: 1, transition: { duration: 0.75, ease: EASE_PEN } },
-};
-const WASH: Variants = {
-  hidden: { opacity: 0 },
-  shown: { opacity: 1, transition: { duration: 0.45, delay: 0.35 } },
-};
-
-const ring = (cx: number, cy: number, r: number) => `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`;
-
-function Line({ d }: { d: string }) {
-  return <motion.path d={d} variants={INK} />;
-}
-
-/** A shape washed in a colour (the industry's tone unless told otherwise), then outlined in ink. */
-function Shape({ d, fill = "var(--tone)" }: { d: string; fill?: string }) {
-  return (
-    <>
-      <motion.path d={d} fill={fill} stroke="none" variants={WASH} />
-      <Line d={d} />
-    </>
-  );
-}
-
-const PAPER = "var(--card)";
-
-function Ground() {
-  return <motion.path d="M22 92a58 3.5 0 1 0 116 0a58 3.5 0 1 0 -116 0Z" fill="currentColor" fillOpacity={0.07} stroke="none" variants={WASH} />;
-}
-
-/** Steam and sparkles keep moving after the drawing is done, unless the visitor prefers less motion. */
-function Ambient({ children, kind }: { children: ReactNode; kind: "steam" | "twinkle" }) {
-  const animation = kind === "steam" ? "motion-safe:animate-[steam_2.8s_ease-in-out_infinite]" : "motion-safe:animate-[twinkle_2.4s_ease-in-out_infinite]";
-  return <g className={animation}>{children}</g>;
-}
 
 const DRAWINGS: Record<Industry, () => ReactNode> = {
   RESTAURANT: () => (
@@ -185,26 +142,10 @@ const DRAWINGS: Record<Industry, () => ReactNode> = {
 
 /** A pen drawing of the kind of business, drawn line by line the first time it scrolls into view. */
 export function IndustryDrawing({ industry, className, delay = 0 }: { industry: Industry; className?: string; delay?: number }) {
-  const shouldReduceMotion = useReducedMotion();
   const Drawing = DRAWINGS[industry];
   return (
-    <motion.svg
-      viewBox="0 0 160 100"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.25}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      variants={SCENE}
-      custom={delay}
-      initial={shouldReduceMotion ? false : "hidden"}
-      whileInView="shown"
-      viewport={{ once: true, margin: "-60px" }}
-      className={cn("overflow-visible", INDUSTRY_TONES[industry], className)}
-    >
-      <Ground />
+    <PenDrawing delay={delay} className={cn(INDUSTRY_TONES[industry], className)}>
       <Drawing />
-    </motion.svg>
+    </PenDrawing>
   );
 }

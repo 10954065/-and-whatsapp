@@ -16,12 +16,11 @@ import {
   UtensilsCrossed,
 } from "lucide-react";
 import { BubbleReveal } from "@/components/marketing/bubble-reveal";
-import { HandDrawnUnderline } from "@/components/marketing/hand-drawn-underline";
 import { IndustryDrawing } from "@/components/marketing/industry-drawing";
-import { CtaBand, PageHero } from "@/components/marketing/marketing-blocks";
+import { CtaBand, JumpChips, PageHero, PenUnderlined } from "@/components/marketing/marketing-blocks";
 import { INDUSTRY_OPTIONS } from "@/config/industries";
-import { INDUSTRY_TONES } from "@/config/industry-tones";
 import { pageMetadata } from "@/config/seo";
+import { INDUSTRY_TONES } from "@/config/tones";
 import type { Industry } from "@/generated/prisma/enums";
 import { cn } from "@/lib/utils";
 
@@ -94,34 +93,12 @@ const anchorFor = (industry: Industry) => industry.toLowerCase().replace(/_/g, "
 const PANEL_HOVER =
   "flex flex-col rounded-[1.75rem] transition-[translate,box-shadow,border-color] duration-300 ease-(--ease-out-strong) group-hover:shadow-(--shadow-soft) motion-safe:group-hover:-translate-y-1";
 
-function JumpLinks() {
-  return (
-    <nav aria-label="Jump to an industry">
-      {/* One row that scrolls sideways on phones, so the cards stay near the top; wraps from sm up. */}
-      <ul className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 scrollbar-none sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
-        {INDUSTRY_OPTIONS.map((industry) => {
-          const Icon = ICONS[industry.value];
-          return (
-            <li key={industry.value} className="shrink-0">
-              <a
-                href={`#${anchorFor(industry.value)}`}
-                className={cn(
-                  "pressable inline-flex h-9 items-center gap-2 rounded-full bg-card/75 py-1 pr-3.5 pl-1.5 text-sm font-medium shadow-(--shadow-hairline) hover:bg-card",
-                  INDUSTRY_TONES[industry.value],
-                )}
-              >
-                <span className="grid size-6 place-items-center rounded-full bg-(--tone) text-[#1d1a16] dark:text-foreground">
-                  <Icon aria-hidden="true" className="size-3.5" strokeWidth={2.25} />
-                </span>
-                {industry.label}
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
-  );
-}
+const JUMP_CHIPS = INDUSTRY_OPTIONS.map((industry) => ({
+  href: `#${anchorFor(industry.value)}`,
+  label: industry.label,
+  icon: ICONS[industry.value],
+  tone: INDUSTRY_TONES[industry.value],
+}));
 
 export default function IndustriesPage() {
   return (
@@ -132,15 +109,11 @@ export default function IndustriesPage() {
           <>
             One assistant.{" "}
             <span className="italic">
-              <span className="relative inline-block">
-                Eleven
-                <HandDrawnUnderline className="absolute -bottom-1.5 left-0 w-full text-sun" />
-              </span>{" "}
-              ways to work.
+              <PenUnderlined>Eleven</PenUnderlined> ways to work.
             </span>
           </>
         }
-        footer={<JumpLinks />}
+        footer={<JumpChips label="Jump to an industry" chips={JUMP_CHIPS} />}
       >
         Each template sets up the right questions, tone, starter workflows and hand-over rules for your kind of business,
         and you can change all of it.

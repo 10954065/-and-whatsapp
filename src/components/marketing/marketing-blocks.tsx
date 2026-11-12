@@ -1,7 +1,54 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, type LucideIcon } from "lucide-react";
+import { HandDrawnUnderline } from "@/components/marketing/hand-drawn-underline";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+/** A word in a hero title with a pen stroke drawn under it. Keep it to one word so it never needs to wrap. */
+export function PenUnderlined({ children }: { children: ReactNode }) {
+  return (
+    <span className="relative inline-block">
+      {children}
+      <HandDrawnUnderline className="absolute -bottom-1.5 left-0 w-full text-sun" />
+    </span>
+  );
+}
+
+export interface JumpChip {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  /** A class from TONES that sets --tone for the icon's circle. */
+  tone: string;
+}
+
+/** Chips that jump to sections further down the page. */
+export function JumpChips({ label, chips }: { label: string; chips: readonly JumpChip[] }) {
+  return (
+    <nav aria-label={label}>
+      {/* One row that scrolls sideways on phones, so the content stays near the top; wraps from sm up. */}
+      <ul className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 scrollbar-none sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+        {chips.map(({ href, label: chipLabel, icon: Icon, tone }) => (
+          <li key={href} className="shrink-0">
+            <a
+              href={href}
+              className={cn(
+                "pressable inline-flex h-9 items-center gap-2 rounded-full bg-card/75 py-1 pr-3.5 pl-1.5 text-sm font-medium shadow-(--shadow-hairline) hover:bg-card",
+                tone,
+              )}
+            >
+              <span className="grid size-6 place-items-center rounded-full bg-(--tone) text-[#1d1a16] dark:text-foreground">
+                <Icon aria-hidden="true" className="size-3.5" strokeWidth={2.25} />
+              </span>
+              {chipLabel}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
 
 export function PageHero({ eyebrow, title, children, footer }: { eyebrow: string; title: ReactNode; children?: ReactNode; footer?: ReactNode }) {
   return (
