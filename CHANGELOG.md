@@ -11,6 +11,8 @@
   turns on, such as stock levels or free appointment slots. Cards in a row now line up.
 * A pen stroke underlines "Eleven" in the heading, and a row of chips under the intro jumps
   straight to each industry. On phones the chips sit in one row you can swipe.
+* The empty space after the last industry now holds a "Not on the list?" card that points to the
+  general setup and the free trial.
 
 ## Tighter rate limits
 
