@@ -65,11 +65,38 @@ function ReachUs() {
             </a>
           </dd>
         </div>
-        <div>
-          <dt className="text-muted-foreground">Replies</dt>
-          <dd className="mt-0.5 font-medium">Within one business day</dd>
-        </div>
       </dl>
+    </section>
+  );
+}
+
+/** What really happens to a message: it is saved for the team (ContactInquiry) and answered by a person. */
+const NEXT_STEPS = [
+  { title: "Your message reaches us", body: "It's saved for our team the moment you send it." },
+  { title: "A person reads it", body: "Someone on our team, not the assistant." },
+  { title: "We reply within one business day", body: "To the email address you give us." },
+];
+
+function WhatHappensNext() {
+  return (
+    <section aria-labelledby="next-steps" className="rounded-[2rem] border-2 border-dashed border-foreground/12 p-6 sm:p-8">
+      <h2 id="next-steps" className="font-display text-3xl leading-none font-normal tracking-[-0.01em]">
+        What happens next
+      </h2>
+      <ol className="mt-6 grid gap-5">
+        {NEXT_STEPS.map((step, index) => (
+          <li key={step.title} className="relative flex gap-4">
+            {index < NEXT_STEPS.length - 1 ? (
+              <span aria-hidden="true" className="absolute top-10 -bottom-4 left-3.75 border-l-2 border-dotted border-foreground/20" />
+            ) : null}
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-sun font-mono text-sm text-[#1d1a16]">{index + 1}</span>
+            <div className="pt-1">
+              <p className="font-medium">{step.title}</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">{step.body}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
@@ -87,7 +114,7 @@ export default function ContactPage() {
       >
         Questions about plans, setting up or working together? Send us a message and we&apos;ll reply within one business day.
       </PageHero>
-      <section className="mx-auto grid max-w-7xl gap-12 px-6 py-20 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-20">
+      <section className="mx-auto grid max-w-7xl items-start gap-12 px-6 py-20 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-20">
         <div className="surface overflow-hidden rounded-[2rem]">
           <div className={cn(TONE_WASH, TONES.sun, "flex items-center gap-5 px-6 py-5 sm:px-10")}>
             <PaperPlaneDrawing className="h-16 w-auto shrink-0 text-foreground sm:h-20" />
@@ -102,6 +129,7 @@ export default function ContactPage() {
         </div>
         <div className="grid content-start gap-5">
           <ReachUs />
+          <WhatHappensNext />
         </div>
       </section>
     </>

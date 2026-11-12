@@ -7,6 +7,8 @@
 * Beside the form, "Or reach us directly" lists Sunleon's WhatsApp number, email address and
   Instagram as links you can tap, each with its own colour, above the company details. The website
   is now a real link.
+* "What happens next" explains the three steps after you press send: the message reaches the team,
+  a person (not the assistant) reads it, and the reply comes by email within one business day.
 
 ## A livelier About page
 
