@@ -1,5 +1,18 @@
 # Changelog
 
+## Replies that understand people and sound like one
+
+* The assistant now reads messages the way customers actually write them: typos and text-speak
+  ("hw much 4 d red one"), Ghanaian English and Pidgin ("abeg", "chale", "wetin", "e dey"),
+  greetings and thanks in Twi, Ga or Ewe ("Akwaaba", "Medaase", "Ayekoo"), a lone 👍 for yes, and
+  "this one" or "the red one" meaning something said earlier. When it still can't tell what
+  someone wants, it asks one short question instead of guessing.
+* Replies are in simple English with a local touch. A customer who writes in Pidgin gets a
+  friendly Pidgin reply, and a Twi, Ga or Ewe greeting or thanks is returned in kind. Prices, dates,
+  times, order numbers and addresses always stay exactly as the business's records give them.
+  Assistants set to the Professional tone answer Pidgin in plain English.
+* Customer agent prompt version 4.
+
 ## A livelier Contact page
 
 * A pen stroke underlines "person" in the heading, and the form opens with a warm header and a

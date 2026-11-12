@@ -34,9 +34,14 @@ use keeps whatever state the provider needs. Configuration: `ENVIRONMENT_VARIABL
    requests include the server-side safety fallback (`betas: ["server-side-fallback-2026-07-01"]`,
    `fallbacks: "default"`). Effort is sent to Anthropic only.
 4. **Prompt (`prompts.ts`, `context.ts`)** — versioned system prompt (`PromptVersion` key
-   `customer-agent`, built-in v3 as fallback) rendered with tone, business facts (including
+   `customer-agent`, built-in v4 as fallback) rendered with tone, business facts (including
    the industry-template answers in `Business.knowledgeProfile`, neutralised), industry
-   guidance and owner instructions. The tone sets emoji use: Friendly, Warm and Playful add a
+   guidance and owner instructions. It tells the model to read messages for meaning: typos and
+   text-speak, Ghanaian English and Pidgin, Twi, Ga and Ewe greetings, emoji-only answers and
+   references back to earlier messages, asking one short question rather than guessing. Replies
+   are in simple English with a local touch; Pidgin is mirrored (Professional tone answers it in
+   English), local-language greetings and thanks are returned in kind, and prices, dates, times,
+   order numbers and addresses stay exactly as the sources give them. The tone sets emoji use: Friendly, Warm and Playful add a
    sweet emoji where it fits (😊 🙏 ✨ 💛 🎉), Concise uses one at most and Professional none.
    For every tone the prompt keeps emoji to two per reply, out of prices, addresses and order
    or payment details, and out of replies to upset customers or serious subjects. It contains nothing volatile, so top-level

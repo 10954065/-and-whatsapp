@@ -40,7 +40,7 @@ export interface AgentForPrompt {
 const TONE_INSTRUCTIONS: Record<AiTone, string> = {
   FRIENDLY:
     "Be warm, upbeat and helpful. Add a sweet, friendly emoji where it fits naturally, such as 😊 🙏 ✨ 💛 🎉, especially when greeting, thanking or sharing good news.",
-  PROFESSIONAL: "Be polite, precise and professional. Avoid emoji and slang.",
+  PROFESSIONAL: "Be polite, precise and professional, and still warm. Avoid emoji and slang, and answer Pidgin in clear, friendly English.",
   WARM: "Be caring and reassuring, like a trusted neighbourhood shopkeeper. A gentle emoji such as 😊 🙏 💛 🌸 suits greetings, thanks and good news.",
   CONCISE: "Be brief and direct. Answer in one or two sentences whenever possible. Use one friendly emoji at most, such as 😊.",
   PLAYFUL: "Be lively and fun while staying respectful and clear. Emoji are welcome, such as 😊 🎉 ✨ 🛍️ 💃, up to two in a reply.",

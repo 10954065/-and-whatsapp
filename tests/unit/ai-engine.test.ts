@@ -160,29 +160,53 @@ describe("formatForChannel", () => {
   });
 });
 
-describe("buildSystemPrompt emoji style", () => {
-  const promptFor = (tone: AiTone) =>
-    buildSystemPrompt({
-      template: BUILTIN_TEMPLATE,
-      agent: { name: "Ama", tone, language: "en", customInstructions: null, escalationInstructions: null, escalationKeywords: [] },
-      business: {
-        name: "Ama's Fashion House",
-        description: null,
-        industry: "FASHION",
-        city: "Accra",
-        address: null,
-        country: "GH",
-        phone: null,
-        email: null,
-        website: null,
-        timezone: "Africa/Accra",
-        currency: "GHS",
-        businessHours: null,
-      },
-      channel: "WHATSAPP",
-      industryGuidance: "",
-    });
+const promptFor = (tone: AiTone) =>
+  buildSystemPrompt({
+    template: BUILTIN_TEMPLATE,
+    agent: { name: "Ama", tone, language: "en", customInstructions: null, escalationInstructions: null, escalationKeywords: [] },
+    business: {
+      name: "Ama's Fashion House",
+      description: null,
+      industry: "FASHION",
+      city: "Accra",
+      address: null,
+      country: "GH",
+      phone: null,
+      email: null,
+      website: null,
+      timezone: "Africa/Accra",
+      currency: "GHS",
+      businessHours: null,
+    },
+    channel: "WHATSAPP",
+    industryGuidance: "",
+  });
 
+describe("buildSystemPrompt understanding customers", () => {
+  it("reads typos, Pidgin, local greetings and emoji for meaning, and asks rather than guesses", () => {
+    const prompt = promptFor("FRIENDLY");
+    expect(prompt).toContain('"abeg" (please)');
+    expect(prompt).toContain('"hw much"');
+    expect(prompt).toContain("Medaase");
+    expect(prompt).toMatch(/👍 or 👌 means yes or okay/);
+    expect(prompt).toMatch(/read the whole conversation/i);
+    expect(prompt).toMatch(/ask one short, friendly question\. Never guess\./);
+  });
+
+  it("mirrors Pidgin, returns local greetings and keeps facts exactly as the sources give them", () => {
+    const prompt = promptFor("WARM");
+    expect(prompt).toMatch(/writes mostly in Pidgin, reply in light, friendly Ghanaian Pidgin/);
+    expect(prompt).toMatch(/greets or thanks you in Twi, Ga or Ewe, return it in their words/);
+    expect(prompt).toMatch(/keep prices, dates, times, order numbers and addresses exactly as your sources give them/);
+  });
+
+  it("has professional assistants answer Pidgin in plain English", () => {
+    expect(promptFor("PROFESSIONAL")).toMatch(/answer Pidgin in clear, friendly English/);
+    expect(promptFor("FRIENDLY")).not.toMatch(/answer Pidgin in clear, friendly English/);
+  });
+});
+
+describe("buildSystemPrompt emoji style", () => {
   it.each<AiTone>(["FRIENDLY", "WARM", "PLAYFUL"])("asks %s assistants to add sweet emoji without waiting for the customer", (tone) => {
     const prompt = promptFor(tone);
     expect(prompt).toContain("😊");
