@@ -60,3 +60,9 @@ export const disableMfaSchema = z.object({ password: z.string().min(1, "Enter yo
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+
+/** Where a finished sign-in or sign-up goes next; `celebrate` is false when another step (the MFA code) comes first. */
+export interface AuthDestination {
+  redirectTo: string;
+  celebrate: boolean;
+}

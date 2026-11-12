@@ -133,6 +133,24 @@ export async function setSessionCookie(token: string): Promise<void> {
   });
 }
 
+/**
+ * Setting the session cookie makes Next.js re-render the sign-in page, which would redirect a
+ * signed-in visitor at once and cut the welcome animation short. This short-lived marker tells
+ * the sign-in and sign-up pages to stay put while the browser plays it and then navigates.
+ */
+const ARRIVAL_COOKIE = "sl_arriving";
+const ARRIVAL_SECONDS = 8;
+
+export async function markArrival(): Promise<void> {
+  const store = await cookies();
+  store.set(ARRIVAL_COOKIE, "1", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: ARRIVAL_SECONDS });
+}
+
+export async function isArriving(): Promise<boolean> {
+  const store = await cookies();
+  return store.has(ARRIVAL_COOKIE);
+}
+
 export async function clearSessionCookie(): Promise<void> {
   const store = await cookies();
   store.delete(SESSION_COOKIE);

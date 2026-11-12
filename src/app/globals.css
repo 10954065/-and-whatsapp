@@ -343,6 +343,25 @@
   }
 }
 
+/* The sign-in sunrise: the sun's colour opens from where the sun sits (--wipe-at), then paper fades in over it. */
+@keyframes sunrise-wipe {
+  from {
+    clip-path: circle(0% at var(--wipe-at, 50% 50%));
+  }
+  to {
+    clip-path: circle(150% at var(--wipe-at, 50% 50%));
+  }
+}
+
+@keyframes sunrise-settle {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes marquee {
   to {
     transform: translateX(-50%);

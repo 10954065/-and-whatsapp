@@ -10,6 +10,7 @@ import {
   clearSessionCookie,
   createSession,
   invalidateSession,
+  markArrival,
   markSessionMfaVerified,
   setSessionCookie,
 } from "@/lib/auth/session";
@@ -26,6 +27,7 @@ import {
 } from "@/modules/auth/auth.service";
 import { beginMfaEnrollment, confirmMfaEnrollment, disableMfa, verifyMfaChallenge } from "@/modules/auth/mfa.service";
 import {
+  type AuthDestination,
   changePasswordSchema,
   disableMfaSchema,
   forgotPasswordSchema,
@@ -38,7 +40,8 @@ import {
 
 type FormAction<T = void> = (previous: ActionResult<T> | null, formData: FormData) => Promise<ActionResult<T>>;
 
-export const registerAction: FormAction = async (_previous, formData) =>
+// Sign-in and sign-up return the next page instead of redirecting, so the screen can play its sunrise first.
+export const registerAction: FormAction<AuthDestination> = async (_previous, formData) =>
   runAction(
     async () => {
       const input = parseInput(registerSchema, formData);
@@ -46,12 +49,13 @@ export const registerAction: FormAction = async (_previous, formData) =>
       const { userId } = await registerUser(input, meta);
       const { token } = await createSession(userId, { ...meta, mfaVerified: true });
       await setSessionCookie(token);
-      redirect(safeRedirectPath(input.next, "/onboarding"));
+      await markArrival();
+      return { redirectTo: safeRedirectPath(input.next, "/onboarding"), celebrate: true };
     },
     { source: "auth.register" },
   );
 
-export const loginAction: FormAction = async (_previous, formData) =>
+export const loginAction: FormAction<AuthDestination> = async (_previous, formData) =>
   runAction(
     async () => {
       const input = parseInput(loginSchema, formData);
@@ -60,7 +64,8 @@ export const loginAction: FormAction = async (_previous, formData) =>
       const { token } = await createSession(userId, { ...meta, mfaVerified: !requiresMfa });
       await setSessionCookie(token);
       const destination = safeRedirectPath(input.next, "/app/dashboard");
-      redirect(requiresMfa ? `/login/mfa?next=${encodeURIComponent(destination)}` : destination);
+      await markArrival();
+      return requiresMfa ? { redirectTo: `/login/mfa?next=${encodeURIComponent(destination)}`, celebrate: false } : { redirectTo: destination, celebrate: true };
     },
     { source: "auth.login" },
   );

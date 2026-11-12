@@ -5,6 +5,7 @@ import { RegisterForm } from "@/components/auth/auth-forms";
 import { pageMetadata } from "@/config/seo";
 import { META_FREE_REPLIES_PER_MONTH } from "@/config/whatsapp-fees";
 import { getCurrentSession } from "@/lib/auth/current";
+import { isArriving } from "@/lib/auth/session";
 import { formatNumber } from "@/lib/format";
 
 export const metadata: Metadata = pageMetadata("/register");
@@ -15,7 +16,8 @@ export default async function RegisterPage({ searchParams }: { searchParams: Sea
   const params = await searchParams;
   const next = typeof params.next === "string" ? params.next : undefined;
   const session = await getCurrentSession();
-  if (session) redirect(next?.startsWith("/invite/") ? next : "/app/dashboard");
+  // A visitor who signed up a moment ago stays here while the welcome animation plays.
+  if (session && !(await isArriving())) redirect(next?.startsWith("/invite/") ? next : "/app/dashboard");
 
   return (
     <div className="grid gap-8">

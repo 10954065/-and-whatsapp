@@ -1,5 +1,14 @@
 # Changelog
 
+## A sun that reacts on sign in and sign up
+
+* The sign-in and sign-up screens now have an animated sun. It watches as you type your name or
+  email, ducks below the horizon while you type a password, and turns sad under a passing cloud
+  when a sign-in is refused, while the form gives a short shake.
+* A successful sign-in or sign-up ends with the sun rising and a sunrise sweep into the app. On
+  sign-up the sun glows brighter as the password gets stronger.
+* People who ask their device to reduce motion skip the shake and the sweep.
+
 ## Instagram with Instagram or Facebook login
 
 * Connect with Instagram now uses Meta's Unified Login: owners sign in with their Instagram or

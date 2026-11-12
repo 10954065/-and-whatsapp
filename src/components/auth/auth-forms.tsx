@@ -1,10 +1,15 @@
 "use client";
 
+import { useState, useTransition, type ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
+import { useAnimate, useReducedMotion } from "motion/react";
+import { useAuthStage } from "@/components/auth/auth-stage";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Field, FormAlert, SubmitButton, fieldErrors } from "@/components/forms/form-controls";
 import { useActionForm } from "@/hooks/use-action-form";
+import type { ActionResult } from "@/lib/monitoring/errors";
+import type { AuthDestination } from "@/modules/auth/auth.schemas";
 import {
   forgotPasswordAction,
   loginAction,
@@ -15,10 +20,72 @@ import {
   verifyMfaAction,
 } from "@/modules/auth/auth.actions";
 
+type AuthAction = (previous: ActionResult<AuthDestination> | null, formData: FormData) => Promise<ActionResult<AuthDestination>>;
+
+const LOOK_FULL_AT = 26;
+const SHAKE_X = [0, -9, 8, -6, 5, -2, 0];
+
+/** Eye direction for a text field: left when empty, right once about a line has been typed. */
+function lookFor(value: string): number {
+  return (Math.min(value.length, LOOK_FULL_AT) / LOOK_FULL_AT) * 2 - 1;
+}
+
+/** A rough 0 to 1 score for the sun's glow; the server's password rules are what count. */
+function passwordStrength(value: string): number {
+  if (!value) return 0;
+  const length = Math.min(value.length / 12, 1) * 0.6;
+  const variety = (/[\d\W_]/.test(value) ? 0.2 : 0) + (/[a-z]/.test(value) && /[A-Z]/.test(value) ? 0.2 : 0);
+  return length + variety;
+}
+
+/**
+ * Submits a sign-in or sign-up form and tells the stage how it went: the sun waits while the
+ * request runs, turns sad and the form shakes when it is refused, and the sunrise plays on success.
+ */
+function useStagedAuthForm(action: AuthAction) {
+  const stage = useAuthStage();
+  const reduceMotion = useReducedMotion();
+  const [state, setState] = useState<ActionResult<AuthDestination> | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [formRef, animate] = useAnimate<HTMLFormElement>();
+
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    stage.setPending(true);
+    startTransition(async () => {
+      let result: ActionResult<AuthDestination>;
+      try {
+        result = await action(null, formData);
+      } catch {
+        result = { ok: false, error: "Something went wrong. Please try again.", code: "INTERNAL" };
+      }
+      stage.setPending(false);
+      setState(result);
+      if (result.ok) {
+        stage.celebrate(result.data.redirectTo, !result.data.celebrate);
+        return;
+      }
+      stage.fail();
+      if (!reduceMotion && formRef.current) void animate(formRef.current, { x: SHAKE_X }, { duration: 0.42, ease: "easeOut" });
+    });
+  };
+
+  const watch = {
+    onFocus: (event: ChangeEvent<HTMLInputElement>) => stage.attend("text", lookFor(event.target.value)),
+    onChange: (event: ChangeEvent<HTMLInputElement>) => stage.attend("text", lookFor(event.target.value)),
+    onBlur: () => stage.attend(null),
+  };
+  const lookAway = { onFocus: () => stage.attend("secret"), onBlur: () => stage.attend(null) };
+
+  // The button stays busy through the sunrise, so a second click cannot start another sign-in.
+  return { state, onSubmit, isBusy: isPending || stage.mood === "happy", formRef, watch, lookAway, setStrength: stage.setStrength };
+}
+
 export function LoginForm({ next }: { next?: string }) {
-  const { state, onSubmit, isPending } = useActionForm(loginAction);
+  const { state, onSubmit, isBusy, formRef, watch, lookAway } = useStagedAuthForm(loginAction);
   return (
-    <form onSubmit={onSubmit} className="grid gap-4" noValidate>
+    <form ref={formRef} onSubmit={onSubmit} className="grid gap-4" noValidate>
       <FormAlert state={state} />
       <Field
         label="Email"
@@ -27,6 +94,7 @@ export function LoginForm({ next }: { next?: string }) {
         autoComplete="email"
         required
         errors={fieldErrors(state, "email")}
+        {...watch}
       />
       <Field
         label="Password"
@@ -35,6 +103,7 @@ export function LoginForm({ next }: { next?: string }) {
         autoComplete="current-password"
         required
         errors={fieldErrors(state, "password")}
+        {...lookAway}
       />
       <input type="hidden" name="next" value={next ?? ""} />
       <div className="-mt-1 flex justify-end">
@@ -42,7 +111,7 @@ export function LoginForm({ next }: { next?: string }) {
           Forgot password?
         </Link>
       </div>
-      <SubmitButton size="lg" className="h-10 w-full" isPending={isPending} pendingLabel="Signing in…">
+      <SubmitButton size="lg" className="h-10 w-full" isPending={isBusy} pendingLabel="Signing in…">
         Sign in
       </SubmitButton>
     </form>
@@ -50,12 +119,12 @@ export function LoginForm({ next }: { next?: string }) {
 }
 
 export function RegisterForm({ next }: { next?: string }) {
-  const { state, onSubmit, isPending } = useActionForm(registerAction);
+  const { state, onSubmit, isBusy, formRef, watch, lookAway, setStrength } = useStagedAuthForm(registerAction);
   return (
-    <form onSubmit={onSubmit} className="grid gap-4" noValidate>
+    <form ref={formRef} onSubmit={onSubmit} className="grid gap-4" noValidate>
       <FormAlert state={state} />
       <input type="hidden" name="next" value={next ?? ""} />
-      <Field label="Full name" name="name" autoComplete="name" required errors={fieldErrors(state, "name")} />
+      <Field label="Full name" name="name" autoComplete="name" required errors={fieldErrors(state, "name")} {...watch} />
       <Field
         label="Work email"
         name="email"
@@ -63,6 +132,7 @@ export function RegisterForm({ next }: { next?: string }) {
         autoComplete="email"
         required
         errors={fieldErrors(state, "email")}
+        {...watch}
       />
       <Field
         label="Password"
@@ -72,6 +142,8 @@ export function RegisterForm({ next }: { next?: string }) {
         required
         hint="At least 10 characters, with a number or symbol."
         errors={fieldErrors(state, "password")}
+        {...lookAway}
+        onChange={(event: ChangeEvent<HTMLInputElement>) => setStrength(passwordStrength(event.target.value))}
       />
       <div className="grid gap-1.5">
         <div className="flex items-start gap-2.5">
@@ -94,7 +166,7 @@ export function RegisterForm({ next }: { next?: string }) {
           <p className="text-xs font-medium text-destructive">{fieldErrors(state, "acceptTerms")?.join(" ")}</p>
         ) : null}
       </div>
-      <SubmitButton size="lg" className="h-10 w-full" isPending={isPending} pendingLabel="Creating account…">
+      <SubmitButton size="lg" className="h-10 w-full" isPending={isBusy} pendingLabel="Creating account…">
         Create account
       </SubmitButton>
     </form>

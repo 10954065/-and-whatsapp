@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/auth-forms";
 import { pageMetadata } from "@/config/seo";
 import { getCurrentSession } from "@/lib/auth/current";
+import { isArriving } from "@/lib/auth/session";
 
 export const metadata: Metadata = pageMetadata("/login");
 
@@ -18,7 +19,8 @@ const NOTICES: Record<string, string> = {
 export default async function LoginPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const session = await getCurrentSession();
-  if (session && (!session.user.mfaEnabled || session.mfaVerified)) redirect("/app/dashboard");
+  // A visitor who signed in a moment ago stays here while the welcome animation plays.
+  if (session && (!session.user.mfaEnabled || session.mfaVerified) && !(await isArriving())) redirect("/app/dashboard");
 
   const next = typeof params.next === "string" ? params.next : undefined;
   const noticeKey = Object.keys(NOTICES).find((key) => params[key] === "1");
