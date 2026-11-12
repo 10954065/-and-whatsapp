@@ -4,6 +4,9 @@
 
 * A pen stroke underlines "person" in the heading, and the form opens with a warm header and a
   paper plane that glides in on a dotted trail.
+* Beside the form, "Or reach us directly" lists Sunleon's WhatsApp number, email address and
+  Instagram as links you can tap, each with its own colour, above the company details. The website
+  is now a real link.
 
 ## A livelier About page
 
