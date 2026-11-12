@@ -111,7 +111,7 @@ export function LoginForm({ next }: { next?: string }) {
           Forgot password?
         </Link>
       </div>
-      <SubmitButton size="lg" className="h-10 w-full" isPending={isBusy} pendingLabel="Signing in…">
+      <SubmitButton size="lg" className="sunrise-cta h-10 w-full" isPending={isBusy} pendingLabel="Signing in…">
         Sign in
       </SubmitButton>
     </form>
@@ -166,7 +166,7 @@ export function RegisterForm({ next }: { next?: string }) {
           <p className="text-xs font-medium text-destructive">{fieldErrors(state, "acceptTerms")?.join(" ")}</p>
         ) : null}
       </div>
-      <SubmitButton size="lg" className="h-10 w-full" isPending={isBusy} pendingLabel="Creating account…">
+      <SubmitButton size="lg" className="sunrise-cta h-10 w-full" isPending={isBusy} pendingLabel="Creating account…">
         Create account
       </SubmitButton>
     </form>
@@ -186,7 +186,7 @@ export function ForgotPasswordForm() {
         required
         errors={fieldErrors(state, "email")}
       />
-      <SubmitButton size="lg" className="h-10 w-full" isPending={isPending} pendingLabel="Sending…">
+      <SubmitButton size="lg" className="sunrise-cta h-10 w-full" isPending={isPending} pendingLabel="Sending…">
         Email me a reset link
       </SubmitButton>
     </form>
@@ -216,7 +216,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
         required
         errors={fieldErrors(state, "confirmPassword")}
       />
-      <SubmitButton size="lg" className="h-10 w-full" isPending={isPending} pendingLabel="Saving…">
+      <SubmitButton size="lg" className="sunrise-cta h-10 w-full" isPending={isPending} pendingLabel="Saving…">
         Set new password
       </SubmitButton>
     </form>
@@ -239,7 +239,7 @@ export function MfaForm({ next }: { next?: string }) {
         errors={fieldErrors(state, "code")}
       />
       <input type="hidden" name="next" value={next ?? ""} />
-      <SubmitButton size="lg" className="h-10 w-full" isPending={isPending} pendingLabel="Verifying…">
+      <SubmitButton size="lg" className="sunrise-cta h-10 w-full" isPending={isPending} pendingLabel="Verifying…">
         Verify
       </SubmitButton>
     </form>
@@ -252,7 +252,7 @@ export function VerifyEmailForm({ token }: { token: string }) {
     <form onSubmit={onSubmit} className="grid gap-4">
       <FormAlert state={state} />
       <input type="hidden" name="token" value={token} />
-      <SubmitButton size="lg" className="h-10 w-full" isPending={isPending} pendingLabel="Confirming…">
+      <SubmitButton size="lg" className="sunrise-cta h-10 w-full" isPending={isPending} pendingLabel="Confirming…">
         Confirm my email address
       </SubmitButton>
     </form>

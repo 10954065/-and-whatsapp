@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AuthChips, type AuthChip } from "@/components/auth/auth-chips";
 import { LoginForm } from "@/components/auth/auth-forms";
 import { pageMetadata } from "@/config/seo";
 import { getCurrentSession } from "@/lib/auth/current";
@@ -16,6 +17,12 @@ const NOTICES: Record<string, string> = {
   deleted: "Your account was deleted and your personal details were removed.",
 };
 
+const LOGIN_CHIPS: AuthChip[] = [
+  { label: "WhatsApp", tone: "whatsapp" },
+  { label: "Instagram", tone: "instagram" },
+  { label: "One inbox for both", tone: "sun" },
+];
+
 export default async function LoginPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const session = await getCurrentSession();
@@ -28,8 +35,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
   return (
     <div className="grid gap-8">
       <div className="grid gap-2">
-        <h1 className="font-display text-[2.75rem] leading-none font-normal tracking-[-0.015em]">Welcome back</h1>
+        <h1 className="font-display text-[2.75rem] leading-none font-normal tracking-[-0.015em]">
+          Welcome <span className="sunset-text italic">back</span>
+        </h1>
         <p className="text-muted-foreground">Sign in to pick up your conversations and orders.</p>
+        <AuthChips chips={LOGIN_CHIPS} className="mt-2" />
       </div>
       {noticeKey ? (
         <p role="status" className="rounded-lg border border-success/30 bg-success/10 px-3 py-2.5 text-sm">

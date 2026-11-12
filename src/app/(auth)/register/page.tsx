@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AuthChips, type AuthChip } from "@/components/auth/auth-chips";
 import { RegisterForm } from "@/components/auth/auth-forms";
 import { pageMetadata } from "@/config/seo";
 import { META_FREE_REPLIES_PER_MONTH } from "@/config/whatsapp-fees";
@@ -12,6 +13,12 @@ export const metadata: Metadata = pageMetadata("/register");
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
+const REGISTER_CHIPS: AuthChip[] = [
+  { label: "No card needed", tone: "violet" },
+  { label: "WhatsApp", tone: "whatsapp" },
+  { label: "Instagram", tone: "instagram" },
+];
+
 export default async function RegisterPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const next = typeof params.next === "string" ? params.next : undefined;
@@ -22,8 +29,11 @@ export default async function RegisterPage({ searchParams }: { searchParams: Sea
   return (
     <div className="grid gap-8">
       <div className="grid gap-2">
-        <h1 className="font-display text-[2.75rem] leading-none font-normal tracking-[-0.015em]">Start your free trial</h1>
-        <p className="text-muted-foreground">Create your account, then set up your business in a few short steps. No card needed.</p>
+        <h1 className="font-display text-[2.75rem] leading-none font-normal tracking-[-0.015em]">
+          Start your <span className="sunset-text italic">free</span> trial
+        </h1>
+        <p className="text-muted-foreground">Create your account, then set up your business in a few short steps.</p>
+        <AuthChips chips={REGISTER_CHIPS} className="my-1" />
         <p className="text-sm text-muted-foreground">
           On WhatsApp, Meta charges separately for replies after the first {formatNumber(META_FREE_REPLIES_PER_MONTH)} each
           month and bills you directly.{" "}

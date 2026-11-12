@@ -4,7 +4,8 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
 import { LogoMark } from "@/components/brand/logo";
-import { SunCharacter, type SunMood } from "@/components/auth/sun-character";
+import { SunCharacter, type SunMood } from "@/components/brand/sun-character";
+import { SunSky } from "@/components/brand/sun-sky";
 
 /** What the person is typing into: ordinary text the sun may watch, or a secret it looks away from. */
 type Attention = "text" | "secret" | null;
@@ -36,9 +37,8 @@ const CAPTIONS: Record<SunMood, string> = {
   pending: "One moment…",
   sad: "Hmm, that didn't work.",
   happy: "There you are.",
+  lost: "Where did it go?",
 };
-
-const SKY: Record<SunMood, number> = { idle: 0.55, watching: 0.65, hiding: 0.25, pending: 0.55, sad: 0.12, happy: 1 };
 
 const StageContext = createContext<AuthStage | null>(null);
 
@@ -126,13 +126,7 @@ export function AuthAside({ children }: { children: ReactNode }) {
     <aside className="grain relative hidden overflow-hidden bg-[#1d1a16] text-[#f3efe7] lg:flex lg:flex-col lg:items-center lg:justify-center lg:gap-10 lg:p-12">
       {hasCharacter ? (
         <>
-          <motion.div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_80%,rgba(239,107,31,0.38),transparent_62%)]"
-            initial={false}
-            animate={{ opacity: SKY[mood] }}
-            transition={{ duration: 0.7 }}
-          />
+          <SunSky mood={mood} />
           <div className="relative mt-[11vh] mb-auto grid justify-items-center gap-4">
             <p className="max-w-sm text-center font-display text-4xl leading-[1.05] tracking-[-0.01em]">
               Every customer answered. <span className="text-[#f6b383] italic">Every booking kept.</span>
@@ -176,7 +170,8 @@ export function AuthMobileSun() {
   const { mood, look, strength } = useAuthStage();
   if (!CHARACTER_PATHS.has(pathname)) return null;
   return (
-    <div aria-hidden="true" className="relative mb-8 h-36 shrink-0 overflow-hidden rounded-2xl bg-[#1d1a16] lg:hidden">
+    <div aria-hidden="true" className="relative mb-6 h-36 shrink-0 overflow-hidden rounded-[1.75rem] bg-[#1d1a16] shadow-[0_18px_40px_-22px_rgb(59_29_74/0.7)] lg:hidden">
+      <SunSky mood={mood} />
       <SunCharacter mood={mood} look={look} strength={strength} className="absolute bottom-0 left-1/2 w-48 -translate-x-1/2" />
     </div>
   );

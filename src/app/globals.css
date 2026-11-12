@@ -316,6 +316,62 @@
   .link-underline:hover {
     text-decoration-color: currentColor;
   }
+  /* Sunrise colours across a word. The extra inline padding keeps italic overhangs from being clipped. */
+  .sunset-text {
+    background-image: linear-gradient(95deg, #ef6b1f 0%, #e8456b 55%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding-inline-end: 0.12em;
+    margin-inline-end: -0.12em;
+    box-decoration-break: clone;
+  }
+}
+
+/*
+ * The warm call to action on the sign-in screens: dark text on an amber-to-pink gradient that drifts on hover.
+ * Deliberately outside @layer, so it overrides the button's own colour, shadow and transition utilities.
+ */
+.sunrise-cta {
+  border-color: transparent;
+  background-image: linear-gradient(100deg, #f59e0b 0%, #ef6b1f 42%, #e8456b 100%);
+  background-size: 170% 100%;
+  background-position: 0% 0;
+  color: #1d1a16;
+  font-weight: 600;
+  box-shadow: 0 10px 26px -12px rgb(239 107 31 / 0.7);
+  transition:
+    background-position 500ms var(--ease-out-strong),
+    box-shadow 300ms ease,
+    scale 160ms var(--ease-out-strong);
+}
+.sunrise-cta:hover {
+  background-position: 100% 0;
+  box-shadow: 0 12px 30px -12px rgb(232 69 107 / 0.75);
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes rain-fall {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(44px);
+    opacity: 0;
+  }
 }
 
 @keyframes typing-dot {

@@ -3,7 +3,7 @@
 import { useId } from "react";
 import { motion, type Transition } from "motion/react";
 
-export type SunMood = "idle" | "watching" | "hiding" | "pending" | "sad" | "happy";
+export type SunMood = "idle" | "watching" | "hiding" | "pending" | "sad" | "happy" | "lost";
 
 const INK = "#1d1a16";
 const CENTER_X = 200;
@@ -12,7 +12,7 @@ const SUN_RADIUS = 108;
 const RAY_COUNT = 12;
 
 /** Where the sun's centre rests for each mood. The ground hides everything below the horizon. */
-const SUN_Y: Record<SunMood, number> = { idle: 246, watching: 232, hiding: 356, pending: 246, sad: 254, happy: 166 };
+const SUN_Y: Record<SunMood, number> = { idle: 246, watching: 232, hiding: 356, pending: 246, sad: 254, happy: 166, lost: 240 };
 
 const SUN_FILL: Record<SunMood, string> = {
   idle: "#ef6b1f",
@@ -21,6 +21,7 @@ const SUN_FILL: Record<SunMood, string> = {
   pending: "#ef6b1f",
   sad: "#b56f43",
   happy: "#ff8a3d",
+  lost: "#ef6b1f",
 };
 
 /** Mouth curves share one shape (move, quadratic curve) so they morph into each other. */
@@ -31,11 +32,31 @@ const MOUTH: Record<SunMood, string> = {
   pending: "M -12 29 Q 0 33 12 29",
   sad: "M -19 36 Q 0 22 19 36",
   happy: "M -30 20 Q 0 52 30 20",
+  lost: "M -12 32 Q 3 25 14 31",
 };
 
-const EYE_OPENNESS: Record<SunMood, number> = { idle: 1, watching: 1.08, hiding: 0.12, pending: 0.9, sad: 0.72, happy: 0 };
-const GLOW: Record<SunMood, number> = { idle: 0.34, watching: 0.4, hiding: 0.1, pending: 0.34, sad: 0.06, happy: 0.9 };
-const RAYS: Record<SunMood, number> = { idle: 0.55, watching: 0.65, hiding: 0.18, pending: 0.55, sad: 0.1, happy: 1 };
+const EYE_OPENNESS: Record<SunMood, number> = { idle: 1, watching: 1.08, hiding: 0.12, pending: 0.9, sad: 0.72, happy: 0, lost: 1.1 };
+const GLOW: Record<SunMood, number> = { idle: 0.34, watching: 0.4, hiding: 0.1, pending: 0.34, sad: 0.06, happy: 0.9, lost: 0.42 };
+const RAYS: Record<SunMood, number> = { idle: 0.55, watching: 0.65, hiding: 0.18, pending: 0.55, sad: 0.1, happy: 1, lost: 0.6 };
+
+/** The lost sun searches: its eyes hold left, glance right, hold, and come back. */
+const SEARCH: Transition = { duration: 4.2, times: [0, 0.36, 0.46, 0.84, 1], ease: "easeInOut", repeat: Infinity };
+
+/** Short streaks under the cloud: x position and start delay in seconds. */
+const RAIN: [number, number][] = [
+  [262, 0],
+  [284, 0.45],
+  [306, 0.2],
+  [328, 0.65],
+  [348, 0.3],
+];
+
+function browFor(mood: SunMood, side: number) {
+  if (mood === "sad") return { opacity: 1, rotate: side * 17, y: 0 };
+  // Puzzled: the left brow lifts, the right one stays level.
+  if (mood === "lost") return side === -1 ? { opacity: 1, rotate: -12, y: -6 } : { opacity: 1, rotate: 3, y: 0 };
+  return { opacity: 0, rotate: 0, y: 0 };
+}
 
 const SETTLE: Transition = { type: "spring", duration: 0.7, bounce: 0.18 };
 const RISE: Transition = { type: "spring", duration: 0.9, bounce: 0.34 };
@@ -61,6 +82,7 @@ interface SunCharacterProps {
 export function SunCharacter({ mood, look = 0, strength = 0, className }: SunCharacterProps) {
   const isHappy = mood === "happy";
   const isSad = mood === "sad";
+  const isLost = mood === "lost";
   const boost = mood === "hiding" ? strength * 0.5 : 0;
   const glowId = useId();
 
@@ -110,7 +132,11 @@ export function SunCharacter({ mood, look = 0, strength = 0, className }: SunCha
 
         <motion.circle cx={CENTER_X} cy={0} r={SUN_RADIUS} initial={false} animate={{ fill: SUN_FILL[mood] }} transition={{ duration: 0.5 }} />
 
-        <motion.g initial={false} animate={{ x: look * 9, y: mood === "watching" ? 3 : 0 }} transition={SETTLE}>
+        <motion.g
+          initial={false}
+          animate={isLost ? { x: [-9, -9, 9, 9, -9], y: 0 } : { x: look * 9, y: mood === "watching" ? 3 : 0 }}
+          transition={isLost ? SEARCH : SETTLE}
+        >
           {[-1, 1].map((side) => (
             <g key={side} transform={`translate(${CENTER_X + side * 36} -16)`}>
               <motion.line
@@ -122,7 +148,7 @@ export function SunCharacter({ mood, look = 0, strength = 0, className }: SunCha
                 strokeWidth={5}
                 strokeLinecap="round"
                 initial={false}
-                animate={{ opacity: isSad ? 1 : 0, rotate: isSad ? side * 17 : 0 }}
+                animate={browFor(mood, side)}
                 transition={FACE}
               />
               {/* Blink: a slow loop on its own layer, so it never fights the mood's eye shape. */}
@@ -158,6 +184,13 @@ export function SunCharacter({ mood, look = 0, strength = 0, className }: SunCha
           <circle cx={342} cy={200} r={27} />
           <rect x={244} y={196} width={124} height={32} rx={16} />
         </g>
+        {isSad ? (
+          <g stroke="#9fb4cc" strokeWidth={3} strokeLinecap="round">
+            {RAIN.map(([x, delay]) => (
+              <line key={x} x1={x} y1={236} x2={x - 4} y2={250} className="animate-[rain-fall_0.9s_linear_infinite]" style={{ animationDelay: `${delay}s` }} />
+            ))}
+          </g>
+        ) : null}
       </motion.g>
 
       <rect x={-600} y={HORIZON_Y} width={1600} height={400} fill={INK} />

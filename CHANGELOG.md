@@ -1,5 +1,16 @@
 # Changelog
 
+## A sunrise sky on sign in, and a 404 page
+
+* The sun on the sign-in and sign-up screens now has a sky that changes with its mood: dawn
+  colours while you type, a starry night while you type a password, grey rain when a sign-in is
+  refused and a bright morning when it works.
+* The form sits in a raised card with sunrise colours, the WhatsApp and Instagram chips show what
+  SUNLEON AI answers on, and the main buttons use a warm amber-to-pink gradient.
+* A missing page now shows a SUNLEON 404: the sun stands in for the 0 and looks around for the
+  page, and the assistant answers honestly that the page doesn't exist, with links to where
+  you can go instead.
+
 ## A sun that reacts on sign in and sign up
 
 * The sign-in and sign-up screens now have an animated sun. It watches as you type your name or
