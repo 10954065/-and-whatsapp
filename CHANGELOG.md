@@ -1,5 +1,19 @@
 # Changelog
 
+## Tighter rate limits
+
+* Changing your password, turning off two-factor and deleting your account now share five password
+  attempts per 15 minutes, so a stolen session can no longer guess the password. Confirming a new
+  two-factor setup code has the same limit as entering one at sign-in.
+* Every signed-in action is capped at 300 per 5 minutes per person, far above normal use, so a
+  script with someone's login can't flood the workspace. Page loads and the Inbox refresh
+  don't count.
+* Connect with Instagram is limited to 20 attempts per hour per workspace, like WhatsApp.
+* When one customer floods a conversation, the assistant pauses for that customer after 12 replies
+  in 10 minutes. Their messages still reach the Inbox, and other customers keep getting replies.
+* The public health check reuses its answer for ten seconds, so a flood of requests can't load
+  the database.
+
 ## A sunrise sky on sign in, and a 404 page
 
 * The sun on the sign-in and sign-up screens now has a sky that changes with its mood: dawn

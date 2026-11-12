@@ -176,6 +176,38 @@ describe("runAgent", () => {
     expect((await runAgent(input, { llm })).blockedReason).toBe("platform_disabled");
     expect(llm.calls).toHaveLength(0);
   });
+
+  it("pauses for one flooding conversation without spending tokens, and only for that conversation", async () => {
+    const { input, business, customer, conversation } = await setup();
+    const replies = (count: number, minutesAgo: number) =>
+      prisma.message.createMany({
+        data: Array.from({ length: count }, (_, index) => ({
+          businessId: business.id,
+          conversationId: conversation.id,
+          customerId: customer.id,
+          channel: "WHATSAPP" as const,
+          direction: "OUTBOUND" as const,
+          sender: index % 2 === 0 ? ("AI" as const) : ("SYSTEM" as const),
+          text: "Thanks!",
+          deliveryStatus: "SENT" as const,
+          createdAt: new Date(Date.now() - minutesAgo * 60_000),
+        })),
+      });
+
+    // Replies older than the window do not count.
+    await replies(20, 30);
+    await replies(11, 2);
+    const llm = fakeLlm([{ text: "Happy to help." }]);
+    expect((await runAgent(input, { llm })).status).toBe("SUCCEEDED");
+
+    await replies(1, 1);
+    const flooded = await runAgent(input, { llm });
+    expect(flooded).toMatchObject({ status: "SKIPPED", blockedReason: "conversation_burst", reply: null });
+    expect(llm.calls).toHaveLength(1);
+
+    const other = await prisma.conversation.create({ data: { businessId: business.id, customerId: customer.id, channel: "WHATSAPP" } });
+    expect((await runAgent({ ...input, conversationId: other.id }, { llm })).status).toBe("SUCCEEDED");
+  });
 });
 
 describe("runAgent with an OpenAI-compatible provider", () => {

@@ -2,6 +2,7 @@ import { Secret, TOTP } from "otpauth";
 import QRCode from "qrcode";
 import { prisma } from "@/lib/db/prisma";
 import { fail } from "@/lib/monitoring/errors";
+import { enforceRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";
 import { decryptSecret, encryptSecret, hashToken, randomToken } from "@/lib/security/crypto";
 import { verifyPassword } from "@/lib/security/password";
 import { recordAudit } from "@/modules/administration/audit.service";
@@ -91,6 +92,7 @@ export async function verifyMfaChallenge(userId: string, code: string): Promise<
 }
 
 export async function disableMfa(userId: string, password: string): Promise<void> {
+  await enforceRateLimit(RATE_LIMITS.passwordConfirm, userId);
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { passwordHash: true } });
   if (!(await verifyPassword(user.passwordHash, password))) {
     throw fail.validation("Incorrect password.", { password: ["Incorrect password."] });

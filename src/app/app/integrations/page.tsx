@@ -19,6 +19,7 @@ const INSTAGRAM_NOTICES: Record<string, string> = {
   connected: "account connected.",
   cancelled: "connection cancelled.",
   limit: "your plan's channel limit is reached. Disconnect a channel or upgrade, then try again.",
+  busy: "too many connection attempts in the last hour. Try again later.",
   taken: "that account is already connected to another SUNLEON AI workspace.",
   failed: "connection failed. Choose an Instagram professional account with message access turned on, and try again.",
 };

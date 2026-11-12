@@ -7,6 +7,7 @@ import { withTenantTx } from "@/lib/db/tenant";
 import { env } from "@/lib/env";
 import type { TenantActor } from "@/lib/auth/tenant";
 import { fail, isAppError } from "@/lib/monitoring/errors";
+import { enforceRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";
 import { logger } from "@/lib/monitoring/logger";
 import { decryptJson, encryptJson, hashToken, randomToken } from "@/lib/security/crypto";
 import { recordAudit } from "@/modules/administration/audit.service";
@@ -238,6 +239,8 @@ export function instagramRedirectUri(): string {
 /** Starts Instagram's Unified Login: stores a hashed one-time state bound to user + business. */
 export async function startInstagramConnect(actor: TenantActor): Promise<string> {
   if (!actor.emailVerified) throw fail.precondition("Confirm your email address before connecting channels.");
+  // Each attempt makes several calls to Meta when it comes back, so attempts are limited per workspace.
+  await enforceRateLimit(RATE_LIMITS.instagramConnect, actor.businessId);
   const state = randomToken(24);
   await prisma.oAuthState.create({
     data: { stateHash: hashToken(state), userId: actor.userId, businessId: actor.businessId, provider: "instagram", expiresAt: new Date(Date.now() + 10 * 60_000) },

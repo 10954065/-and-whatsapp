@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import type { ActionResult } from "@/lib/monitoring/errors";
+import { isAppError, type ActionResult } from "@/lib/monitoring/errors";
 import { parseInput, runAction } from "@/lib/http/action";
 import { getRequestMeta } from "@/lib/auth/request";
 import { requireTenantAction, toActor } from "@/lib/auth/tenant";
@@ -113,7 +113,14 @@ export async function connectSandboxAction(): Promise<ActionResult> {
 }
 
 export async function startInstagramAction(): Promise<void> {
-  const url = await startInstagramConnect(await actorWith("integrations.manage"));
+  let url: string;
+  try {
+    url = await startInstagramConnect(await actorWith("integrations.manage"));
+  } catch (error) {
+    // A plain form action has no result to show, so send the owner back with a notice instead of an error page.
+    if (isAppError(error) && error.code === "RATE_LIMITED") redirect("/app/integrations?instagram=busy");
+    throw error;
+  }
   redirect(url);
 }
 

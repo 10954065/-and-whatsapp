@@ -11,6 +11,8 @@ Status legend: ✅ implemented and tested · 🟡 implemented, not yet covered b
 | DB-backed sessions; only HMAC(token) stored; `HttpOnly`, `Secure`, `SameSite=Lax`, `__Host-` prefix in production | ✅ | `lib/auth/session.ts` |
 | Sliding 30-day expiry, server-side revocation | ✅ | `validateSessionToken` |
 | Per-IP and per-account login rate limits | ✅ | `lib/security/rate-limit.ts` |
+| Password re-checks (change password, turn off two-factor, delete account) share 5 attempts per 15 min per user | ✅ | `RATE_LIMITS.passwordConfirm`, `tests/integration/rate-limits.test.ts` |
+| Two-factor setup codes share the sign-in code limit (10 per 15 min per session) | 🟡 | `confirmMfaAction` |
 | Lockout for 15 min after 5 consecutive failures | ✅ | `auth.service.authenticate` |
 | Timing-equalised responses for unknown accounts | 🟡 | `verifyAgainstDummyHash` |
 | Single-use, expiring, hashed email-verification & reset tokens | ✅ | `consumeToken` |
@@ -49,6 +51,11 @@ every tenant service runs through it, the runtime `DATABASE_URL` can use a login
 | Input validation with Zod at every Server Action boundary | ✅ |
 | SQL injection: Prisma query builder and tagged-template raw SQL only | 🟡 |
 | Contact form honeypot + rate limit | 🟡 |
+| Every signed-in Server Action capped at 300 per 5 min per user (`requireUserForAction`); page loads and the Inbox refresh don't count | ✅ |
+| Connect with Instagram limited to 20 attempts per hour per workspace, like WhatsApp | ✅ |
+| One flooding conversation pauses the assistant after 12 replies in 10 min, so it can't use up the business's AI budget or trigger a stream of auto replies | ✅ |
+| Public health check reuses its answer for 10 s per server instance, so a flood can't reach the database | 🟡 |
+| Client IP for rate limits from `x-forwarded-for`, which Vercel overwrites to prevent spoofing | 🟡 |
 
 ## Secrets and data protection
 

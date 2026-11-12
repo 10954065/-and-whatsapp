@@ -187,6 +187,8 @@ export async function changePassword(
   newPassword: string,
   keepSessionId: string,
 ): Promise<void> {
+  // A stolen session must not be able to guess the current password.
+  await enforceRateLimit(RATE_LIMITS.passwordConfirm, userId);
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { passwordHash: true } });
   if (!(await verifyPassword(user.passwordHash, currentPassword))) {
     throw fail.validation("Your current password is incorrect.", { currentPassword: ["Incorrect password."] });

@@ -8,7 +8,7 @@ import { buildBusinessFacts, buildMessages, buildSystemPrompt, type Conversation
 import { escalateConversation } from "@/modules/ai/escalation";
 import { industryGuidanceFor } from "@/modules/ai/industry-guidance";
 import { getLlmClient, LlmProviderError, modelForTier, type LlmClient, type LlmMessage } from "@/modules/ai/llm";
-import { clampForChannel, formatForChannel, postcheck, preflight, PREFLIGHT_LABELS, removeDashes, type PreflightBlock } from "@/modules/ai/policy";
+import { clampForChannel, CONVERSATION_BURST, formatForChannel, postcheck, preflight, PREFLIGHT_LABELS, removeDashes, type PreflightBlock } from "@/modules/ai/policy";
 import { addUsage, emptyUsage, estimateCostMicros, type TokenUsage } from "@/modules/ai/pricing";
 import { getActivePrompt } from "@/modules/ai/prompts";
 import { routeTier, TIER_EFFORT, type ModelTier } from "@/modules/ai/router";
@@ -79,7 +79,7 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
     policyFlags: [],
   };
 
-  const [business, agent, platformEnabled, spend, limits, messagesToday, aiMessagesThisMonth, conversation] = await Promise.all([
+  const [business, agent, platformEnabled, spend, limits, messagesToday, aiMessagesThisMonth, conversation, recentAssistantReplies] = await Promise.all([
     prisma.business.findUniqueOrThrow({ where: { id: input.businessId } }),
     getOrCreateAgent(input.businessId),
     getPlatformSetting<boolean>(PLATFORM_FLAGS.aiEnabled, true),
@@ -90,6 +90,17 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
     input.conversationId
       ? prisma.conversation.findFirst({ where: { id: input.conversationId, businessId: input.businessId }, select: { control: true } })
       : Promise.resolve(null),
+    input.conversationId
+      ? prisma.message.count({
+          where: {
+            conversationId: input.conversationId,
+            businessId: input.businessId,
+            direction: "OUTBOUND",
+            sender: { in: ["AI", "SYSTEM"] },
+            createdAt: { gte: new Date(now.getTime() - CONVERSATION_BURST.windowMinutes * 60_000) },
+          },
+        })
+      : Promise.resolve(0),
   ]);
   const hours = business.businessHours as BusinessHours | null;
   const isOpenNow = isWithinBusinessHours(hours, business.timezone, now);
@@ -101,6 +112,7 @@ export async function runAgent(input: AgentRunInput, deps: { llm?: LlmClient; no
     businessStatus: business.status,
     agent,
     conversationControl: conversation?.control ?? null,
+    recentAssistantReplies,
     isOpenNow,
     messagesToday,
     spendTodayMicros: spend.todayMicros,

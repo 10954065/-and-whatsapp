@@ -3,6 +3,7 @@ import type { TenantActor } from "@/lib/auth/tenant";
 import { prisma } from "@/lib/db/prisma";
 import { resetEnvCache } from "@/lib/env";
 import { AppError } from "@/lib/monitoring/errors";
+import { RATE_LIMITS } from "@/lib/security/rate-limit";
 import {
   checkIntegrationHealth,
   completeInstagramConnect,
@@ -384,6 +385,13 @@ describe("Instagram connection (Unified Login)", () => {
     expect(calls).toContainEqual({ url: expect.stringContaining(`/${igId}/subscribed_apps?subscribed_fields=messages,messaging_seen`), method: "POST" });
 
     await expect(completeInstagramConnect(owner.id, state, "code")).rejects.toThrow(/expired/);
+  });
+
+  it("limits connection attempts per workspace, since each one calls Meta several times", async () => {
+    const { actor } = await setup();
+    configureInstagramApp();
+    for (let attempt = 0; attempt < RATE_LIMITS.instagramConnect.limit; attempt += 1) await startInstagramConnect(actor);
+    await expect(startInstagramConnect(actor)).rejects.toThrow(/Too many attempts/);
   });
 
   it("asks the owner to choose an account when none was shared, and saves nothing", async () => {

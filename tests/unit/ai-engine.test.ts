@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AiTone } from "@/generated/prisma/enums";
 import { buildMessages, buildSystemPrompt } from "@/modules/ai/context";
-import { clampForChannel, formatForChannel, postcheck, preflight, removeDashes, SAFE_HOLDING_REPLY, type PreflightInput } from "@/modules/ai/policy";
+import { clampForChannel, CONVERSATION_BURST, formatForChannel, postcheck, preflight, removeDashes, SAFE_HOLDING_REPLY, type PreflightInput } from "@/modules/ai/policy";
 import { estimateCostMicros } from "@/modules/ai/pricing";
 import { BUILTIN_TEMPLATE, renderTemplate } from "@/modules/ai/prompts";
 import { supportsServerFallback } from "@/modules/ai/llm/anthropic";
@@ -57,6 +57,7 @@ const allowed: PreflightInput = {
     monthlySpendLimitMicros: 30_000_000,
   },
   conversationControl: "AI",
+  recentAssistantReplies: 0,
   isOpenNow: true,
   messagesToday: 0,
   spendTodayMicros: 0,
@@ -85,6 +86,13 @@ describe("preflight", () => {
     expect(preflight({ ...allowed, agent: { ...allowed.agent, enabled: false } })).toMatchObject({ reason: "agent_disabled" });
     expect(preflight({ ...allowed, trigger: "TEST_CONSOLE", agent: { ...allowed.agent, enabled: false } })).toEqual({ allowed: true });
     expect(preflight({ ...allowed, trigger: "TEST_CONSOLE", agent: { ...allowed.agent, emergencyStop: true } })).toMatchObject({ reason: "emergency_stop" });
+  });
+  it("pauses a flooding conversation at the burst limit, before any out-of-hours auto reply", () => {
+    expect(preflight({ ...allowed, recentAssistantReplies: CONVERSATION_BURST.replies - 1 })).toEqual({ allowed: true });
+    expect(preflight({ ...allowed, recentAssistantReplies: CONVERSATION_BURST.replies })).toMatchObject({ allowed: false, reason: "conversation_burst" });
+    const afterHours = { ...allowed, isOpenNow: false, recentAssistantReplies: CONVERSATION_BURST.replies, agent: { ...allowed.agent, businessHoursOnly: true, outOfHoursMessage: "We open at 8am." } };
+    expect(preflight(afterHours)).toEqual({ allowed: false, reason: "conversation_burst" });
+    expect(preflight({ ...afterHours, trigger: "TEST_CONSOLE", isOpenNow: true })).toEqual({ allowed: true });
   });
   it("returns the out-of-hours auto reply when configured", () => {
     const result = preflight({ ...allowed, isOpenNow: false, agent: { ...allowed.agent, businessHoursOnly: true, outOfHoursMessage: "We open at 8am." } });

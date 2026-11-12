@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { invalidateUserSessions } from "@/lib/auth/session";
 import type { TenantActor } from "@/lib/auth/tenant";
 import { fail } from "@/lib/monitoring/errors";
+import { enforceRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";
 import { logger } from "@/lib/monitoring/logger";
 import { reportError } from "@/lib/monitoring/report";
 import { hashPassword, verifyPassword } from "@/lib/security/password";
@@ -167,6 +168,7 @@ export const accountDeletionSchema = z.object({ password: z.string().min(1, "Ent
  * over first). The row is kept for referential integrity but stripped of personal data.
  */
 export async function deleteUserAccount(userId: string, input: z.infer<typeof accountDeletionSchema>, ipAddress: string | null) {
+  await enforceRateLimit(RATE_LIMITS.passwordConfirm, userId);
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { passwordHash: true, deletedAt: true } });
   if (user.deletedAt) throw fail.notFound("Account");
   if (!(await verifyPassword(user.passwordHash, input.password))) throw fail.validation("That password is incorrect.", { password: ["Incorrect password."] });

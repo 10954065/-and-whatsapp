@@ -7,6 +7,7 @@ export type PreflightBlock =
   | "emergency_stop"
   | "agent_disabled"
   | "human_control"
+  | "conversation_burst"
   | "outside_hours"
   | "daily_message_limit"
   | "daily_budget"
@@ -28,6 +29,8 @@ export interface PreflightInput {
     monthlySpendLimitMicros: number;
   };
   conversationControl: ConversationControl | null;
+  /** Assistant and auto replies sent in this conversation within the last CONVERSATION_BURST window. */
+  recentAssistantReplies: number;
   isOpenNow: boolean;
   messagesToday: number;
   spendTodayMicros: number;
@@ -47,12 +50,19 @@ export const PREFLIGHT_LABELS: Record<PreflightBlock, string> = {
   emergency_stop: "The emergency stop is on.",
   agent_disabled: "The assistant is not activated.",
   human_control: "A team member has taken over this conversation.",
+  conversation_burst: "This customer sent many messages in a short time, so the assistant paused for them for a few minutes. Their messages are still in the Inbox.",
   outside_hours: "The AI only replies during opening hours.",
   daily_message_limit: "The daily AI message limit has been reached.",
   daily_budget: "Today's AI spending limit has been reached.",
   monthly_budget: "This month's AI spending limit has been reached.",
   plan_limit: "The plan's monthly AI message allowance has been used.",
 };
+
+/**
+ * One customer flooding a conversation pauses the assistant for that conversation only, so they
+ * cannot use up the business's daily AI budget or trigger a stream of auto replies.
+ */
+export const CONVERSATION_BURST = { replies: 12, windowMinutes: 10 } as const;
 
 /** Every check that must pass before a single token is spent. Order matters. */
 export function preflight(input: PreflightInput): PreflightResult {
@@ -64,6 +74,8 @@ export function preflight(input: PreflightInput): PreflightResult {
   if (!isTest) {
     if (!input.agent.enabled) return { allowed: false, reason: "agent_disabled" };
     if (input.conversationControl === "HUMAN") return { allowed: false, reason: "human_control" };
+    // Before the out-of-hours check, so a flood does not get an auto reply for every message either.
+    if (input.recentAssistantReplies >= CONVERSATION_BURST.replies) return { allowed: false, reason: "conversation_burst" };
     if (input.agent.businessHoursOnly && !input.isOpenNow) {
       return { allowed: false, reason: "outside_hours", autoReply: input.agent.outOfHoursMessage ?? undefined };
     }

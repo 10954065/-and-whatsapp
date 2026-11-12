@@ -2,6 +2,7 @@ import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { fail } from "@/lib/monitoring/errors";
 import { readSessionToken, validateSessionToken, type ValidatedSession } from "@/lib/auth/session";
+import { enforceRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";
 
 /** The current request's session, memoised for the duration of the request. */
 export const getCurrentSession = cache(async (): Promise<ValidatedSession | null> => {
@@ -27,11 +28,15 @@ export async function requireUser(options: RequireUserOptions = {}): Promise<Val
   return session;
 }
 
-/** For Server Actions and Route Handlers: throws a user-safe AppError. */
+/**
+ * For Server Actions and Route Handlers: throws a user-safe AppError. Every signed-in action passes
+ * through here, so this is also where one person's overall pace is capped.
+ */
 export async function requireUserForAction(options: RequireUserOptions = {}): Promise<ValidatedSession> {
   const session = await getCurrentSession();
   if (!session) throw fail.unauthenticated();
   if (!options.allowPendingMfa && !isFullyAuthenticated(session)) throw fail.unauthenticated();
+  await enforceRateLimit(RATE_LIMITS.actionsPerUser, session.user.id);
   return session;
 }
 

@@ -30,6 +30,11 @@ export const RATE_LIMITS = {
   checkout: { name: "checkout:business", limit: 10, windowSeconds: 3_600 },
   dataExport: { name: "export:business", limit: 5, windowSeconds: 3_600 },
   whatsappConnect: { name: "whatsapp-connect:business", limit: 20, windowSeconds: 3_600 },
+  instagramConnect: { name: "instagram-connect:business", limit: 20, windowSeconds: 3_600 },
+  /** Changing the password, turning off two-factor and deleting the account all re-check the password. */
+  passwordConfirm: { name: "password-confirm:user", limit: 5, windowSeconds: 900 },
+  /** Every signed-in Server Action: about one a second, sustained. People never reach it; scripts do. */
+  actionsPerUser: { name: "actions:user", limit: 300, windowSeconds: 300 },
 } satisfies Record<string, RateLimitRule>;
 
 /**

@@ -19,7 +19,8 @@ endpoints below exist for providers (webhooks, OAuth, payments, queue), for oper
 
 ## `GET /api/health`
 
-`200` when the database answers:
+`200` when the database answers. Each server instance reuses its last answer for up to ten seconds, so `time`
+can be up to ten seconds old and a flood of requests never reaches the database:
 
 ```json
 {

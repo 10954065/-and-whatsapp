@@ -149,6 +149,7 @@ export const confirmMfaAction: FormAction<{ recoveryCodes: string[] }> = async (
     async () => {
       const session = await requireUserForAction();
       const { code } = parseInput(mfaCodeSchema, formData);
+      await enforceRateLimit(RATE_LIMITS.mfa, session.sessionId);
       const result = await confirmMfaEnrollment(session.user.id, code);
       await markSessionMfaVerified(session.sessionId);
       return result;
