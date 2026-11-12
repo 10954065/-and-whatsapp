@@ -13,6 +13,8 @@
   straight to each industry. On phones the chips sit in one row you can swipe.
 * The empty space after the last industry now holds a "Not on the list?" card that points to the
   general setup and the free trial.
+* Cards lift slightly under the pointer and the drawing gives a small wiggle. Phones and
+  reduced-motion settings skip the movement.
 
 ## Tighter rate limits
 

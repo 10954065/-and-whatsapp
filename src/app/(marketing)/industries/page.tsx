@@ -90,6 +90,10 @@ const ICONS: Record<Industry, LucideIcon> = {
 
 const anchorFor = (industry: Industry) => industry.toLowerCase().replace(/_/g, "-");
 
+/** The card panel lifts a little under the pointer; hover only fires on devices that can hover. */
+const PANEL_HOVER =
+  "flex flex-col rounded-[1.75rem] transition-[translate,box-shadow,border-color] duration-300 ease-(--ease-out-strong) group-hover:shadow-(--shadow-soft) motion-safe:group-hover:-translate-y-1";
+
 function JumpLinks() {
   return (
     <nav aria-label="Jump to an industry">
@@ -146,10 +150,14 @@ export default function IndustriesPage() {
           <article
             key={industry.value}
             id={anchorFor(industry.value)}
-            className={cn("row-span-3 grid scroll-mt-28 grid-rows-subgrid gap-y-0", INDUSTRY_TONES[industry.value])}
+            className={cn("group row-span-3 grid scroll-mt-28 grid-rows-subgrid gap-y-0", INDUSTRY_TONES[industry.value])}
           >
-            <div className="flex flex-col rounded-[1.75rem] bg-[color-mix(in_oklch,var(--tone)_17%,var(--paper))] p-5 pb-6 dark:bg-[color-mix(in_oklch,var(--tone)_11%,var(--paper))]">
-              <IndustryDrawing industry={industry.value} delay={(index % 3) * 0.08} className="mx-auto mt-1 mb-5 h-28 w-auto text-foreground" />
+            <div className={cn(PANEL_HOVER, "bg-[color-mix(in_oklch,var(--tone)_17%,var(--paper))] p-5 pb-6 dark:bg-[color-mix(in_oklch,var(--tone)_11%,var(--paper))]")}>
+              <IndustryDrawing
+                industry={industry.value}
+                delay={(index % 3) * 0.08}
+                className="mx-auto mt-1 mb-5 h-28 w-auto origin-bottom text-foreground motion-safe:group-hover:animate-[wiggle_0.55s_ease-in-out]"
+              />
               <p className="mb-3 text-[11px] font-medium text-[#54656f] dark:text-muted-foreground">A customer asks</p>
               <BubbleReveal delay={(index % 3) * 0.08} className="dark:bg-card">
                 {EXAMPLES[industry.value]}
@@ -160,8 +168,8 @@ export default function IndustriesPage() {
             <p className="mt-1.5 text-[15px] text-muted-foreground">{industry.description}</p>
           </article>
         ))}
-        <article className="row-span-3 grid grid-rows-subgrid gap-y-0 [--tone:var(--sun)]">
-          <div className="flex flex-col rounded-[1.75rem] border-2 border-dashed border-foreground/15 p-4.5 pb-5.5">
+        <article className="group row-span-3 grid grid-rows-subgrid gap-y-0 [--tone:var(--sun)]">
+          <div className={cn(PANEL_HOVER, "border-2 border-dashed border-foreground/15 p-4.5 pb-5.5 group-hover:border-foreground/30")}>
             <svg
               viewBox="0 0 160 100"
               fill="none"

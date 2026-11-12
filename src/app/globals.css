@@ -375,6 +375,20 @@
   }
 }
 
+/* A small nod from an industry drawing when its card is hovered. */
+@keyframes wiggle {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  30% {
+    rotate: -3deg;
+  }
+  65% {
+    rotate: 2deg;
+  }
+}
+
 @keyframes rain-fall {
   0% {
     transform: translateY(0);
