@@ -6,6 +6,9 @@
   on a hanger, a jar of shea butter and so on) with one colour of its own. The lines draw
   themselves in as the card scrolls into view; the jollof steams and the shea butter sparkles.
   Visitors who prefer less motion see the finished drawings, standing still.
+* Each card is tinted in its drawing's colour, and under the customer's question it shows what
+  SUNLEON AI checks before answering: a field the template asks you to fill in, or a tool it
+  turns on, such as stock levels or free appointment slots. Cards in a row now line up.
 
 ## Tighter rate limits
 

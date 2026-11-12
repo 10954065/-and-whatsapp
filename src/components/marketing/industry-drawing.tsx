@@ -2,23 +2,9 @@
 
 import type { ReactNode } from "react";
 import { motion, stagger, useReducedMotion, type Variants } from "motion/react";
+import { INDUSTRY_TONES } from "@/config/industry-tones";
 import type { Industry } from "@/generated/prisma/enums";
 import { cn } from "@/lib/utils";
-
-/** One fill colour per industry, set as --accent. Dark mode steps each one down so light ink lines stay readable on it. */
-export const INDUSTRY_TONES: Record<Industry, string> = {
-  RESTAURANT: "[--accent:oklch(0.7_0.17_40)] dark:[--accent:oklch(0.6_0.15_40)]",
-  RETAIL: "[--accent:oklch(0.76_0.1_195)] dark:[--accent:oklch(0.56_0.08_195)]",
-  FASHION: "[--accent:oklch(0.84_0.14_88)] dark:[--accent:oklch(0.66_0.12_80)]",
-  BEAUTY: "[--accent:oklch(0.8_0.09_12)] dark:[--accent:oklch(0.58_0.1_12)]",
-  SALON_SPA: "[--accent:oklch(0.76_0.1_305)] dark:[--accent:oklch(0.56_0.11_305)]",
-  HEALTHCARE_ADMIN: "[--accent:oklch(0.82_0.1_162)] dark:[--accent:oklch(0.58_0.09_162)]",
-  HOSPITALITY: "[--accent:oklch(0.72_0.1_262)] dark:[--accent:oklch(0.54_0.11_262)]",
-  REAL_ESTATE: "[--accent:oklch(0.78_0.1_128)] dark:[--accent:oklch(0.58_0.09_128)]",
-  EDUCATION: "[--accent:oklch(0.8_0.09_232)] dark:[--accent:oklch(0.58_0.09_232)]",
-  PROFESSIONAL_SERVICES: "[--accent:oklch(0.72_0.09_62)] dark:[--accent:oklch(0.55_0.08_62)]",
-  GENERAL: "[--accent:var(--sun)]",
-};
 
 const EASE_PEN = [0.65, 0, 0.35, 1] as const;
 
@@ -41,8 +27,8 @@ function Line({ d }: { d: string }) {
   return <motion.path d={d} variants={INK} />;
 }
 
-/** A shape washed in a colour (the industry's accent unless told otherwise), then outlined in ink. */
-function Shape({ d, fill = "var(--accent)" }: { d: string; fill?: string }) {
+/** A shape washed in a colour (the industry's tone unless told otherwise), then outlined in ink. */
+function Shape({ d, fill = "var(--tone)" }: { d: string; fill?: string }) {
   return (
     <>
       <motion.path d={d} fill={fill} stroke="none" variants={WASH} />
