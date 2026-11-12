@@ -4,6 +4,11 @@
 
 * A pen stroke underlines "need." in the heading, and chips under the intro jump to each of the
   four results.
+* Each result now tells a before-and-after story. "Today" is a dashed card with a grey pen drawing
+  of the problem: a phone full of unanswered questions, the same question all night, a double
+  booking, a lead slipping out of a long chat list. A drawn arrow leads to "With Sunleon", a card
+  in the result's colour where a short example conversation plays in: the customer's question,
+  what Sunleon checked or did, and the reply. The conversations are marked as examples.
 
 ## A livelier Features page
 
