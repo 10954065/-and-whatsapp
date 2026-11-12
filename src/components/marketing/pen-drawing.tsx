@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 import { motion, stagger, useReducedMotion, type Variants } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +36,31 @@ export function Shape({ d, fill = "var(--tone)" }: { d: string; fill?: string })
       <motion.path d={d} fill={fill} stroke="none" variants={WASH} />
       <Line d={d} />
     </>
+  );
+}
+
+/**
+ * A dotted path that draws in like a pen line. The dots can't animate their own length, so a solid
+ * copy of the path, drawn in, masks them.
+ */
+export function Trail({ d }: { d: string }) {
+  const maskId = useId();
+  return (
+    <>
+      <mask id={maskId} maskUnits="userSpaceOnUse" x="-50%" y="-50%" width="200%" height="200%">
+        <motion.path d={d} stroke="white" strokeWidth={8} variants={INK} />
+      </mask>
+      <path d={d} strokeDasharray="0.5 7" mask={`url(#${maskId})`} />
+    </>
+  );
+}
+
+/** A word written on the drawing, faded in with the colour wash. */
+export function Label({ x, y, children, anchor = "start" }: { x: number; y: number; children: string; anchor?: "start" | "middle" | "end" }) {
+  return (
+    <motion.text x={x} y={y} textAnchor={anchor} fill="currentColor" stroke="none" fontSize={17} className="font-display italic" variants={WASH}>
+      {children}
+    </motion.text>
   );
 }
 

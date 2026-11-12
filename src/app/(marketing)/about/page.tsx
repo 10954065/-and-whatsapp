@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RouteDrawing } from "@/components/marketing/about-drawing";
 import { CtaBand, PageHero, PenUnderlined } from "@/components/marketing/marketing-blocks";
 import { pageMetadata } from "@/config/seo";
 
@@ -28,14 +29,17 @@ export default function AboutPage() {
         faster without losing the personal touch.
       </PageHero>
       <section className="mx-auto max-w-7xl px-6 py-20 lg:py-28">
-        <p className="max-w-5xl font-display text-3xl leading-[1.18] tracking-[-0.01em] sm:text-[2.6rem]">
-          Across Ghana, sales happen in WhatsApp chats and Instagram messages. Owners answer the same questions late into the
-          night, and customers drift away when replies are slow.{" "}
-          <span className="text-muted-foreground">
-            We started Sunleon so every business, from a one-chair salon in Kumasi to a retailer with branches across Accra,
-            can answer quickly and correctly at any hour.
-          </span>
-        </p>
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-20">
+          <p className="font-display text-3xl leading-[1.18] tracking-[-0.01em] sm:text-[2.6rem]">
+            Across Ghana, sales happen in WhatsApp chats and Instagram messages. Owners answer the same questions late into the
+            night, and customers drift away when replies are slow.{" "}
+            <span className="text-muted-foreground">
+              We started Sunleon so every business, from a one-chair salon in Kumasi to a retailer with branches across Accra,
+              can answer quickly and correctly at any hour.
+            </span>
+          </p>
+          <RouteDrawing className="mx-auto w-full max-w-72 text-foreground lg:max-w-none" />
+        </div>
         <ol className="mt-20 grid gap-10 border-t pt-10 md:grid-cols-3">
           {VALUES.map((value, index) => (
             <li key={value.title}>

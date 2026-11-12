@@ -3,6 +3,8 @@
 ## A livelier About page
 
 * A pen stroke underlines "businesses." in the heading.
+* Beside the story, a pen drawing follows it: a dotted route draws itself from a salon chair in
+  Kumasi to shopfronts by the sea in Accra, under a Ghanaian sun.
 
 ## A livelier Solutions page
 
