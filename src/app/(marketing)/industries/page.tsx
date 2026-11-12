@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { BubbleReveal } from "@/components/marketing/bubble-reveal";
 import { IndustryDrawing } from "@/components/marketing/industry-drawing";
-import { CtaBand, JumpChips, PageHero, PenUnderlined } from "@/components/marketing/marketing-blocks";
+import { CtaBand, JumpChips, PageHero, PANEL_HOVER, PenUnderlined, TONE_WASH } from "@/components/marketing/marketing-blocks";
 import { INDUSTRY_OPTIONS } from "@/config/industries";
 import { pageMetadata } from "@/config/seo";
 import { INDUSTRY_TONES } from "@/config/tones";
@@ -89,10 +89,6 @@ const ICONS: Record<Industry, LucideIcon> = {
 
 const anchorFor = (industry: Industry) => industry.toLowerCase().replace(/_/g, "-");
 
-/** The card panel lifts a little under the pointer; hover only fires on devices that can hover. */
-const PANEL_HOVER =
-  "flex flex-col rounded-[1.75rem] transition-[translate,box-shadow,border-color] duration-300 ease-(--ease-out-strong) group-hover:shadow-(--shadow-soft) motion-safe:group-hover:-translate-y-1";
-
 const JUMP_CHIPS = INDUSTRY_OPTIONS.map((industry) => ({
   href: `#${anchorFor(industry.value)}`,
   label: industry.label,
@@ -125,7 +121,7 @@ export default function IndustriesPage() {
             id={anchorFor(industry.value)}
             className={cn("group row-span-3 grid scroll-mt-28 grid-rows-subgrid gap-y-0", INDUSTRY_TONES[industry.value])}
           >
-            <div className={cn(PANEL_HOVER, "bg-[color-mix(in_oklch,var(--tone)_17%,var(--paper))] p-5 pb-6 dark:bg-[color-mix(in_oklch,var(--tone)_11%,var(--paper))]")}>
+            <div className={cn(PANEL_HOVER, TONE_WASH, "p-5 pb-6")}>
               <IndustryDrawing
                 industry={industry.value}
                 delay={(index % 3) * 0.08}

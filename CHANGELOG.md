@@ -4,6 +4,10 @@
 
 * A pen stroke underlines "operations." in the heading, and a row of chips under the intro jumps
   straight to each group of features. On phones the chips sit in one row you can swipe.
+* The feature groups are now cards in their own colours, each with a pen drawing that draws itself
+  in: a chat bubble for the assistant, an inbox tray catching WhatsApp and Instagram messages, a
+  receipt with a paid stamp, stacked stock boxes, a calendar with a ringing bell and so on. The
+  assistant card is wide, and cards lift slightly under the pointer.
 
 ## A Content-Security-Policy, in report-only mode
 

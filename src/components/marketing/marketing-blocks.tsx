@@ -5,6 +5,13 @@ import { HandDrawnUnderline } from "@/components/marketing/hand-drawn-underline"
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+/** A card panel that lifts a little under the pointer; hover only fires on devices that can hover. Put `group` on its parent. */
+export const PANEL_HOVER =
+  "flex flex-col rounded-[1.75rem] transition-[translate,box-shadow,border-color] duration-300 ease-(--ease-out-strong) group-hover:shadow-(--shadow-soft) motion-safe:group-hover:-translate-y-1";
+
+/** A paper card washed in the --tone around it; dark mode uses less of the tone. */
+export const TONE_WASH = "bg-[color-mix(in_oklch,var(--tone)_17%,var(--paper))] dark:bg-[color-mix(in_oklch,var(--tone)_11%,var(--paper))]";
+
 /** A word in a hero title with a pen stroke drawn under it. Keep it to one word so it never needs to wrap. */
 export function PenUnderlined({ children }: { children: ReactNode }) {
   return (
