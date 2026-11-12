@@ -5,6 +5,9 @@
 * A pen stroke underlines "businesses." in the heading.
 * Beside the story, a pen drawing follows it: a dotted route draws itself from a salon chair in
   Kumasi to shopfronts by the sea in Accra, under a Ghanaian sun.
+* The three values are now cards in their own colours with pen drawings: a price tag under a
+  magnifying glass, a panel of switches the owner sets, and a phone beside a cedi coin. The page
+  ends with "Made by Sunleon Router Enterprise in Accra, Ghana" and a link to say hello.
 
 ## A livelier Solutions page
 
