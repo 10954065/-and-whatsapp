@@ -1,5 +1,9 @@
 # Changelog
 
+## A livelier About page
+
+* A pen stroke underlines "businesses." in the heading.
+
 ## A livelier Solutions page
 
 * A pen stroke underlines "need." in the heading, and chips under the intro jump to each of the

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CtaBand, PageHero } from "@/components/marketing/marketing-blocks";
+import { CtaBand, PageHero, PenUnderlined } from "@/components/marketing/marketing-blocks";
 import { pageMetadata } from "@/config/seo";
 
 export const metadata: Metadata = pageMetadata("/about");
@@ -13,7 +13,17 @@ const VALUES = [
 export default function AboutPage() {
   return (
     <>
-      <PageHero eyebrow="About" title={<>We built the helper we wanted <span className="italic">for our own businesses.</span></>}>
+      <PageHero
+        eyebrow="About"
+        title={
+          <>
+            We built the helper we wanted{" "}
+            <span className="italic">
+              for our own <PenUnderlined>businesses.</PenUnderlined>
+            </span>
+          </>
+        }
+      >
         SUNLEON AI is made by Sunleon Router Enterprise, a Ghanaian technology company helping businesses serve customers
         faster without losing the personal touch.
       </PageHero>
