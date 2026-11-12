@@ -8,6 +8,8 @@
   in: a chat bubble for the assistant, an inbox tray catching WhatsApp and Instagram messages, a
   receipt with a paid stamp, stacked stock boxes, a calendar with a ringing bell and so on. The
   assistant card is wide, and cards lift slightly under the pointer.
+* Security & privacy closes the page as a dark band with a padlock and shield, its four
+  promises ticked off, and a link to the privacy policy.
 
 ## A Content-Security-Policy, in report-only mode
 

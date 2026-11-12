@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import {
+  ArrowUpRight,
   Bot,
+  Check,
   CalendarCheck,
   ChartColumn,
   ContactRound,
@@ -146,6 +149,40 @@ function FeatureCard({ group, index }: { group: FeatureGroup; index: number }) {
   );
 }
 
+/**
+ * Security reads as a promise rather than a tool, so it gets the dark ink band the home page uses for "You stay in charge".
+ * The band is dark in both themes, so it pins its own tone and paper instead of the theme's.
+ */
+function SecurityBand({ group }: { group: FeatureGroup }) {
+  return (
+    <section className="px-3 sm:px-6">
+      <article
+        id={group.id}
+        className="grain relative mx-auto max-w-7xl scroll-mt-28 overflow-hidden rounded-[2.5rem] bg-[#1d1a16] px-6 py-14 text-[#f3efe7] [--tone:oklch(0.56_0.08_195)] sm:px-12 lg:px-16 lg:py-16 dark:ring-1 dark:ring-white/10"
+      >
+        <div className="grid items-center gap-10 lg:grid-cols-[auto_minmax(0,1fr)] lg:gap-16">
+          <FeatureDrawing feature="security" className="h-32 w-auto justify-self-start [--card:#2b2722] sm:h-40" />
+          <div>
+            <p className="font-mono text-xs text-white/50">{String(GROUPS.indexOf(group) + 1).padStart(2, "0")}</p>
+            <h2 className="mt-1 font-display text-4xl leading-none font-normal tracking-[-0.012em] sm:text-5xl">{group.title}</h2>
+            <ul className="mt-8 grid gap-x-10 gap-y-4 sm:grid-cols-2">
+              {group.items.map((item) => (
+                <li key={item} className="flex gap-3 text-[15px] leading-snug text-white/80">
+                  <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-[oklch(0.82_0.09_195)]" strokeWidth={2.5} />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <Link href="/privacy" className="link-underline mt-9 inline-flex items-center gap-1.5 text-sm font-medium text-white">
+              Read the privacy policy <ArrowUpRight aria-hidden="true" className="size-4" />
+            </Link>
+          </div>
+        </div>
+      </article>
+    </section>
+  );
+}
+
 const CARD_GROUPS = GROUPS.filter((group) => group.id !== "security");
 const SECURITY = GROUPS.find((group) => group.id === "security");
 
@@ -166,32 +203,12 @@ export default function FeaturesPage() {
       >
         Every feature works from your own saved records. Nothing is simulated, and nothing is guessed.
       </PageHero>
-      <section className="mx-auto grid max-w-7xl gap-5 px-6 py-20 sm:grid-cols-2 lg:grid-cols-3 lg:py-28">
+      <section className="mx-auto grid max-w-7xl gap-5 px-6 pt-20 pb-5 sm:grid-cols-2 lg:grid-cols-3 lg:pt-28">
         {CARD_GROUPS.map((group, index) => (
           <FeatureCard key={group.id} group={group} index={index} />
         ))}
       </section>
-      {SECURITY ? (
-        <section className="mx-auto max-w-7xl px-6 pb-20">
-          <article
-            id={SECURITY.id}
-            className="grid scroll-mt-28 gap-6 border-t pt-10 md:grid-cols-[minmax(0,22rem)_1fr] md:gap-12"
-          >
-            <div className="flex items-baseline gap-4">
-              <span className="font-mono text-sm text-muted-foreground">09</span>
-              <h2 className="font-display text-4xl font-normal tracking-[-0.01em]">{SECURITY.title}</h2>
-            </div>
-            <ul className="grid gap-x-10 gap-y-3 sm:grid-cols-2">
-              {SECURITY.items.map((item) => (
-                <li key={item} className="flex gap-3 text-[15px] leading-relaxed text-muted-foreground">
-                  <span className="mt-[0.6em] size-1.5 shrink-0 rounded-full bg-sun" aria-hidden="true" />
-                  <span className="text-foreground/85">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </article>
-        </section>
-      ) : null}
+      {SECURITY ? <SecurityBand group={SECURITY} /> : null}
       <CtaBand />
     </>
   );
