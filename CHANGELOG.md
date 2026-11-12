@@ -1,5 +1,10 @@
 # Changelog
 
+## A livelier Features page
+
+* A pen stroke underlines "operations." in the heading, and a row of chips under the intro jumps
+  straight to each group of features. On phones the chips sit in one row you can swipe.
+
 ## A Content-Security-Policy, in report-only mode
 
 * Every page now sends a Content-Security-Policy, which tells the browser which scripts, images and
