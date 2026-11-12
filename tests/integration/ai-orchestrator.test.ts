@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { resetEnvCache } from "@/lib/env";
 import { LlmProviderError, type LlmClient, type LlmRequest, type LlmResponse } from "@/modules/ai/llm";
 import { runAgent, type AgentRunInput } from "@/modules/ai/orchestrator";
+import { BUILTIN_PROMPT_VERSION } from "@/modules/ai/prompts";
 import { createBusinessFor, createUser } from "./helpers";
 
 type Step = { text?: string; tool?: { name: string; input: unknown }; stop?: "end_turn" | "tool_use" | "refusal"; tokens?: number };
@@ -68,7 +69,7 @@ describe("runAgent", () => {
     expect(llm.calls[0]).toMatchObject({ model: "claude-haiku-5-5", effort: "low", maxOutputTokens: 1_024, endUserId: business.id });
     expect(llm.calls[0].tools.map((tool) => tool.name)).toContain("capture_lead");
     const run = await prisma.aiRun.findUniqueOrThrow({ where: { id: result.runId! } });
-    expect(run).toMatchObject({ status: "SUCCEEDED", inputTokens: 1_000, outputTokens: 100, promptVersion: 3 });
+    expect(run).toMatchObject({ status: "SUCCEEDED", inputTokens: 1_000, outputTokens: 100, promptVersion: BUILTIN_PROMPT_VERSION });
     expect(await prisma.aiUsageRecord.count({ where: { businessId: business.id } })).toBe(1);
     expect(await prisma.usageCounter.count({ where: { businessId: business.id, metric: "AI_MESSAGE" } })).toBe(2);
   });

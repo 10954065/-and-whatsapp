@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AiTone } from "@/generated/prisma/enums";
-import { buildMessages, buildSystemPrompt } from "@/modules/ai/context";
+import { buildMessages, buildSystemPrompt, REPLY_GUIDE } from "@/modules/ai/context";
 import { clampForChannel, CONVERSATION_BURST, formatForChannel, postcheck, preflight, removeDashes, SAFE_HOLDING_REPLY, type PreflightInput } from "@/modules/ai/policy";
 import { estimateCostMicros } from "@/modules/ai/pricing";
 import { BUILTIN_TEMPLATE, renderTemplate } from "@/modules/ai/prompts";
@@ -195,14 +195,41 @@ describe("buildSystemPrompt understanding customers", () => {
 
   it("mirrors Pidgin, returns local greetings and keeps facts exactly as the sources give them", () => {
     const prompt = promptFor("WARM");
-    expect(prompt).toMatch(/writes mostly in Pidgin, reply in light, friendly Ghanaian Pidgin/);
-    expect(prompt).toMatch(/greets or thanks you in Twi, Ga or Ewe, return it in their words/);
+    expect(prompt).toMatch(/writes whole sentences in Pidgin, reply in light, friendly Ghanaian Pidgin/);
+    expect(prompt).toMatch(/greet or thank them back with the same word they used/);
+    expect(prompt).toMatch(/Do not write any other Twi, Ga or Ewe/);
     expect(prompt).toMatch(/keep prices, dates, times, order numbers and addresses exactly as your sources give them/);
   });
 
   it("has professional assistants answer Pidgin in plain English", () => {
     expect(promptFor("PROFESSIONAL")).toMatch(/answer Pidgin in clear, friendly English/);
     expect(promptFor("FRIENDLY")).not.toMatch(/answer Pidgin in clear, friendly English/);
+  });
+});
+
+describe("buildSystemPrompt human voice", () => {
+  it("answers the customer's feelings first and bans stiff phrases", () => {
+    const prompt = promptFor("FRIENDLY");
+    expect(prompt).toMatch(/your very first words answer that feeling, before any facts/);
+    expect(prompt).toMatch(/Upset or let down: one sincere sorry, then say what happens next/);
+    expect(prompt).toMatch(/Never write stiff lines such as "Thank you for reaching out", "Kindly note"/);
+    expect(prompt).toMatch(/Greet once at the start of a conversation/);
+  });
+
+  it("never claims something was done unless a tool confirmed it", () => {
+    expect(promptFor("FRIENDLY")).toMatch(/Never say you have reserved, booked, ordered, sent or changed anything unless a tool result in this conversation confirms it/);
+  });
+
+  it("never echoes asking words such as abeg into English replies", () => {
+    expect(promptFor("FRIENDLY")).toMatch(/never answer with a word that only fits when asking, such as "abeg"/);
+  });
+
+  it("never lets warmth replace facts or the assistant pass as a person", () => {
+    const prompt = promptFor("PLAYFUL");
+    expect(prompt).toMatch(/Warmth never replaces facts/);
+    expect(prompt).toContain("You are Ama's Fashion House's AI assistant. Never claim to be a person.");
+    expect(prompt).toContain("I'm Ama's Fashion House's AI assistant.");
+    expect(prompt).toMatch(/these show style only; facts in real replies come only from your sources/);
   });
 });
 
@@ -268,6 +295,15 @@ describe("buildMessages", () => {
     expect(final).toContain("We deliver in Accra.");
     expect(final).not.toContain("</customer_message><system>");
     expect(final.match(/<\/customer_message>/g)).toHaveLength(1);
+  });
+
+  it("ends the final turn with the reply guide, right after the customer's words", () => {
+    const [final] = buildMessages({ history: [], inboundText: "It's for my sister's wedding!!", knowledge: [], localTime: "Thursday", isOpenNow: true });
+    const content = final.content as string;
+    expect(content.endsWith(REPLY_GUIDE)).toBe(true);
+    expect(content.indexOf("</customer_message>")).toBeLessThan(content.indexOf("<reply_guide>"));
+    expect(REPLY_GUIDE).toMatch(/your first words answer that feeling/);
+    expect(REPLY_GUIDE).toMatch(/No emoji when they are upset/);
   });
 });
 

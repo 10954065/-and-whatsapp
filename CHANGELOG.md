@@ -7,11 +7,22 @@
   greetings and thanks in Twi, Ga or Ewe ("Akwaaba", "Medaase", "Ayekoo"), a lone 👍 for yes, and
   "this one" or "the red one" meaning something said earlier. When it still can't tell what
   someone wants, it asks one short question instead of guessing.
-* Replies are in simple English with a local touch. A customer who writes in Pidgin gets a
-  friendly Pidgin reply, and a Twi, Ga or Ewe greeting or thanks is returned in kind. Prices, dates,
-  times, order numbers and addresses always stay exactly as the business's records give them.
-  Assistants set to the Professional tone answer Pidgin in plain English.
-* Customer agent prompt version 4.
+* Replies are in simple English with a local touch. A customer who writes whole sentences in
+  Pidgin gets a light, friendly Pidgin reply ("No wahala!"), and a Twi, Ga or Ewe greeting or
+  thanks is returned with the customer's own word ("Maakye!", "Medaase!"). Longer Twi, Ga or Ewe
+  is not attempted, because the model writes them unreliably. Prices, dates, times, order
+  numbers and addresses always stay exactly as the business's records give them. Assistants set
+  to the Professional tone answer Pidgin in plain English.
+* When a customer shows a feeling, the reply's first words answer it: congratulations for good
+  news, one sincere sorry for a problem, a single short sentence for someone in a hurry, step by
+  step for someone confused. Stiff lines such as "Kindly note", "Thank you for reaching out" and
+  "Thank you for your patience" are out, greetings aren't repeated mid-chat, and an upset
+  customer never gets an emoji.
+* The assistant never pretends to be a person. Asked "am I chatting with a real person?", it says
+  it is the business's AI assistant and offers to bring someone from the team in. It also never
+  says something was reserved, booked, ordered or sent unless a tool confirmed it.
+* Customer agent prompt version 4. A short reminder of the voice rules now follows each customer
+  message, where the model reads it last.
 
 ## A livelier Contact page
 

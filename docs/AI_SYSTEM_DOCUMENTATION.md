@@ -39,15 +39,21 @@ use keeps whatever state the provider needs. Configuration: `ENVIRONMENT_VARIABL
    guidance and owner instructions. It tells the model to read messages for meaning: typos and
    text-speak, Ghanaian English and Pidgin, Twi, Ga and Ewe greetings, emoji-only answers and
    references back to earlier messages, asking one short question rather than guessing. Replies
-   are in simple English with a local touch; Pidgin is mirrored (Professional tone answers it in
-   English), local-language greetings and thanks are returned in kind, and prices, dates, times,
-   order numbers and addresses stay exactly as the sources give them. The tone sets emoji use: Friendly, Warm and Playful add a
+   are in simple English with a local touch; whole-sentence Pidgin is mirrored (Professional tone
+   answers it in English), a Twi, Ga or Ewe greeting or thanks is returned with the customer's own
+   word and no other Twi, Ga or Ewe is written, and prices, dates, times, order numbers and
+   addresses stay exactly as the sources give them. A "Sounding human" section has the first words
+   answer the customer's feeling, bans stiff phrases, and states that the assistant is the
+   business's AI assistant and never claims to be a person; the ground-truth rules forbid saying
+   anything was reserved, booked, ordered or sent unless a tool confirmed it. `REPLY_GUIDE`
+   (`context.ts`) repeats the feeling, emoji and Pidgin rules after the customer's message,
+   because small models follow what they read last. The tone sets emoji use: Friendly, Warm and Playful add a
    sweet emoji where it fits (😊 🙏 ✨ 💛 🎉), Concise uses one at most and Professional none.
    For every tone the prompt keeps emoji to two per reply, out of prices, addresses and order
    or payment details, and out of replies to upset customers or serious subjects. It contains nothing volatile, so top-level
    `cache_control: ephemeral` caches it on Anthropic; cached tokens that OpenAI-compatible providers report are recorded too. The final user turn carries local time, open/closed
-   state, retrieved knowledge inside `<business_knowledge>` (declared untrusted) and the
-   customer's text inside `<customer_message>`; `<`/`>` in untrusted text are neutralised so
+   state, retrieved knowledge inside `<business_knowledge>` (declared untrusted), the
+   customer's text inside `<customer_message>` and then the `<reply_guide>`; `<`/`>` in untrusted text are neutralised so
    delimiters cannot be forged.
 5. **Tool loop** — at most 5 model calls, `tool_choice: auto` (forced tool choice is rejected
    by Claude 5.5 models), 1,024 output tokens (`max_completion_tokens` on OpenAI's own
