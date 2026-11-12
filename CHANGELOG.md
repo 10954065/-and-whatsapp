@@ -1,5 +1,16 @@
 # Changelog
 
+## A Content-Security-Policy, in report-only mode
+
+* Every page now sends a Content-Security-Policy, which tells the browser which scripts, images and
+  connections the page may use. If an attacker ever slipped a script into a page, an enforced policy
+  stops it from running.
+* For now the policy only reports: browsers send anything it would have blocked to the site's logs,
+  and nothing is blocked. Once a week of reports shows nothing legitimate is caught, it will be
+  switched to blocking.
+* Sign-in, sign-up, app and admin pages get the strictest version, where only scripts carrying a
+  fresh per-visit code may run. The marketing pages allow their own inline scripts.
+
 ## Bot protection on sign-in and sign-up
 
 * The sign-in, sign-up, forgot-password and contact forms now run Vercel BotID, an invisible

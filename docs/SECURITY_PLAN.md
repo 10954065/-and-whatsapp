@@ -47,6 +47,7 @@ every tenant service runs through it, the runtime `DATABASE_URL` can use a login
 | CSRF: Server Actions (Next.js Origin check) + `SameSite=Lax` cookies + `isSameOriginRequest` for cookie-authenticated Route Handlers | 🟡 |
 | Open-redirect protection (`safeRedirectPath`) | ✅ |
 | Security headers: HSTS, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy` | 🟡 |
+| Content-Security-Policy, **report-only** for now: a per-visit nonce with `'strict-dynamic'` on sign-in, app and admin pages (`src/proxy.ts`), and `'unsafe-inline'` scripts on the pre-built marketing pages; violations are logged by `POST /api/csp-report` (once per instance, queries stripped). Switch the header to enforcing once the reports are clean | ✅ `tests/unit/csp.test.ts`, `tests/e2e/csp.spec.ts` |
 | XSS: React escaping; email templates HTML-escape all inputs; no `dangerouslySetInnerHTML` | 🟡 |
 | Input validation with Zod at every Server Action boundary | ✅ |
 | SQL injection: Prisma query builder and tagged-template raw SQL only | 🟡 |

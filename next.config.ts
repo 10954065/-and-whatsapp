@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { withBotId } from "botid/next/config";
+import { CSP_HEADER, staticPagePolicy, staticPagesSource } from "./src/lib/security/csp";
 
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -35,7 +36,14 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // Pages rendered per visit get a nonce policy from src/proxy.ts instead.
+      {
+        source: staticPagesSource(),
+        headers: [{ key: CSP_HEADER, value: staticPagePolicy(process.env.NODE_ENV === "development") }],
+      },
+    ];
   },
 };
 

@@ -16,6 +16,7 @@ endpoints below exist for providers (webhooks, OAuth, payments, queue), for oper
 | `GET /api/billing/paystack/callback` | Owner's browser after checkout | None needed — triggers server-side verification only |
 | `POST /api/queue/qstash` | Upstash QStash | `Upstash-Signature` (HS256 JWT, current/next signing key) |
 | `GET /api/export/business` | Workspace owner | Session cookie, owner role, rate limited |
+| `POST /api/csp-report` | Browsers (CSP violation reports) | None; body capped at 16 KB |
 
 ## `GET /api/health`
 
@@ -106,6 +107,21 @@ Responses:
 * `401` for a bad signature, `400` for a bad body.
 * Otherwise `200 {"ran": boolean, "succeeded": boolean}`. `ran` is false when the job was
   already taken or finished, so duplicate deliveries are harmless.
+
+## CSP violation reports
+
+Browsers post here when the Content-Security-Policy (`src/lib/security/csp.ts`) would block something.
+Both formats are accepted: `report-uri` (`{"csp-report": {...}}`) and the Reporting API (an array of
+`{type, body}`).
+
+Each server instance logs a distinct violation once, as `security.csp_violation`, with:
+* the page path;
+* the directive;
+* the blocked origin and path;
+* the source file and line.
+
+Query strings are dropped and nothing is stored. After 500 distinct violations, an instance stops
+logging new ones. It answers `204`, or `413` for bodies over 16 KB.
 
 ## Workspace export
 
