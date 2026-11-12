@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function PageHero({ eyebrow, title, children }: { eyebrow: string; title: ReactNode; children?: ReactNode }) {
+export function PageHero({ eyebrow, title, children, footer }: { eyebrow: string; title: ReactNode; children?: ReactNode; footer?: ReactNode }) {
   return (
     <section className="grain relative overflow-hidden border-b">
       <div aria-hidden="true" className="pointer-events-none absolute -top-48 -right-40 size-136 rounded-full bg-sun-soft" />
@@ -14,6 +14,7 @@ export function PageHero({ eyebrow, title, children }: { eyebrow: string; title:
         </p>
         <h1 className="mt-6 max-w-4xl font-display text-5xl leading-[0.98] font-normal tracking-[-0.018em] sm:text-7xl">{title}</h1>
         {children ? <div className="mt-7 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">{children}</div> : null}
+        {footer ? <div className="mt-10">{footer}</div> : null}
       </div>
     </section>
   );

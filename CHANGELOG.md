@@ -9,6 +9,8 @@
 * Each card is tinted in its drawing's colour, and under the customer's question it shows what
   SUNLEON AI checks before answering: a field the template asks you to fill in, or a tool it
   turns on, such as stock levels or free appointment slots. Cards in a row now line up.
+* A pen stroke underlines "Eleven" in the heading, and a row of chips under the intro jumps
+  straight to each industry. On phones the chips sit in one row you can swipe.
 
 ## Tighter rate limits
 
