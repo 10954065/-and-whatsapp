@@ -1,5 +1,10 @@
 # Changelog
 
+## A livelier Solutions page
+
+* A pen stroke underlines "need." in the heading, and chips under the intro jump to each of the
+  four results.
+
 ## A livelier Features page
 
 * A pen stroke underlines "operations." in the heading, and a row of chips under the intro jumps
